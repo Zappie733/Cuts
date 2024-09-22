@@ -46,7 +46,7 @@ export const WelcomeScreen = ({
             },
           ]}
         >
-          <Logo />
+          <Logo size={240} iconSize={30} numIcons={16} />
         </View>
 
         <View style={styles.contentContainer}>

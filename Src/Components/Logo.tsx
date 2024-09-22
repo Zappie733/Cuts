@@ -2,20 +2,22 @@ import { Animated, Image, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useRef } from "react";
 import { colors } from "../Config/Theme";
 import { Entypo } from "@expo/vector-icons";
+import { ILogoProps } from "../Types/LogoTypes";
 
-export const Logo = () => {
+export const Logo = ({ size, iconSize, numIcons }: ILogoProps) => {
   let activeColors = colors.dark;
 
-  const iconSize = 30;
-  const numIcons = 16;
-  const radius = 140;
+  // const iconSize = 30;
+  // const numIcons = 16;
+  // const radius = 140;
+  const radius = (size + 30) / 2;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
-        duration: 30000, // Duration of the animation (10 seconds)
+        duration: size * 120, // Duration of the animation (10 seconds)
         useNativeDriver: true,
       })
     ).start();
@@ -34,7 +36,7 @@ export const Logo = () => {
       const x = radius * Math.cos(angle);
       const y = radius * Math.sin(angle);
 
-      const adjustment = (i * 360) / 16;
+      const adjustment = (i * 360) / numIcons;
       let rotateAngle = 180 + adjustment;
 
       // console.log(adjustment);
@@ -77,6 +79,8 @@ export const Logo = () => {
         style={[
           styles.logo,
           {
+            width: size,
+            height: size,
             backgroundColor: activeColors.accent,
           },
         ]}
@@ -112,8 +116,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   logo: {
-    width: 250,
-    height: 250,
+    // width: 250,
+    // height: 250,
     borderRadius: 150,
   },
 });
