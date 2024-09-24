@@ -11,13 +11,14 @@ import {
   View,
   Modal,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Header } from "../Components/Header";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { colors } from "../Config/Theme";
 import { Input } from "../Components/Input";
 import { IRegistrationProps } from "../Types/RegisterScreenTypes";
 import { AntDesign } from "@expo/vector-icons";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const RegisterScreen = ({
   navigation,
@@ -29,7 +30,9 @@ export const RegisterScreen = ({
 
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
-  let activeColors = colors.dark;
+
+  const { theme } = useContext(Theme);
+  let activeColors = colors[theme.mode];
 
   const [isModalVisible, setModalVisible] = useState(false);
 
@@ -320,6 +323,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
     marginVertical: 10,
+    fontWeight: "500",
   },
   title: {
     fontSize: 40,

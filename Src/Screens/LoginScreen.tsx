@@ -12,13 +12,14 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Header } from "../Components/Header";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { colors } from "../Config/Theme";
 import { Input } from "../Components/Input";
 import { ILoginProps } from "../Types/LoginScreenTypes";
 import { Logo } from "../Components/Logo";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const LoginScreen = ({
   navigation,
@@ -30,7 +31,9 @@ export const LoginScreen = ({
 
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
-  let activeColors = colors.dark;
+
+  const { theme } = useContext(Theme);
+  let activeColors = colors[theme.mode];
 
   const defaultUserLoginFormData: ILoginProps = {
     email: "",
@@ -39,6 +42,7 @@ export const LoginScreen = ({
   const [userLoginFormData, setUserLoginFormData] = useState<ILoginProps>(
     defaultUserLoginFormData
   );
+  console.log(userLoginFormData);
   const handleLoginTextChange = (text: string, fieldname: string) => {
     setUserLoginFormData({ ...userLoginFormData, [fieldname]: text });
   };

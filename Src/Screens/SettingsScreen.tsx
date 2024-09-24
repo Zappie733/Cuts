@@ -1,13 +1,15 @@
 import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useContext } from "react";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { colors } from "../Config/Theme";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const SettingsScreen = ({
   navigation,
   route,
 }: TabsStackScreenProps<"Settings">) => {
-  let activeColors = colors.dark;
+  const { theme } = useContext(Theme);
+  let activeColors = colors[theme.mode];
 
   return (
     <View style={[styles.container, { backgroundColor: activeColors.primary }]}>

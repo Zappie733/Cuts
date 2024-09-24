@@ -13,6 +13,9 @@ import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { colors } from "../Config/Theme";
 import { Logo } from "../Components/Logo";
 import { Zocial, AntDesign } from "@expo/vector-icons";
+import { Theme } from "../Contexts/ThemeContext";
+import { useContext } from "react";
+import { StatusBar } from "expo-status-bar";
 
 export const WelcomeScreen = ({
   navigation,
@@ -20,7 +23,9 @@ export const WelcomeScreen = ({
 }: RootStackScreenProps<"Welcome">) => {
   const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
-  let activeColors = colors.dark;
+
+  const { theme } = useContext(Theme);
+  let activeColors = colors[theme.mode];
 
   const navigateToLoginScreen = () => {
     navigation.navigate("LoginScreen");
@@ -33,6 +38,12 @@ export const WelcomeScreen = ({
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.primary }]}
     >
+      <StatusBar
+        hidden={false}
+        style={theme.mode === "dark" ? "light" : "dark"}
+        backgroundColor={activeColors.primary}
+      />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{ width: screenWidth }}
