@@ -64,7 +64,7 @@ export const Input = ({
           borderWidth,
           borderColor: borderColorAnimation,
           backgroundColor: activeColors.secondary,
-          marginTop: isVisible ? 30 : 10,
+          marginTop: isVisible ? 20 : 10,
         },
       ]}
     >
@@ -74,7 +74,7 @@ export const Input = ({
             color: activeColors.tertiary,
             position: "absolute",
             top: -20,
-            left: 5,
+            left: 12,
             fontSize: 15,
           }}
         >
@@ -100,9 +100,18 @@ export const Input = ({
               style={styles.icon}
             />
           )}
+          {iconSource === "Feather" && (
+            <Feather
+              name={iconName as keyof typeof Feather.glyphMap}
+              size={24}
+              color={activeColors.tertiary}
+              style={styles.icon}
+            />
+          )}
           <TextInput
             style={[styles.textInput, { color: activeColors.accent }]}
             placeholder={placeholder}
+            placeholderTextColor={activeColors.accent}
             secureTextEntry={isHidden === undefined ? false : isHidden}
             value={value}
             onChangeText={updateValue}
@@ -120,6 +129,7 @@ export const Input = ({
             { color: activeColors.accent, paddingHorizontal: 10 },
           ]}
           placeholder={placeholder}
+          placeholderTextColor={activeColors.accent}
           secureTextEntry={isHidden === undefined ? false : isHidden}
           value={value}
           onChangeText={updateValue}
@@ -149,7 +159,7 @@ export const Input = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 8,
+    borderRadius: 18,
     width,
     paddingVertical: 8,
     justifyContent: "center",

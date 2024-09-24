@@ -48,6 +48,14 @@ export const LoginScreen = ({
     setShowPassword(condition);
   };
 
+  const handleLogin = () => {
+    console.log("login");
+  };
+
+  const handleForgotPassword = () => {
+    console.log("forgot password");
+  };
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.primary }]}
@@ -64,6 +72,11 @@ export const LoginScreen = ({
           style={{ width: screenWidth }}
         >
           <View style={styles.loginScrollContainer}>
+            {/* Title */}
+            <Text style={[styles.title, { color: activeColors.accent }]}>
+              Welcome Back to Cuts!
+            </Text>
+
             {/* Logo */}
             <View
               style={[
@@ -73,46 +86,106 @@ export const LoginScreen = ({
                 },
               ]}
             >
-              <Logo size={120} iconSize={24} numIcons={12} />
+              <Logo size={150} iconSize={24} numIcons={12} />
             </View>
 
-            <Text style={[styles.title, { color: activeColors.accent }]}>
-              Welcome Back to Cuts!
-            </Text>
+            {/* Little Text */}
             <Text style={[styles.text, { color: activeColors.tertiary }]}>
-              Please login to your account
+              "
+              <Text style={{ color: activeColors.accent }}>
+                Ready for a Fresh Cut?
+              </Text>
+              "
             </Text>
 
-            <Input
-              key="loginEmail"
-              context="Email"
-              placeholder="Enter Your Email"
-              value={userLoginFormData.email}
-              updateValue={(text: string) =>
-                handleLoginTextChange(text, "email")
-              }
-              iconName="email-outline"
-              iconSource="MaterialCommunityIcons"
-            />
+            {/* Inputs */}
+            <View style={{ top: -10 }}>
+              {/* Email Input */}
+              <Input
+                key="loginEmail"
+                context="Email"
+                placeholder="Enter Your Email"
+                value={userLoginFormData.email}
+                updateValue={(text: string) =>
+                  handleLoginTextChange(text, "email")
+                }
+                iconName="email-outline"
+                iconSource="MaterialCommunityIcons"
+              />
+              {/* Password Input */}
+              <Input
+                key="loginPassword"
+                context="Password"
+                isHidden={showPassword}
+                setHidden={setShowPassword}
+                placeholder="Enter Your Password"
+                value={userLoginFormData.password}
+                updateValue={(text: string) =>
+                  handleLoginTextChange(text, "password")
+                }
+                iconName="lock"
+                iconSource="Octicons"
+              />
+            </View>
 
-            <Input
-              key="loginPassword"
-              context="Password"
-              isHidden={showPassword}
-              setHidden={setShowPassword}
-              placeholder="Enter Your Password"
-              value={userLoginFormData.password}
-              updateValue={(text: string) =>
-                handleLoginTextChange(text, "password")
-              }
-              iconName="lock"
-              iconSource="Octicons"
-            />
-            {/* <Pressable onPress={() => navigation.navigate("RegisterScreen")}>
-          <Text style={{ fontSize: 20, color: "white" }}>
-            Go to Register Screen
-          </Text>
-        </Pressable> */}
+            {/* Login Button */}
+            <Pressable onPress={handleLogin}>
+              <Text
+                style={[
+                  styles.loginButton,
+                  {
+                    color: activeColors.secondary,
+                    backgroundColor: activeColors.accent,
+                    width: (screenWidth * 2) / 3 + 50,
+                  },
+                ]}
+              >
+                Login
+              </Text>
+            </Pressable>
+
+            {/* Forgot Password Button */}
+            <Pressable onPress={handleForgotPassword}>
+              <Text
+                style={[
+                  styles.forgotPasswordButton,
+                  {
+                    color: activeColors.accent,
+                  },
+                ]}
+              >
+                Forgot Your Password?
+              </Text>
+            </Pressable>
+
+            {/* Break Line */}
+            <View
+              style={{
+                marginTop: 10,
+                borderWidth: 1,
+                backgroundColor: activeColors.secondary,
+                borderColor: activeColors.secondary,
+                width: "100%",
+              }}
+            ></View>
+
+            {/* Register Button */}
+            <Pressable onPress={() => navigation.navigate("RegisterScreen")}>
+              <Text
+                style={[
+                  styles.registerButton,
+                  {
+                    color: activeColors.tertiary,
+                  },
+                ]}
+              >
+                Don't have an account?
+                <Text style={{ color: activeColors.accent, fontWeight: "500" }}>
+                  {" "}
+                  Register
+                </Text>
+              </Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -128,14 +201,18 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: "center",
     justifyContent: "center",
+    top: -15,
   },
   title: {
-    fontSize: 26,
+    fontSize: 40,
     marginBottom: 5,
+    fontWeight: "600",
+    marginTop: 20,
   },
   text: {
-    fontSize: 20,
-    marginBottom: 40,
+    fontSize: 22,
+    fontWeight: "400",
+    top: -25,
   },
   loginContainer: {
     flex: 1,
@@ -144,5 +221,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
+  },
+  loginButton: {
+    paddingVertical: 12,
+    borderRadius: 50,
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  forgotPasswordButton: {
+    fontSize: 13,
+    marginTop: 20,
+    fontWeight: "500",
+  },
+  registerButton: {
+    marginTop: 20,
+    paddingBottom: 30,
   },
 });

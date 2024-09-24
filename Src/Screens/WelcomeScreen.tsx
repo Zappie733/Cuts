@@ -46,7 +46,7 @@ export const WelcomeScreen = ({
             },
           ]}
         >
-          <Logo size={240} iconSize={30} numIcons={16} />
+          <Logo size={220} iconSize={30} numIcons={16} />
         </View>
 
         <View style={styles.contentContainer}>
@@ -64,7 +64,7 @@ export const WelcomeScreen = ({
             style={[
               styles.loginContainer,
               {
-                backgroundColor: activeColors.secondary,
+                backgroundColor: activeColors.accent,
                 width: 0.75 * screenWidth,
               },
             ]}
@@ -72,10 +72,10 @@ export const WelcomeScreen = ({
             <AntDesign
               name="login"
               size={18}
-              color={activeColors.accent}
+              color={activeColors.tertiary}
               style={styles.buttonIcon}
             />
-            <Text style={[styles.text, { color: activeColors.accent }]}>
+            <Text style={[styles.text, { color: activeColors.secondary }]}>
               Login to an Account
             </Text>
           </Pressable>
@@ -93,7 +93,7 @@ export const WelcomeScreen = ({
             <Zocial
               name="guest"
               size={18}
-              color={activeColors.accent}
+              color={activeColors.tertiary}
               style={styles.buttonIcon}
             />
             <Text style={[styles.text, { color: activeColors.accent }]}>
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     alignItems: "center",
-    top: -60,
+    top: -75,
   },
   title: {
     fontSize: 40,
@@ -133,9 +133,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
-    marginTop: 50,
+    marginTop: 40,
     padding: 20,
-    borderRadius: 20,
+    borderRadius: 50,
   },
   text: {
     fontSize: 20,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     marginTop: 10,
     padding: 20,
-    borderRadius: 20,
+    borderRadius: 50,
   },
   buttonIcon: {
     marginLeft: 20,

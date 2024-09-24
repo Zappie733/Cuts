@@ -6,5 +6,5 @@ export interface IInputProps {
   value: string;
   updateValue: (text: string) => void;
   iconName?: string;
-  iconSource?: "MaterialCommunityIcons" | "Octicons";
+  iconSource?: "MaterialCommunityIcons" | "Octicons" | "Feather";
 }
