@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useContext } from "react";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { colors } from "../Config/Theme";
@@ -8,12 +8,23 @@ export const SettingsScreen = ({
   navigation,
   route,
 }: TabsStackScreenProps<"Settings">) => {
-  const { theme } = useContext(Theme);
+  const { theme, changeTheme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
   return (
     <View style={[styles.container, { backgroundColor: activeColors.primary }]}>
-      <Text>SettingScreen</Text>
+      <Text style={{ color: activeColors.tertiary, fontSize: 30 }}>
+        Theme: {theme.mode}
+      </Text>
+      <Pressable
+        onPress={() => {
+          changeTheme();
+        }}
+      >
+        <Text style={{ color: activeColors.accent, fontSize: 30 }}>
+          Change Theme
+        </Text>
+      </Pressable>
     </View>
   );
 };
