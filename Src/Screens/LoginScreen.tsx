@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   Image,
   Keyboard,
@@ -20,6 +21,8 @@ import { Input } from "../Components/Input";
 import { ILoginProps } from "../Types/LoginScreenTypes";
 import { Logo } from "../Components/Logo";
 import { Theme } from "../Contexts/ThemeContext";
+import { IResponseProps } from "../Types/ResponseTypes";
+import { loginUser } from "../Middlewares/UserMiddlewares";
 
 export const LoginScreen = ({
   navigation,
@@ -52,8 +55,22 @@ export const LoginScreen = ({
     setShowPassword(condition);
   };
 
-  const handleLogin = () => {
-    console.log("login");
+  const handleLogin = async () => {
+    console.log("Login Process");
+    const result: IResponseProps = await loginUser(userLoginFormData);
+    console.log(JSON.stringify(result, null, 2));
+
+    if (result.status >= 200 && result.status < 400) {
+      Keyboard.dismiss();
+      Alert.alert("Success", result.response.message);
+      setUserLoginFormData(defaultUserLoginFormData);
+
+      setTimeout(() => {
+        navigation.navigate("TabsStack", { screen: "Home" });
+      }, 2000);
+    } else {
+      Alert.alert("Registration Error", result.response.message);
+    }
   };
 
   const handleForgotPassword = () => {

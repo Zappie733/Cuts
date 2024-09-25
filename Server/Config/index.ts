@@ -11,3 +11,5 @@ export const MONGODB_URI = process.env.DB || "";
 export const JWTPRIVATEKEY = process.env.JWTPRIVATEKEY || "";
 
 //For production, use secret managers to securely store things like DB credentials and JWTPRIVATEKEY, rather than environment files.
+
+export const SALT = 10;

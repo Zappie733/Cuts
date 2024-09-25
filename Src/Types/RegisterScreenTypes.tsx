@@ -4,5 +4,6 @@ export interface IRegistrationProps {
   email: string;
   password: string;
   confirmPassword: string;
-  mobileNo: string;
+  phone: string;
+  role: "user"; //admin tidak boleh register dari app, langsung lewat api atua db.
 }

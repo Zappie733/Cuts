@@ -10,6 +10,8 @@ import {
   Text,
   View,
   Modal,
+  Keyboard,
+  Alert,
 } from "react-native";
 import React, { useContext, useState } from "react";
 import { Header } from "../Components/Header";
@@ -19,6 +21,8 @@ import { Input } from "../Components/Input";
 import { IRegistrationProps } from "../Types/RegisterScreenTypes";
 import { AntDesign } from "@expo/vector-icons";
 import { Theme } from "../Contexts/ThemeContext";
+import { registerUser } from "../Middlewares/UserMiddlewares";
+import { IResponseProps } from "../Types/ResponseTypes";
 
 export const RegisterScreen = ({
   navigation,
@@ -47,26 +51,30 @@ export const RegisterScreen = ({
     email: "",
     password: "",
     confirmPassword: "",
-    mobileNo: "",
+    phone: "",
+    role: "user",
   };
-  const [userRegisterFormData, setuserRegisterFormData] =
+  const [userRegisterFormData, setUserRegisterFormData] =
     useState<IRegistrationProps>(defaultUserRegisterFormData);
   const handleRegisterTextChange = (text: string, fieldname: string) => {
-    setuserRegisterFormData({ ...userRegisterFormData, [fieldname]: text });
+    setUserRegisterFormData({ ...userRegisterFormData, [fieldname]: text });
   };
   console.log(userRegisterFormData);
   const [showPassword, setShowPassword] = useState(true);
-  const handleShowPassword = (condition: boolean) => {
-    setShowPassword(condition);
-  };
-
   const [showCPassword, setShowCPassword] = useState(true);
-  const handleShowCPassword = (condition: boolean) => {
-    setShowCPassword(condition);
-  };
 
-  const handleRegister = () => {
-    console.log("register");
+  const handleRegister = async () => {
+    console.log("Register Process");
+    const result: IResponseProps = await registerUser(userRegisterFormData);
+    console.log(JSON.stringify(result, null, 2));
+
+    if (result.status >= 200 && result.status < 400) {
+      Keyboard.dismiss();
+      Alert.alert("Success", result.response.message);
+      setUserRegisterFormData(defaultUserRegisterFormData);
+    } else {
+      Alert.alert("Registration Error", result.response.message);
+    }
   };
 
   return (
@@ -189,12 +197,12 @@ export const RegisterScreen = ({
               />
               {/* Mobile Number Input */}
               <Input
-                key="registerMobileNo"
-                context="Mobile Number"
-                placeholder="Enter Your Mobile Number"
-                value={userRegisterFormData.mobileNo}
+                key="registerPhone"
+                context="Phone Number"
+                placeholder="Enter Your Phone Number"
+                value={userRegisterFormData.phone}
                 updateValue={(text: string) =>
-                  handleRegisterTextChange(text, "mobileNo")
+                  handleRegisterTextChange(text, "phone")
                 }
                 iconName="phone"
                 iconSource="Feather"
