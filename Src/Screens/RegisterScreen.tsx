@@ -13,7 +13,7 @@ import {
   Keyboard,
   Alert,
 } from "react-native";
-import React, { useContext, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Header } from "../Components/Header";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { colors } from "../Config/Theme";
@@ -21,8 +21,9 @@ import { Input } from "../Components/Input";
 import { IRegistrationProps } from "../Types/RegisterScreenTypes";
 import { AntDesign } from "@expo/vector-icons";
 import { Theme } from "../Contexts/ThemeContext";
-import { registerUser } from "../Middlewares/UserMiddlewares";
+import { registerUser } from "../Middlewares/AuthMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
+import { useFocusEffect } from "@react-navigation/native";
 
 export const RegisterScreen = ({
   navigation,
@@ -70,12 +71,25 @@ export const RegisterScreen = ({
 
     if (result.status >= 200 && result.status < 400) {
       Keyboard.dismiss();
-      Alert.alert("Success", result.response.message);
+      Alert.alert("Success", result.message);
       setUserRegisterFormData(defaultUserRegisterFormData);
+
+      setTimeout(() => {
+        navigation.navigate("LoginScreen");
+      }, 2000);
     } else {
-      Alert.alert("Registration Error", result.response.message);
+      Alert.alert("Registration Error", result.message);
     }
   };
+
+  useEffect(() => {
+    setUserRegisterFormData(defaultUserRegisterFormData);
+  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setUserRegisterFormData(defaultUserRegisterFormData);
+    }, [])
+  );
 
   return (
     <SafeAreaView

@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { IColorProps } from "../Types/ColorTypes";
+import { IColorProps } from "../Types/ThemeContextTypes";
 
-export const storeDataToAsyncStorage = async (
+export const storeDataToAsyncStorage = async <T = {},>(
   key: string,
-  value: IColorProps
+  value: T
 ) => {
   try {
     await AsyncStorage.setItem(key, JSON.stringify(value));
@@ -15,7 +15,7 @@ export const storeDataToAsyncStorage = async (
 
 export const getDataFromAsyncStorage = async (key: string) => {
   try {
-    const storedState = await AsyncStorage.getItem("theme");
+    const storedState = await AsyncStorage.getItem(key);
     console.log(
       `get ${key} from AsyncStorage`,
       storedState,

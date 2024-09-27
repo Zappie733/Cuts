@@ -42,12 +42,12 @@ const UserSchema = new Schema(
   }
 );
 
-UserSchema.methods.generateAuthToken = function () {
-  const token = jwt.sign({ id: this._id }, JWTPRIVATEKEY, { expiresIn: "1d" });
-  if (!token) {
-    return {};
-  }
-  return token;
-};
+// UserSchema.methods.generateAuthToken = function () {
+//   const token = jwt.sign({ id: this._id }, JWTPRIVATEKEY, { expiresIn: "30m" });
+//   if (!token) {
+//     return {};
+//   }
+//   return token;
+// };
 
-export const USERS = mongoose.model<UserObj>("users", UserSchema);
+export const USERS = mongoose.model<UserObj>("Users", UserSchema);

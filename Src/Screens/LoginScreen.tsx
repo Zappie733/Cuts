@@ -13,7 +13,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import React, { useContext, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Header } from "../Components/Header";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { colors } from "../Config/Theme";
@@ -21,8 +21,11 @@ import { Input } from "../Components/Input";
 import { ILoginProps } from "../Types/LoginScreenTypes";
 import { Logo } from "../Components/Logo";
 import { Theme } from "../Contexts/ThemeContext";
+import { loginUser } from "../Middlewares/AuthMiddleware";
+import { Auth } from "../Contexts/AuthContext";
 import { IResponseProps } from "../Types/ResponseTypes";
-import { loginUser } from "../Middlewares/UserMiddlewares";
+import { LoginDataResponse } from "../Types/ResponseTypes/AuthResponse";
+import { useFocusEffect } from "@react-navigation/native";
 
 export const LoginScreen = ({
   navigation,
@@ -55,27 +58,42 @@ export const LoginScreen = ({
     setShowPassword(condition);
   };
 
+  const { auth, setAuth } = useContext(Auth);
+
   const handleLogin = async () => {
     console.log("Login Process");
-    const result: IResponseProps = await loginUser(userLoginFormData);
+    const result: IResponseProps<LoginDataResponse> = await loginUser(
+      userLoginFormData
+    );
     console.log(JSON.stringify(result, null, 2));
 
     if (result.status >= 200 && result.status < 400) {
       Keyboard.dismiss();
-      Alert.alert("Success", result.response.message);
+      Alert.alert("Success", result.message);
       setUserLoginFormData(defaultUserLoginFormData);
+
+      if (result.data) setAuth(result.data);
 
       setTimeout(() => {
         navigation.navigate("TabsStack", { screen: "Home" });
       }, 2000);
     } else {
-      Alert.alert("Registration Error", result.response.message);
+      Alert.alert("Login Error", result.message);
     }
   };
 
   const handleForgotPassword = () => {
     console.log("forgot password");
   };
+
+  useEffect(() => {
+    setUserLoginFormData(defaultUserLoginFormData);
+  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setUserLoginFormData(defaultUserLoginFormData);
+    }, [])
+  );
 
   return (
     <SafeAreaView

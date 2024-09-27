@@ -1,7 +1,2 @@
-//response
-export interface ResponseObj {
-  data: {} | void;
-  message: string;
-}
-
 export * from "./Users";
+export * from "./UserToken";

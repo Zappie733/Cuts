@@ -4,6 +4,7 @@ import { API_HOST, API_PORT } from "../Config/Api";
 import { IRegistrationProps } from "../Types/RegisterScreenTypes";
 import { ILoginProps } from "../Types/LoginScreenTypes";
 import { IResponseProps } from "../Types/ResponseTypes";
+import { LoginDataResponse } from "../Types/ResponseTypes/AuthResponse";
 
 export const registerUser = async ({
   firstName,
@@ -25,78 +26,69 @@ export const registerUser = async ({
       role,
     };
 
-    const response = await axios.post(
+    const result = await axios.post(
       `http://${API_HOST}:${API_PORT}/user/registerUser`,
       registerData
     );
+    console.log(JSON.stringify(result, null, 2));
+
+    const { status, data } = result;
 
     return <IResponseProps>{
-      status: response.status,
-      response: {
-        data: response.data.data,
-        message: response.data.message,
-      },
+      status,
+      message: data.message,
     };
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.log("Axios Error message:", error.message);
       return <IResponseProps>{
         status: error.status,
-        response: {
-          data: {},
-          message: error.response?.data.message,
-        },
+        message: error.response?.data.message,
       };
     } else {
       console.log("Unexpected error:", error);
       return <IResponseProps>{
         status: 500,
-        response: {
-          data: {},
-          message: "Unexpected Error Occurred",
-        },
+        message: "Unexpected Error Occurred",
       };
     }
   }
 };
 
-export const loginUser = async ({ email, password }: ILoginProps) => {
+export const loginUser = async ({
+  email,
+  password,
+}: ILoginProps): Promise<IResponseProps<LoginDataResponse>> => {
   try {
     const loginData: ILoginProps = {
       email,
       password,
     };
 
-    const response = await axios.post(
+    const result = await axios.post(
       `http://${API_HOST}:${API_PORT}/user/loginUser`,
       loginData
     );
 
-    return <IResponseProps>{
-      status: response.status,
-      response: {
-        data: response.data.data,
-        message: response.data.message,
-      },
+    const { status, data } = result;
+
+    return {
+      status: status,
+      data: data.data,
+      message: data.message,
     };
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.log("Axios Error message:", error.message);
-      return <IResponseProps>{
-        status: error.status,
-        response: {
-          data: {},
-          message: error.response?.data.message,
-        },
+      return {
+        status: error.status ? error.status : 500,
+        message: error.response?.data.message,
       };
     } else {
       console.log("Unexpected error:", error);
-      return <IResponseProps>{
+      return {
         status: 500,
-        response: {
-          data: {},
-          message: "Unexpected Error Occurred",
-        },
+        message: "Unexpected Error Occurred",
       };
     }
   }

@@ -1,13 +1,15 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { RootNavigator } from "./Src/Navigations/RootNavigator";
-import { ThemeContext } from "./Src/Contexts/ThemeContext";
+import { ThemeContext, AuthContext } from "./Src/Contexts";
 
 export default function App() {
   return (
-    <ThemeContext>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
-    </ThemeContext>
+    <AuthContext>
+      <ThemeContext>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </ThemeContext>
+    </AuthContext>
   );
 }

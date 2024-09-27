@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useEffect, useRef, useState } from "react";
-import { IColorProps, IThemeContext } from "../Types/ColorTypes";
+import { IColorProps, IThemeContext } from "../Types/ThemeContextTypes";
 import {
   storeDataToAsyncStorage,
   getDataFromAsyncStorage,
