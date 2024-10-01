@@ -6,8 +6,9 @@ export interface UserObj {
   password: string;
   confirmPassword?: string;
   phone: string;
-  role: "admin" | "user";
-  generateAuthToken: () => void;
+  role: "admin" | "user" | "store";
+  // generateAuthToken: () => void;
+  verified: boolean;
 }
 
 export interface AuthUser {

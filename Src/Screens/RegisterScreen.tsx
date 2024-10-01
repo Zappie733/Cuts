@@ -60,7 +60,7 @@ export const RegisterScreen = ({
   const handleRegisterTextChange = (text: string, fieldname: string) => {
     setUserRegisterFormData({ ...userRegisterFormData, [fieldname]: text });
   };
-  console.log(userRegisterFormData);
+  //console.log(userRegisterFormData);
   const [showPassword, setShowPassword] = useState(true);
   const [showCPassword, setShowCPassword] = useState(true);
 
@@ -310,7 +310,7 @@ export const RegisterScreen = ({
             >
               • Book online reservation{"\n"}• Rate places and products
               {"\n"}• See and Like posts{"\n"}• Wishlist functionality {"\n"}•
-              And much more!
+              Light&Dark Theme
             </Text>
             {/* Close Button */}
             <Pressable

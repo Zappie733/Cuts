@@ -1,9 +1,3 @@
-export interface LoginDataResponse {
-  _id: string;
-  accessToken: string;
-  refreshToken: string;
-}
-
 export interface UserProfileResponse {
   _id: string;
   firstName: string;
@@ -12,8 +6,4 @@ export interface UserProfileResponse {
   phone: string;
   role: "admin" | "user" | "store";
   verified: boolean;
-}
-
-export interface GetNewAccessTokenResponse {
-  accessToken: string;
 }

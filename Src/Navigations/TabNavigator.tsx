@@ -1,5 +1,5 @@
 import { Settings, StyleSheet, Text } from "react-native";
-import React, { Children } from "react";
+import React, { Children, useContext } from "react";
 import {
   BottomTabScreenProps,
   createBottomTabNavigator,
@@ -10,6 +10,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { HomeScreen } from "../Screens/HomeScreen";
 import { colors } from "../Config/Theme";
 import { SettingsScreen } from "../Screens/SettingsScreen";
+import { Theme, Auth } from "../Contexts/";
+import { refreshTokenPayloadObj } from "../Types/AuthContextTypes";
 
 export type TabsStackParamsObj = {
   Home: undefined;
@@ -25,7 +27,13 @@ export type TabsStackScreenProps<T extends keyof TabsStackParamsObj> =
   >;
 
 export const TabsNavigator = () => {
-  let activeColors = colors.dark;
+  const { theme } = useContext(Theme);
+  let activeColors = colors[theme.mode];
+
+  const { getRefreshTokenPayload } = useContext(Auth);
+  const payload = getRefreshTokenPayload();
+
+  const role = payload?.role;
 
   return (
     <TabsStack.Navigator
@@ -73,8 +81,31 @@ export const TabsNavigator = () => {
         tabBarActiveBackgroundColor: activeColors.primary,
       })}
     >
-      <TabsStack.Screen name="Home" component={HomeScreen} />
-      <TabsStack.Screen name="Settings" component={SettingsScreen} />
+      {role === undefined && (
+        <>
+          {console.log("bottom tab guest")}
+          <TabsStack.Screen name="Home" component={HomeScreen} />
+        </>
+      )}
+      {role === "user" && (
+        <>
+          {console.log("bottom tab user")}
+          <TabsStack.Screen name="Home" component={HomeScreen} />
+          <TabsStack.Screen name="Settings" component={SettingsScreen} />
+        </>
+      )}
+      {role === "admin" && (
+        <>
+          {console.log("bottom tab admin")}
+          <TabsStack.Screen name="Settings" component={SettingsScreen} />
+        </>
+      )}
+      {role === "store" && (
+        <>
+          {console.log("bottom tab store")}
+          <TabsStack.Screen name="Settings" component={SettingsScreen} />
+        </>
+      )}
     </TabsStack.Navigator>
   );
 };

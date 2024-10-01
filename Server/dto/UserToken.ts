@@ -3,11 +3,15 @@ export interface UserTokenObj {
   refreshToken: string;
 }
 
-export interface RefreshTokenObj {
+export interface RefreshToken {
   refreshToken: string;
+}
+
+export interface AccessToken {
+  accessToken: string;
 }
 
 export interface PayloadObj {
   _id: string;
-  roles: string;
+  role: string;
 }

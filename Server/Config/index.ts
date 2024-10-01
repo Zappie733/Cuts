@@ -17,4 +17,12 @@ export const ACCESS_TOKEN_PRIVATE_KEY =
   process.env.ACCESS_TOKEN_PRIVATE_KEY || "";
 //For production, use secret managers to securely store things like DB credentials and JWTPRIVATEKEY, rather than environment files.
 
-export const SALT = 10;
+export const SALT = process.env.SALT;
+
+export const BASE_URL = process.env.BASE_URL || "";
+export const EMAILHOST = process.env.EMAILHOST || "";
+export const SERVICE = process.env.SERVICE || "";
+export const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || "");
+export const SECURE = process.env.SECURE;
+export const USER = process.env.USER || "";
+export const PASS = process.env.PASS || "";

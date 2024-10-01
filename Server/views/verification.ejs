@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verification</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .form {
+        padding: 50;
+        text-align: center;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form">
+      <h1 class="<%= isError ? 'error' : 'success' %>">
+        <%= isError ? 'Verification Failed' : 'Verification Successful' %>
+      </h1>
+      <p><%= message %></p>
+    </div>
+  </body>
+</html>

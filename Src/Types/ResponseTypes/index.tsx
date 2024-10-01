@@ -3,3 +3,6 @@ export interface IResponseProps<T = {}> {
   data?: T;
   message: string;
 }
+
+export * from "./AuthResponse";
+export * from "./UserResponse";

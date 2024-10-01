@@ -1,14 +1,15 @@
 import mongoose, { Schema } from "mongoose";
-import { UserTokenObj } from "../dto/UserToken";
+import { VerifiedTokenObj } from "../dto/VerifiedToken";
 
-const UserTokenSchema = new Schema(
+const VerifiedTokenSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
       ref: "Users",
       required: true,
+      unique: true,
     },
-    refreshToken: {
+    token: {
       type: String,
       required: true,
     },
@@ -22,11 +23,11 @@ const UserTokenSchema = new Schema(
       },
     },
     timestamps: true,
-    expires: 30 * 86400, //30 days
+    expires: 60 * 10, //10m
   }
 );
 
-export const USERTOKENS = mongoose.model<UserTokenObj>(
-  "UserTokens",
-  UserTokenSchema
+export const VERIFIEDTOKENS = mongoose.model<VerifiedTokenObj>(
+  "VerifiedTokens",
+  VerifiedTokenSchema
 );

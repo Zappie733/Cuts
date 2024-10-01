@@ -7,6 +7,9 @@ export default async (app: Application) => {
   app.use(cors());
   app.use(express.urlencoded({ extended: true }));
 
+  // Set the view engine to EJS
+  app.set("view engine", "ejs");
+
   app.use("/user", UserRoute);
   return app;
 };

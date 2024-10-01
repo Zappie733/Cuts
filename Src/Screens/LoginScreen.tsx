@@ -4,12 +4,14 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -21,11 +23,12 @@ import { Input } from "../Components/Input";
 import { ILoginProps } from "../Types/LoginScreenTypes";
 import { Logo } from "../Components/Logo";
 import { Theme } from "../Contexts/ThemeContext";
-import { loginUser } from "../Middlewares/AuthMiddleware";
+import { changeUserPassword, loginUser } from "../Middlewares/AuthMiddleware";
 import { Auth } from "../Contexts/AuthContext";
 import { IResponseProps } from "../Types/ResponseTypes";
 import { LoginDataResponse } from "../Types/ResponseTypes/AuthResponse";
 import { useFocusEffect } from "@react-navigation/native";
+import { AntDesign } from "@expo/vector-icons";
 
 export const LoginScreen = ({
   navigation,
@@ -48,15 +51,11 @@ export const LoginScreen = ({
   const [userLoginFormData, setUserLoginFormData] = useState<ILoginProps>(
     defaultUserLoginFormData
   );
-  console.log(userLoginFormData);
   const handleLoginTextChange = (text: string, fieldname: string) => {
     setUserLoginFormData({ ...userLoginFormData, [fieldname]: text });
   };
 
   const [showPassword, setShowPassword] = useState(true);
-  const handleShowPassword = (condition: boolean) => {
-    setShowPassword(condition);
-  };
 
   const { auth, setAuth } = useContext(Auth);
 
@@ -76,14 +75,40 @@ export const LoginScreen = ({
 
       setTimeout(() => {
         navigation.navigate("TabsStack", { screen: "Home" });
-      }, 2000);
+      }, 1000);
     } else {
       Alert.alert("Login Error", result.message);
     }
   };
 
-  const handleForgotPassword = () => {
-    console.log("forgot password");
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  const defaultChangePasswordFormData: ILoginProps = {
+    email: "",
+    password: "",
+  };
+  const [changePasswordFormData, setChangePasswordFormData] =
+    useState<ILoginProps>(defaultChangePasswordFormData);
+
+  const handleChangePasswordTextChange = (text: string, fieldname: string) => {
+    setChangePasswordFormData({ ...changePasswordFormData, [fieldname]: text });
+  };
+
+  const handleChangePassword = async () => {
+    console.log("Change Password Process");
+    const result: IResponseProps = await changeUserPassword(
+      changePasswordFormData
+    );
+    console.log(JSON.stringify(result, null, 2));
+
+    if (result.status >= 200 && result.status < 400) {
+      Keyboard.dismiss();
+      Alert.alert("Success", result.message);
+      setChangePasswordFormData(defaultChangePasswordFormData);
+      setModalVisible(false);
+    } else {
+      Alert.alert("Login Error", result.message);
+    }
   };
 
   useEffect(() => {
@@ -184,7 +209,7 @@ export const LoginScreen = ({
             </Pressable>
 
             {/* Forgot Password Button */}
-            <Pressable onPress={handleForgotPassword}>
+            <Pressable onPress={() => setModalVisible(true)}>
               <Text
                 style={[
                   styles.forgotPasswordButton,
@@ -228,6 +253,103 @@ export const LoginScreen = ({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Modal for forgot Password */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => {
+          setModalVisible(false);
+          setChangePasswordFormData(defaultChangePasswordFormData);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContainer,
+              {
+                backgroundColor: activeColors.primary,
+                borderColor: activeColors.secondary,
+              },
+            ]}
+          >
+            {/* Title */}
+            <Text
+              style={[
+                styles.modalTitle,
+                {
+                  color: activeColors.accent,
+                },
+              ]}
+            >
+              Reset Password
+            </Text>
+
+            {/* Inputs */}
+            <View>
+              {/* Email Input */}
+              <Input
+                key="forgotPasswordEmail"
+                context="Email"
+                placeholder="Enter Your Email"
+                value={changePasswordFormData.email}
+                updateValue={(text: string) =>
+                  handleChangePasswordTextChange(text, "email")
+                }
+                iconName="email-outline"
+                iconSource="MaterialCommunityIcons"
+              />
+              {/* Password Input */}
+              <Input
+                key="forgotPasswordPassword"
+                context="Password"
+                isHidden={showPassword}
+                setHidden={setShowPassword}
+                placeholder="Enter Your Password"
+                value={changePasswordFormData.password}
+                updateValue={(text: string) =>
+                  handleChangePasswordTextChange(text, "password")
+                }
+                iconName="lock"
+                iconSource="Octicons"
+              />
+            </View>
+
+            {/* Submit Button */}
+            <Pressable
+              style={[
+                styles.submitButton,
+                {
+                  backgroundColor: activeColors.accent,
+                  width: (screenWidth * 2) / 3 + 50,
+                },
+              ]}
+              onPress={handleChangePassword}
+            >
+              <Text
+                style={[
+                  styles.submitButtonText,
+                  { color: activeColors.secondary },
+                ]}
+              >
+                Submit
+              </Text>
+            </Pressable>
+
+            {/* Close Button */}
+            <Pressable
+              onPress={() => {
+                setModalVisible(false);
+                setChangePasswordFormData(defaultChangePasswordFormData);
+              }}
+              style={styles.modalCloseButton}
+            >
+              <AntDesign name="close" size={22} color={activeColors.accent} />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -276,5 +398,43 @@ const styles = StyleSheet.create({
   registerButton: {
     marginTop: 20,
     paddingBottom: 30,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContainer: {
+    width: "90%",
+    padding: 30,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "500",
+  },
+  modalContent: {
+    marginTop: 10,
+    fontSize: 17,
+    fontWeight: "200",
+  },
+  modalCloseButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+  },
+  submitButton: {
+    marginTop: 10,
+    paddingVertical: 10,
+    borderRadius: 50,
+    alignItems: "center",
+  },
+  submitButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });

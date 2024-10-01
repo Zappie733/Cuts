@@ -3,3 +3,7 @@ export interface LoginDataResponse {
   refreshToken: string;
   accessToken: string;
 }
+
+export interface GetNewAccessTokenResponse {
+  accessToken: string;
+}

@@ -29,6 +29,11 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+    verified: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     toJSON: {
