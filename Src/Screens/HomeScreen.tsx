@@ -1,8 +1,17 @@
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  StatusBar,
+  Platform,
+} from "react-native";
 import React, { useContext } from "react";
 import { colors } from "../Config/Theme";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { Theme } from "../Contexts/ThemeContext";
+import { StatusBar as ExpoStatusBar } from "expo-status-bar";
+
 export const HomeScreen = ({
   navigation,
   route,
@@ -12,6 +21,11 @@ export const HomeScreen = ({
 
   return (
     <View style={[styles.container, { backgroundColor: activeColors.primary }]}>
+      <ExpoStatusBar
+        hidden={false}
+        style={theme.mode === "dark" ? "light" : "dark"}
+        backgroundColor={activeColors.primary}
+      />
       <Text>HomeScreen</Text>
     </View>
   );
@@ -20,7 +34,9 @@ export const HomeScreen = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingTop:
+      Platform.OS === "android"
+        ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
+        : 0,
   },
 });

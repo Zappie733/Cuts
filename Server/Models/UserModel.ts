@@ -34,6 +34,10 @@ const UserSchema = new Schema(
       required: true,
       default: false,
     },
+    image: {
+      type: String,
+      default: "",
+    },
   },
   {
     toJSON: {

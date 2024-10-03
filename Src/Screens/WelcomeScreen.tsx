@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
+  StatusBar,
 } from "react-native";
 import React from "react";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
@@ -15,7 +16,7 @@ import { Logo } from "../Components/Logo";
 import { Zocial, AntDesign } from "@expo/vector-icons";
 import { Theme } from "../Contexts/ThemeContext";
 import { useContext } from "react";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 export const WelcomeScreen = ({
   navigation,
@@ -38,7 +39,7 @@ export const WelcomeScreen = ({
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.primary }]}
     >
-      <StatusBar
+      <ExpoStatusBar
         hidden={false}
         style={theme.mode === "dark" ? "light" : "dark"}
         backgroundColor={activeColors.primary}
@@ -119,7 +120,10 @@ export const WelcomeScreen = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Platform.OS === "android" ? 40 : 0,
+    paddingTop:
+      Platform.OS === "android"
+        ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
+        : 0,
     flex: 1,
   },
   logoContainer: {

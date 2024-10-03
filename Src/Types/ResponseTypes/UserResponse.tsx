@@ -6,4 +6,5 @@ export interface UserProfileResponse {
   phone: string;
   role: "admin" | "user" | "store";
   verified: boolean;
+  image: string;
 }

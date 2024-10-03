@@ -14,6 +14,7 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   View,
+  StatusBar,
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Header } from "../Components/Header";
@@ -356,7 +357,11 @@ export const LoginScreen = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Platform.OS === "android" ? 40 : 0,
+    paddingTop:
+      Platform.OS === "android"
+        ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
+        : 0,
+    // paddingTop: 40,
     flex: 1,
   },
   logoContainer: {

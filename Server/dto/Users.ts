@@ -9,6 +9,7 @@ export interface UserObj {
   role: "admin" | "user" | "store";
   // generateAuthToken: () => void;
   verified: boolean;
+  image: string;
 }
 
 export interface AuthUser {
