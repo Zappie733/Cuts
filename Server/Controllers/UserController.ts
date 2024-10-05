@@ -11,6 +11,7 @@ import {
   RefreshToken,
   PayloadObj,
   PayloadVerifyTokenObj,
+  UpdateUserParams,
 } from "../dto";
 import bcrypt from "bcrypt";
 import {
@@ -20,7 +21,7 @@ import {
   verifyRefreshToken,
   verifyVerifyToken,
 } from "../Utils/UserTokenUtil";
-import { ACCESS_TOKEN_PRIVATE_KEY, SALT, BASE_URL } from "../Config";
+import { ACCESS_TOKEN_PRIVATE_KEY, SALT, BASE_URL, USER } from "../Config";
 import jwt from "jsonwebtoken";
 import {
   GetNewAccessTokenResponse,
@@ -31,8 +32,8 @@ import {
 import { USERTOKENS } from "../Models/UserTokenModel";
 
 import { sendEmail } from "../Utils/UserUtil";
-import { VERIFIEDTOKENS } from "../Models/VerifiedTokenModel";
 import { ChangePasswordValidate } from "../Validation/ChangePasswordValidate";
+import { UpdateUserValidate } from "../Validation/UpdateUserValidate";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -172,7 +173,6 @@ export const loginUser = async (req: Request, res: Response) => {
         message: "You have not verified your account, please check your email",
       });
     }
-
     //Generate Access Token And Refresh Token
     //const token = user.generateAuthToken();
     const { accessToken, refreshToken } = await generateTokens({
@@ -395,6 +395,130 @@ export const getUserProfile = async (req: Request, res: Response) => {
     return res.status(500).json(<ResponseObj>{
       error: true,
       message: "Internal Server Error",
+    });
+  }
+};
+
+export const updateUserProfile = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    // console.log(response.error);
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      //Validate Inputs
+      const { error } = UpdateUserValidate(<UpdateUserParams>req.body);
+      //console.log(error);
+      if (error)
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: error.details[0].message,
+        });
+
+      const user = await USERS.findOne({ _id: payload._id });
+
+      const { firstName, lastName, email, phone } = <UpdateUserParams>req.body;
+      console.log(firstName, lastName, email, phone);
+      //Check if user change email and if the new email exist
+      if (email !== user?.email) {
+        const isEmailExist = await USERS.findOne({ email: email });
+        if (isEmailExist)
+          return res.status(409).json(<ResponseObj>{
+            error: true,
+            message: "User with given email is already exist",
+          });
+      }
+
+      const verifiedToken = await generateVerifyTokens({
+        _id: payload._id,
+        updateUserParams: {
+          email,
+          firstName,
+          lastName,
+          phone,
+        },
+      });
+
+      const url = `${BASE_URL}/user/${payload._id}/verifyUpdateUser/${verifiedToken}`;
+
+      await sendEmail("updateProfile", email, "Verify", url, firstName);
+
+      return res.status(201).json(<ResponseObj>{
+        error: true,
+        message: "Please check your email to verify",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    return res.status(500).json(<ResponseObj>{
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const verifyUpdateUser = async (req: Request, res: Response) => {
+  try {
+    const user = await USERS.findOne({ _id: req.params.id });
+    if (!user) {
+      return res.render("verification", {
+        isError: true,
+        message: "Invalid verification link",
+      });
+    }
+
+    const response: ResponseObj<PayloadVerifyTokenObj> =
+      await verifyVerifyToken({ verifyToken: req.params.token });
+
+    if (!response.error && response.data) {
+      console.log(response);
+      const { updateUserParams } = response.data;
+
+      if (updateUserParams) {
+        const { firstName, lastName, email, phone }: UpdateUserParams =
+          updateUserParams;
+
+        await USERS.findByIdAndUpdate(
+          req.params.id,
+          { firstName, lastName, email, phone },
+          { new: true }
+        );
+
+        return res.render("verification", {
+          isError: false,
+          message: "Your Account has been successfully updated!",
+        });
+      }
+    }
+
+    return res.render("verification", {
+      isError: true,
+      message: response.message,
+    });
+  } catch (error) {
+    return res.render("verification", {
+      isError: true,
+      message: "An internal error occurred. Please try again later.",
     });
   }
 };

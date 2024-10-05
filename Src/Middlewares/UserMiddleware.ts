@@ -1,8 +1,7 @@
-import axios from "axios";
-import { API_HOST, API_PORT } from "../Config/Api";
 import { IResponseProps, UserProfileResponse } from "../Types/ResponseTypes";
 import { apiCallWithToken } from "./AuthMiddleware";
 import { IAuthObj } from "../Types/AuthContextTypes";
+import { IProfileProps } from "../Types/ProfileScreenTypes";
 
 export const getUserProfile = async (
   auth: IAuthObj,
@@ -24,6 +23,31 @@ export const getUserProfile = async (
   return {
     status: result.status,
     data: result.data,
+    message: result.message,
+  };
+};
+
+export const updateUserProfile = async (
+  auth: IAuthObj,
+  updateAccessToken: (accessToken: string) => void,
+  data: IProfileProps
+): Promise<IResponseProps<UserProfileResponse>> => {
+  console.log("updateUserProfile Process");
+  const apiOptions = {
+    method: "POST",
+    data,
+  };
+
+  const result = await apiCallWithToken<UserProfileResponse>(
+    "/user/updateUserProfile",
+    apiOptions,
+    auth,
+    updateAccessToken
+  );
+  console.log(result);
+
+  return {
+    status: result.status,
     message: result.message,
   };
 };

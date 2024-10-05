@@ -88,6 +88,7 @@ export const generateVerifyTokens = async (
       _id: payloadVerifyTokenObj._id,
       password: payloadVerifyTokenObj.password,
       verified: payloadVerifyTokenObj.verified,
+      updateUserParams: payloadVerifyTokenObj.updateUserParams,
     };
 
     const token = jwt.sign(payload, REFRESH_TOKEN_PRIVATE_KEY, {
@@ -138,6 +139,7 @@ export const verifyVerifyToken = async (
     //delete token (one use only)
     await verifiedToken.deleteOne({ _id: verifiedToken._id });
 
+    console.log(tokenDetails);
     // If token is verified, return success message with token details
     return {
       error: false,
@@ -167,7 +169,7 @@ export const verifyAccessToken = async (
     return {
       error: false,
       message: "Access Token is valid",
-      data: tokenDetails, // Return token details if needed
+      data: tokenDetails,
     };
   } catch (error) {
     console.log(error);

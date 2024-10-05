@@ -6,6 +6,8 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  updateUserProfile,
+  verifyUpdateUser,
   verifyUser,
   verifyUserPassword,
 } from "../Controllers/UserController";
@@ -19,3 +21,5 @@ UserRoute.get("/:id/verifyUser/:token", verifyUser);
 UserRoute.post("/changeUserPassword", changeUserPassword);
 UserRoute.get("/:id/verifyUserPassword/:token", verifyUserPassword);
 UserRoute.get("/getUserProfile", getUserProfile);
+UserRoute.post("/updateUserProfile", updateUserProfile);
+UserRoute.get("/:id/verifyUpdateUser/:token", verifyUpdateUser);

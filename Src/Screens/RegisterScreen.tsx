@@ -34,7 +34,6 @@ export const RegisterScreen = ({
     navigation.goBack();
   };
 
-  const screenHeight = Dimensions.get("screen").height;
   const screenWidth = Dimensions.get("screen").width;
 
   const { theme } = useContext(Theme);

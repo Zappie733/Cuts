@@ -9,7 +9,7 @@ import { TabsNavigator, TabsStackParamsObj } from "./TabNavigator";
 import { LoginScreen } from "../Screens/LoginScreen";
 import { WelcomeScreen } from "../Screens/WelcomeScreen";
 import { RegisterScreen } from "../Screens/RegisterScreen";
-import { Auth } from "../Contexts";
+import { Auth, UserContext } from "../Contexts";
 import { ProfileScreen } from "../Screens/ProfileScreen";
 
 export type RootStackParamsObj = {

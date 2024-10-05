@@ -7,4 +7,6 @@ export interface IInputProps {
   updateValue: (text: string) => void;
   iconName?: string;
   iconSource?: "MaterialCommunityIcons" | "Octicons" | "Feather";
+  isEditable?: boolean;
+  setEditable?: (value: boolean) => void;
 }

@@ -16,3 +16,10 @@ export interface AuthUser {
   email: string;
   password: string;
 }
+
+export interface UpdateUserParams {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
