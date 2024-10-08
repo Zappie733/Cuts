@@ -182,7 +182,7 @@ export const getNewAccessToken = async (
       `http://${API_HOST}:${API_PORT}/user/getAccessToken`,
       refreshTokenObj
     );
-    // console.log(JSON.stringify(result, null, 2));
+    console.log(JSON.stringify(result, null, 2));
 
     const { status, data } = result;
 

@@ -12,4 +12,5 @@ export interface IUserObj {
 export interface IUserContext {
   user: IUserObj;
   setUser: (user: IUserObj) => void;
+  updateUserImage: (image: string) => void;
 }

@@ -18,11 +18,7 @@ import { IResponseProps } from "../Types/ResponseTypes";
 import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/AuthContextTypes";
-import {
-  CommonActions,
-  useFocusEffect,
-  useNavigation,
-} from "@react-navigation/native";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 
 //munculin splashscreen selama masih load theme dari AsyncStorage
 SplashScreen.preventAutoHideAsync();
@@ -39,6 +35,7 @@ const defaultContext: IUserContext = {
     image: "",
   },
   setUser: () => {},
+  updateUserImage: (image: string) => {},
 };
 export const User = createContext(defaultContext);
 
@@ -92,7 +89,7 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
       if (response.status >= 200 && response.status < 400 && response.data) {
         setUser(response.data);
       } else {
-        console.error(response.status, response.message);
+        console.log(response.status, response.message);
       }
     }
   };
@@ -111,5 +108,17 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
     };
   }, [auth]);
 
-  return <User.Provider value={{ user, setUser }}>{children}</User.Provider>;
+  const updateUserImage = (image: string) => {
+    console.log("Updating user image:", image);
+    setUser((prevUser) => ({
+      ...prevUser,
+      image,
+    }));
+  };
+
+  return (
+    <User.Provider value={{ user, setUser, updateUserImage }}>
+      {children}
+    </User.Provider>
+  );
 };

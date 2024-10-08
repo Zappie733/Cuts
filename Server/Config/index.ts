@@ -26,3 +26,7 @@ export const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || "");
 export const SECURE = process.env.SECURE;
 export const USER = process.env.USER || "";
 export const PASS = process.env.PASS || "";
+
+export const IMAGEKIT_PRIVATE_KEY = process.env.IMAGEKIT_PRIVATE_KEY || "";
+export const IMAGEKIT_PUBLIC_KEY = process.env.IMAGEKIT_PUBLIC_KEY || "";
+export const IMAGEKIT_BASEURL = process.env.IMAGEKIT_BASEURL || "";

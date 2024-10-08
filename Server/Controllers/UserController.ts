@@ -458,10 +458,10 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 
       const url = `${BASE_URL}/user/${payload._id}/verifyUpdateUser/${verifiedToken}`;
 
-      await sendEmail("updateProfile", email, "Verify", url, firstName);
+      await sendEmail("updateProfile", email, "Verify", url, user?.firstName);
 
       return res.status(201).json(<ResponseObj>{
-        error: true,
+        error: false,
         message: "Please check your email to verify",
       });
     }

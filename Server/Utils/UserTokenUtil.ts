@@ -40,6 +40,7 @@ export const generateTokens = async (payloadObj: PayloadObj) => {
 
     return { accessToken, refreshToken };
   } catch (error) {
+    console.log(error);
     throw new Error("Token generation failed");
   }
 };

@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import { Camera } from "expo-camera";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import {
   Button,
   Image,
@@ -10,14 +10,33 @@ import {
   Pressable,
   Text,
 } from "react-native";
-import { Theme } from "../Contexts";
+import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { EvilIcons } from "@expo/vector-icons";
-export const SelectImage = () => {
+import { IImageProps, SelectImageProps } from "../Types/ImageTypes";
+import * as FileSystem from "expo-file-system";
+import { uploadImage } from "../Middlewares/ImageMiddleware";
+import { IResponseProps } from "../Types/ResponseTypes";
+import { logoutUser } from "../Middlewares/AuthMiddleware";
+import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
+import { CommonActions, useNavigation } from "@react-navigation/native";
+import { IAuthObj } from "../Types/AuthContextTypes";
+import { IUserObj } from "../Types/UserContextTypes";
+
+export const SelectImage = ({ userImage }: SelectImageProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
   const [image, setImage] = useState("");
+  const [imageOptionForUpload, setImageOptionForUpload] = useState<IImageProps>(
+    { file: "", path: "" }
+  );
+
+  const [requestStatus, setRequestStatus] = useState(false);
+
+  const { auth, setAuth, updateAccessToken } = useContext(Auth);
+  const { updateUserImage } = useContext(User);
+  const navigation = useNavigation();
 
   const requestPermission = async () => {
     const cameraStatus = await Camera.requestCameraPermissionsAsync();
@@ -32,6 +51,9 @@ export const SelectImage = () => {
         "Permission required",
         "Sorry, we need camera and media permissions to make this work!"
       );
+      setRequestStatus(false);
+    } else {
+      setRequestStatus(true);
     }
   };
 
@@ -42,6 +64,7 @@ export const SelectImage = () => {
   }, []);
 
   const pickImage = async () => {
+    console.log(imageOptionForUpload);
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -50,7 +73,14 @@ export const SelectImage = () => {
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const { uri } = result.assets[0];
+      setImage(uri);
+
+      const base64Image = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await setImageOptionForUpload({ file: base64Image, path: "Profile" });
     }
   };
 
@@ -62,27 +92,91 @@ export const SelectImage = () => {
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const { uri } = result.assets[0];
+      setImage(uri);
+
+      const base64Image = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await setImageOptionForUpload({ file: base64Image, path: "Profile" });
     }
   };
 
   const handleImageSelection = () => {
-    Alert.alert(
-      "Select Image",
-      "Choose an option",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Take Photo", onPress: takePhoto },
-        { text: "Choose from Gallery", onPress: pickImage },
-      ],
-      { cancelable: true }
-    );
+    if (requestStatus) {
+      Alert.alert(
+        "Select Image",
+        "Choose an option",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Take Photo", onPress: takePhoto },
+          { text: "Choose from Gallery", onPress: pickImage },
+        ],
+        { cancelable: true }
+      );
+    }
   };
+
+  const handleUploadImage = async () => {
+    const response = await uploadImage(
+      auth,
+      updateAccessToken,
+      imageOptionForUpload
+    );
+    // console.log("Full response object:", response);
+    if (response.status === 402) {
+      Alert.alert("Session Expired", response.message);
+      const result: IResponseProps = await logoutUser(auth.refreshToken);
+      console.log(JSON.stringify(result, null, 2));
+
+      if (result.status >= 200 && result.status < 400) {
+        await removeDataFromAsyncStorage("auth");
+        const defaultAuth: IAuthObj = {
+          _id: "",
+          refreshToken: "",
+          accessToken: "",
+        };
+        setAuth(defaultAuth);
+
+        // setUserData(defaultUserData);
+        // Resetting the navigation stack
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Welcome" }],
+          })
+        );
+      } else {
+        Alert.alert("Logout Error", result.message);
+      }
+    }
+
+    if (response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+
+      if (response.data && response.data.image) {
+        updateUserImage(response.data.image);
+      }
+    } else {
+      console.error(response.status, response.message);
+    }
+  };
+
+  useEffect(() => {
+    //console.log("Image option for upload updated:", imageOptionForUpload);
+    if (image !== "") handleUploadImage();
+  }, [imageOptionForUpload]);
 
   return (
     <View style={styles.container}>
       <View style={styles.image}>
-        {image === "" ? (
+        {userImage !== "" ? (
+          <Image
+            source={{ uri: userImage }}
+            style={{ width: 100, height: 100, borderRadius: 50 }}
+          />
+        ) : image === "" ? (
           <EvilIcons name="user" size={200} color={activeColors.accent} />
         ) : (
           <Image
@@ -96,7 +190,11 @@ export const SelectImage = () => {
         onPress={handleImageSelection}
         style={[
           styles.selectImageButton,
-          { backgroundColor: activeColors.tertiary },
+          {
+            backgroundColor: requestStatus
+              ? activeColors.tertiary
+              : activeColors.disabledColor,
+          },
         ]}
       >
         <Text style={[styles.selectImageText, { color: activeColors.accent }]}>

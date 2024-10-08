@@ -37,7 +37,7 @@ export const SettingsScreen = ({
   let activeColors = colors[theme.mode];
 
   const { auth, setAuth } = useContext(Auth);
-  const { user } = useContext(User);
+  let { user } = useContext(User);
 
   const screenWidth = Dimensions.get("screen").width;
 
@@ -104,10 +104,7 @@ export const SettingsScreen = ({
                 <EvilIcons name="user" size={100} color={activeColors.accent} />
               </View>
             ) : (
-              <Image
-                source={{ uri: "https://ik.imagekit.io/TheCuts/Cuts/cats.jpg" }}
-                style={styles.image}
-              />
+              <Image source={{ uri: user.image }} style={styles.image} />
             )}
           </View>
           {/* Profile Info */}

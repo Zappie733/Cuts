@@ -31,14 +31,14 @@ export const updateUserProfile = async (
   auth: IAuthObj,
   updateAccessToken: (accessToken: string) => void,
   data: IProfileProps
-): Promise<IResponseProps<UserProfileResponse>> => {
+): Promise<IResponseProps<{}>> => {
   console.log("updateUserProfile Process");
   const apiOptions = {
     method: "POST",
     data,
   };
 
-  const result = await apiCallWithToken<UserProfileResponse>(
+  const result = await apiCallWithToken<{}>(
     "/user/updateUserProfile",
     apiOptions,
     auth,

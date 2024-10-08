@@ -145,7 +145,7 @@ export const ProfileScreen = ({
             Profile Screen
           </Text>
 
-          <SelectImage />
+          <SelectImage userImage={user.image} />
 
           {/* Inputs */}
           <View>
