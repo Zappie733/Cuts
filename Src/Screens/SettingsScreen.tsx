@@ -78,7 +78,9 @@ export const SettingsScreen = ({
     }
   };
 
-  const handleAddStore = () => {};
+  const handleAddStore = () => {
+    navigation.navigate("RegisterStoreScreen");
+  };
 
   const [getUserStores, setGetUserStores] = useState<StoreResponse[]>([]);
 

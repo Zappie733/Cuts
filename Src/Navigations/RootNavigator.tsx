@@ -9,8 +9,10 @@ import { TabsNavigator, TabsStackParamsObj } from "./TabNavigator";
 import { LoginScreen } from "../Screens/LoginScreen";
 import { WelcomeScreen } from "../Screens/WelcomeScreen";
 import { RegisterScreen } from "../Screens/RegisterScreen";
-import { Auth, UserContext } from "../Contexts";
+import { Auth, User, UserContext } from "../Contexts";
 import { ProfileScreen } from "../Screens/ProfileScreen";
+import { RegisterStoreScreen } from "../Screens/RegisterStoreScreen";
+import { DocumentDetailsScreen } from "../Screens/DocumentDetailsScreen";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;
@@ -18,6 +20,8 @@ export type RootStackParamsObj = {
   LoginScreen: undefined;
   RegisterScreen: undefined;
   Profile: undefined;
+  RegisterStoreScreen: undefined;
+  DocumentDetailsScreen: { documentUri: string };
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsObj>();
@@ -27,6 +31,7 @@ export type RootStackScreenProps<T extends keyof RootStackParamsObj> =
 
 export const RootNavigator = () => {
   const { auth } = useContext(Auth);
+  const { user } = useContext(User);
 
   return (
     <RootStack.Navigator
@@ -43,11 +48,29 @@ export const RootNavigator = () => {
           <RootStack.Screen name="RegisterScreen" component={RegisterScreen} />
           <RootStack.Screen name="TabsStack" component={TabsNavigator} />
         </>
-      ) : (
+      ) : auth._id !== "" && user.role === "user" ? (
         <>
-          {console.log("root nav user/admin/store")}
+          {console.log("root nav user")}
           <RootStack.Screen name="TabsStack" component={TabsNavigator} />
           <RootStack.Screen name="Profile" component={ProfileScreen} />
+          <RootStack.Screen
+            name="RegisterStoreScreen"
+            component={RegisterStoreScreen}
+          />
+          <RootStack.Screen
+            name="DocumentDetailsScreen"
+            component={DocumentDetailsScreen}
+          />
+        </>
+      ) : auth._id !== "" && user.role === "store" ? (
+        <>
+          {console.log("root nav store")}
+          <RootStack.Screen name="TabsStack" component={TabsNavigator} />
+        </>
+      ) : (
+        <>
+          {console.log("root nav admin")}
+          <RootStack.Screen name="TabsStack" component={TabsNavigator} />
         </>
       )}
     </RootStack.Navigator>

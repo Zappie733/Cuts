@@ -72,7 +72,7 @@ export const fetchUserStores = async (
     auth,
     updateAccessToken
   );
-  console.log(JSON.stringify(result, null, 2));
+  //console.log(JSON.stringify(result, null, 2));
 
   return {
     status: result.status,

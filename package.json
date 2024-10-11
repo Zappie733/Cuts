@@ -16,14 +16,16 @@
     "@types/react-native-vector-icons": "^6.4.18",
     "axios": "^1.7.7",
     "expo": "~51.0.28",
+    "expo-camera": "~15.0.16",
+    "expo-document-picker": "~12.0.2",
+    "expo-file-system": "~17.0.1",
+    "expo-image-picker": "~15.0.7",
     "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
     "jwt-decode": "^4.0.0",
     "react": "18.2.0",
     "react-native": "0.74.5",
-    "expo-image-picker": "~15.0.7",
-    "expo-camera": "~15.0.16",
-    "expo-file-system": "~17.0.1"
+    "react-native-pdf": "^6.7.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
