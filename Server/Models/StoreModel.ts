@@ -1,0 +1,60 @@
+import mongoose, { Schema } from "mongoose";
+import { StoreObj } from "../dto/Store";
+
+const StoreSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "Users",
+      required: true,
+    },
+    images: [
+      {
+        imageId: {
+          type: String,
+        },
+        file: {
+          type: String,
+        },
+        path: {
+          type: String,
+        },
+      },
+    ],
+    name: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["Waiting for Approval", "Rejected", "Active", "InActive"],
+      required: true,
+      default: "Waiting for Approval",
+    },
+    location: {
+      type: String,
+      required: true,
+    },
+    isOpen: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+  },
+  {
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.__v;
+        delete ret.createdAt;
+        delete ret.updatedAt;
+      },
+    },
+    timestamps: true,
+  }
+);
+
+export const STORES = mongoose.model<StoreObj>("Stores", StoreSchema);

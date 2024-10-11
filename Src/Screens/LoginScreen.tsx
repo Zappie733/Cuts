@@ -56,7 +56,7 @@ export const LoginScreen = ({
     setUserLoginFormData({ ...userLoginFormData, [fieldname]: text });
   };
 
-  const [showPassword, setShowPassword] = useState(true);
+  const [hidePassword, setHidePassword] = useState(true);
 
   const { auth, setAuth } = useContext(Auth);
 
@@ -107,8 +107,9 @@ export const LoginScreen = ({
       Alert.alert("Success", result.message);
       setChangePasswordFormData(defaultChangePasswordFormData);
       setModalVisible(false);
+      setHidePassword(true);
     } else {
-      Alert.alert("Login Error", result.message);
+      Alert.alert("Change Password Error", result.message);
     }
   };
 
@@ -181,8 +182,8 @@ export const LoginScreen = ({
               <Input
                 key="loginPassword"
                 context="Password"
-                isHidden={showPassword}
-                setHidden={setShowPassword}
+                isHidden={hidePassword}
+                setHidden={setHidePassword}
                 placeholder="Enter Your Password"
                 value={userLoginFormData.password}
                 updateValue={(text: string) =>
@@ -210,7 +211,11 @@ export const LoginScreen = ({
             </Pressable>
 
             {/* Forgot Password Button */}
-            <Pressable onPress={() => setModalVisible(true)}>
+            <Pressable
+              onPress={() => {
+                setModalVisible(true), setHidePassword(true);
+              }}
+            >
               <Text
                 style={[
                   styles.forgotPasswordButton,
@@ -262,6 +267,7 @@ export const LoginScreen = ({
         visible={isModalVisible}
         onRequestClose={() => {
           setModalVisible(false);
+          setHidePassword(true);
           setChangePasswordFormData(defaultChangePasswordFormData);
         }}
       >
@@ -305,8 +311,8 @@ export const LoginScreen = ({
               <Input
                 key="forgotPasswordPassword"
                 context="Password"
-                isHidden={showPassword}
-                setHidden={setShowPassword}
+                isHidden={hidePassword}
+                setHidden={setHidePassword}
                 placeholder="Enter Your Password"
                 value={changePasswordFormData.password}
                 updateValue={(text: string) =>
@@ -342,6 +348,7 @@ export const LoginScreen = ({
             <Pressable
               onPress={() => {
                 setModalVisible(false);
+                setHidePassword(true);
                 setChangePasswordFormData(defaultChangePasswordFormData);
               }}
               style={styles.modalCloseButton}

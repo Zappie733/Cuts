@@ -35,13 +35,9 @@ export const RegisterValidate = (data: UserObj) => {
         "string.pattern.base":
           "Phone number must start with 0 and have 12 digits.",
       }),
-    role: Joi.string()
-      .valid("admin", "user")
-      .required()
-      .label("Role")
-      .messages({
-        "any.only": "Role must be one of ['admin', 'user'].",
-      }),
+    role: Joi.string().valid("user").required().label("Role").messages({
+      "any.only": "Role must be one of ['user'].",
+    }),
   });
   return schema.validate(data);
 };

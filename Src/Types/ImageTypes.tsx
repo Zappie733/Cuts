@@ -1,4 +1,5 @@
 export interface IImageProps {
+  imageId?: string;
   file: string;
   path: string;
 }

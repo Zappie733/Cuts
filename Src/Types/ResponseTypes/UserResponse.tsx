@@ -1,3 +1,5 @@
+import { IImageProps } from "../ImageTypes";
+
 export interface UserProfileResponse {
   _id: string;
   firstName: string;
@@ -6,5 +8,22 @@ export interface UserProfileResponse {
   phone: string;
   role: "admin" | "user" | "store";
   verified: boolean;
-  image: string;
+  image: IImageProps;
+}
+
+export interface StoreObj {
+  _id?: string;
+  userId: string;
+  images: IImageProps[];
+  name: string;
+  type: "Salon" | "Barbershop";
+  status: "Waiting for Approval" | "Rejected" | "Active" | "InActive";
+  location: string;
+  isOpen: boolean;
+  // operationalHour: string;
+}
+
+export interface StoreResponse {
+  email: string;
+  store: StoreObj;
 }

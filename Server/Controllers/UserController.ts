@@ -12,6 +12,7 @@ import {
   PayloadObj,
   PayloadVerifyTokenObj,
   UpdateUserParams,
+  ImageRequestObj,
 } from "../dto";
 import bcrypt from "bcrypt";
 import {
@@ -21,7 +22,14 @@ import {
   verifyRefreshToken,
   verifyVerifyToken,
 } from "../Utils/UserTokenUtil";
-import { ACCESS_TOKEN_PRIVATE_KEY, SALT, BASE_URL, USER } from "../Config";
+import {
+  ACCESS_TOKEN_PRIVATE_KEY,
+  SALT,
+  BASE_URL,
+  IMAGEKIT_PUBLIC_KEY,
+  IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_BASEURL,
+} from "../Config";
 import jwt from "jsonwebtoken";
 import {
   GetNewAccessTokenResponse,
@@ -34,6 +42,8 @@ import { USERTOKENS } from "../Models/UserTokenModel";
 import { sendEmail } from "../Utils/UserUtil";
 import { ChangePasswordValidate } from "../Validation/ChangePasswordValidate";
 import { UpdateUserValidate } from "../Validation/UpdateUserValidate";
+import { STORES } from "../Models/StoreModel";
+import ImageKit from "imagekit";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -50,7 +60,7 @@ export const registerUser = async (req: Request, res: Response) => {
     );
 
     //Check if email exist
-    const isEmailExist = await USERS.findOne({ email: email });
+    const isEmailExist = await USERS.findOne({ email: email.toLowerCase() });
     if (isEmailExist)
       return res.status(409).json(<ResponseObj>{
         error: true,
@@ -65,11 +75,12 @@ export const registerUser = async (req: Request, res: Response) => {
     const user = new USERS({
       firstName,
       lastName,
-      email,
+      email: email.toLowerCase(),
       password: hashedPassword,
       phone,
       role,
     });
+    console.log(user);
     //Save User
     await user.save();
 
@@ -86,6 +97,7 @@ export const registerUser = async (req: Request, res: Response) => {
       message: "An Email sent to your account, please verify your account",
     });
   } catch (error) {
+    console.log(error);
     return res
       .status(500)
       .json(<ResponseObj>{ error: true, message: "Internal Server error" });
@@ -107,12 +119,72 @@ export const verifyUser = async (req: Request, res: Response) => {
     if (!response.error && response.data) {
       const { _id, verified } = response.data;
 
-      await user.updateOne({ id: _id, verified: verified });
+      if (user.role === "user") {
+        await user.updateOne({ id: _id, verified: verified });
 
-      return res.render("verification", {
-        isError: false,
-        message: "Your account has been verified successfully!",
-      });
+        return res.render("verification", {
+          isError: false,
+          message: "Your account has been verified successfully!",
+        });
+      } else if (user.role === "store") {
+        await user.updateOne({ id: _id, verified: verified });
+
+        const { pendingStoreData } = user;
+
+        const imagekit = new ImageKit({
+          publicKey: IMAGEKIT_PUBLIC_KEY,
+          privateKey: IMAGEKIT_PRIVATE_KEY,
+          urlEndpoint: IMAGEKIT_BASEURL,
+        });
+
+        // Array to store the uploaded image URLs
+        const uploadedImages: ImageRequestObj[] = [];
+
+        if (pendingStoreData) {
+          const { storeImages, storeName, storeLocation, storeType } =
+            pendingStoreData;
+
+          //Create new Store
+          const store = new STORES({
+            userId: _id,
+            images: uploadedImages,
+            name: storeName,
+            type: storeType,
+            location: storeLocation,
+          });
+
+          await store.save();
+
+          // Upload each image in storeImages
+          for (const [index, imageObj] of storeImages.entries()) {
+            const result = await imagekit.upload({
+              file: imageObj.file, // base64 encoded string
+              fileName: `${store.id}_Store_${index}`, // Unique filename for each image
+              folder: imageObj.path, // Folder to upload to in ImageKit
+            });
+            // Add the uploaded image URL to the array
+            uploadedImages.push({
+              imageId: result.fileId,
+              file: result.url,
+              path: imageObj.path,
+            });
+          }
+
+          await store.updateOne({ images: uploadedImages });
+        }
+
+        user.pendingStoreData = undefined;
+        await user.save();
+
+        return res.render("verification", {
+          isError: false,
+          message: `Your account has been verified successfully!
+            
+          Please wait for our admin to approve your store data, you can check your store status in the account setting where you register your store. 
+            
+          Thank You for joining.`,
+        });
+      }
     }
 
     return res.render("verification", {
@@ -139,7 +211,7 @@ export const loginUser = async (req: Request, res: Response) => {
     const { email, password } = <AuthUser>req.body;
 
     //Check if user exist
-    const user = await USERS.findOne({ email: email });
+    const user = await USERS.findOne({ email: email.toLowerCase() });
 
     if (!user) {
       return res.status(401).json(<ResponseObj>{

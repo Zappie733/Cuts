@@ -10,13 +10,18 @@ import {
   StatusBar,
   ScrollView,
   Dimensions,
+  AppState,
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { colors } from "../Config/Theme";
 import { Theme, Auth, User } from "../Contexts";
 import { logoutUser } from "../Middlewares/AuthMiddleware";
-import { IResponseProps, UserProfileResponse } from "../Types/ResponseTypes";
+import {
+  IResponseProps,
+  StoreResponse,
+  UserProfileResponse,
+} from "../Types/ResponseTypes";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/AuthContextTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
@@ -28,6 +33,8 @@ import {
 } from "@expo/vector-icons";
 import { Header } from "../Components/Header";
 import { Switch } from "../Components/Switch";
+import { Store } from "../Components/Store";
+import { fetchUserStores } from "../Middlewares/UserMiddleware";
 
 export const SettingsScreen = ({
   navigation,
@@ -36,7 +43,7 @@ export const SettingsScreen = ({
   const { theme, changeTheme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
-  const { auth, setAuth } = useContext(Auth);
+  const { auth, setAuth, updateAccessToken } = useContext(Auth);
   let { user } = useContext(User);
 
   const screenWidth = Dimensions.get("screen").width;
@@ -71,6 +78,67 @@ export const SettingsScreen = ({
     }
   };
 
+  const handleAddStore = () => {};
+
+  const [getUserStores, setGetUserStores] = useState<StoreResponse[]>([]);
+
+  const handleFetchUserStores = async () => {
+    if (auth._id !== "") {
+      const response = await fetchUserStores(auth, updateAccessToken);
+
+      if (response.status === 402) {
+        Alert.alert("Session Expired", response.message);
+        const result: IResponseProps = await logoutUser(auth.refreshToken);
+        console.log(JSON.stringify(result, null, 2));
+
+        if (result.status >= 200 && result.status < 400) {
+          await removeDataFromAsyncStorage("auth");
+          const defaultAuth: IAuthObj = {
+            _id: "",
+            refreshToken: "",
+            accessToken: "",
+          };
+          setAuth(defaultAuth);
+
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: "Welcome" }],
+            })
+          );
+        } else {
+          Alert.alert("Logout Error", result.message);
+        }
+      }
+
+      if (response.status >= 200 && response.status < 400 && response.data) {
+        setGetUserStores(response.data);
+      } else {
+        console.log(response.status, response.message);
+      }
+    }
+  };
+
+  //getUserStores
+  useEffect(() => {
+    handleFetchUserStores();
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        handleFetchUserStores();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      handleFetchUserStores();
+    }, [])
+  );
+
   return (
     <SafeAreaView
       style={[
@@ -92,7 +160,7 @@ export const SettingsScreen = ({
         >
           {/* Image */}
           <View style={styles.imageContainer}>
-            {user.image === "" ? (
+            {user.image.file === "" ? (
               <View
                 style={[
                   styles.noImage,
@@ -104,7 +172,7 @@ export const SettingsScreen = ({
                 <EvilIcons name="user" size={100} color={activeColors.accent} />
               </View>
             ) : (
-              <Image source={{ uri: user.image }} style={styles.image} />
+              <Image source={{ uri: user.image.file }} style={styles.image} />
             )}
           </View>
           {/* Profile Info */}
@@ -166,20 +234,70 @@ export const SettingsScreen = ({
           <View
             style={[
               styles.logoutContainer,
-              { backgroundColor: activeColors.tertiary },
+              { backgroundColor: activeColors.accent },
             ]}
           >
-            <Text style={[styles.logoutText, { color: activeColors.accent }]}>
+            <Text
+              style={[styles.logoutText, { color: activeColors.secondary }]}
+            >
               Log Out
             </Text>
 
             <MaterialIcons
               name="logout"
               size={24}
-              color={activeColors.accent}
+              color={activeColors.secondary}
             />
           </View>
         </Pressable>
+        {/* Line */}
+        <View
+          style={[
+            styles.line,
+            {
+              borderColor: activeColors.secondary,
+              backgroundColor: activeColors.secondary,
+            },
+          ]}
+        ></View>
+        {user.role === "user" && (
+          <>
+            {/* Stores */}
+            <View style={styles.storeContainer}>
+              <Text style={[styles.title, { color: activeColors.accent }]}>
+                My Stores
+              </Text>
+              {getUserStores.map((item, index) => (
+                <Store
+                  key={index}
+                  email={item.email}
+                  images={item.store.images}
+                  name={item.store.name}
+                  type={item.store.type}
+                  status={item.store.status}
+                  location={item.store.location}
+                  isOpen={item.store.isOpen}
+                  refetchData={handleFetchUserStores}
+                />
+              ))}
+
+              {/* add store */}
+              <Pressable
+                style={[
+                  styles.addStoreContainer,
+                  { backgroundColor: activeColors.accent },
+                ]}
+                onPress={handleAddStore}
+              >
+                <Text
+                  style={{ color: activeColors.secondary, fontWeight: "bold" }}
+                >
+                  Add
+                </Text>
+              </Pressable>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -257,5 +375,31 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 20,
     marginRight: 10,
+    fontWeight: "bold",
+  },
+  line: {
+    borderWidth: 1,
+    marginVertical: 20,
+    padding: 2,
+    marginHorizontal: 10,
+    borderRadius: 20,
+  },
+  storeContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    paddingBottom: 100,
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: 500,
+    marginBottom: 5,
+  },
+  addStoreContainer: {
+    position: "absolute",
+    top: 5,
+    right: 50,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 10,
   },
 });

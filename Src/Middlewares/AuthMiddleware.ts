@@ -23,7 +23,7 @@ export const registerUser = async ({
     const registerData: IRegistrationProps = {
       firstName,
       lastName,
-      email,
+      email: email.toLowerCase(),
       password,
       confirmPassword,
       phone,
@@ -65,7 +65,7 @@ export const loginUser = async ({
 }: ILoginProps): Promise<IResponseProps<LoginDataResponse>> => {
   try {
     const loginData: ILoginProps = {
-      email,
+      email: email.toLowerCase(),
       password,
     };
 

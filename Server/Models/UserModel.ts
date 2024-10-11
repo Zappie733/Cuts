@@ -1,17 +1,14 @@
 import mongoose, { Schema } from "mongoose";
-import { UserObj } from "../dto/Users";
-import jwt from "jsonwebtoken";
-import { JWTPRIVATEKEY } from "../Config";
+import { UserObj } from "../dto/Users"; // Assuming UserObj is still imported from a separate file
 
+// Define the UserObj schema
 const UserSchema = new Schema(
   {
     firstName: {
       type: String,
-      required: true,
     },
     lastName: {
       type: String,
-      required: true,
     },
     email: {
       type: String,
@@ -23,10 +20,10 @@ const UserSchema = new Schema(
     },
     phone: {
       type: String,
-      required: true,
     },
     role: {
       type: String,
+      enum: ["admin", "user", "store"], // Restrict role to "admin", "user", or "store"
       required: true,
     },
     verified: {
@@ -35,8 +32,46 @@ const UserSchema = new Schema(
       default: false,
     },
     image: {
-      type: String,
-      default: "",
+      imageId: {
+        type: String,
+      },
+      file: {
+        type: String,
+      },
+      path: {
+        type: String,
+      },
+    },
+    userId: {
+      type: Schema.Types.ObjectId, // Relevant for users with the "store" role
+      ref: "Users",
+    },
+    // Define the pendingStoreData inline with the schema
+    pendingStoreData: {
+      type: {
+        storeImages: [
+          {
+            file: {
+              type: String,
+              required: true,
+            },
+            path: {
+              type: String,
+              required: true,
+            },
+          },
+        ],
+        storeName: {
+          type: String,
+        },
+        storeType: {
+          type: String,
+          enum: ["Salon", "Barbershop"], // Restrict storeType to "Salon" or "Barbershop"
+        },
+        storeLocation: {
+          type: String,
+        },
+      },
     },
   },
   {
@@ -45,18 +80,12 @@ const UserSchema = new Schema(
         delete ret.__v;
         delete ret.createdAt;
         delete ret.updatedAt;
+        delete ret.password; // Ensure password is not exposed in JSON
       },
     },
-    timestamps: true,
+    timestamps: true, // Automatically adds createdAt and updatedAt
   }
 );
 
-// UserSchema.methods.generateAuthToken = function () {
-//   const token = jwt.sign({ id: this._id }, JWTPRIVATEKEY, { expiresIn: "30m" });
-//   if (!token) {
-//     return {};
-//   }
-//   return token;
-// };
-
+// Export the User model
 export const USERS = mongoose.model<UserObj>("Users", UserSchema);

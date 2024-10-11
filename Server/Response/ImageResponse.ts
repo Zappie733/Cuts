@@ -1,3 +1,5 @@
+import { ImageRequestObj } from "../dto";
+
 export interface UploadImageResponse {
-  image: string;
+  image: ImageRequestObj;
 }

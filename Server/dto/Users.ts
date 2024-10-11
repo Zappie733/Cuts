@@ -1,15 +1,19 @@
+import { ImageRequestObj } from "./Image";
+import { PendingStoreObj } from "./Store";
+
 export interface UserObj {
   _id?: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   password: string;
   confirmPassword?: string;
-  phone: string;
+  phone?: string;
   role: "admin" | "user" | "store";
-  // generateAuthToken: () => void;
   verified: boolean;
-  image: string;
+  image?: ImageRequestObj;
+  userId?: string; //setiap obj yang punya userId berarti role dari user tsbt adalah store
+  pendingStoreData?: PendingStoreObj;
 }
 
 export interface AuthUser {

@@ -61,8 +61,8 @@ export const RegisterScreen = ({
     setUserRegisterFormData({ ...userRegisterFormData, [fieldname]: text });
   };
   //console.log(userRegisterFormData);
-  const [showPassword, setShowPassword] = useState(true);
-  const [showCPassword, setShowCPassword] = useState(true);
+  const [hidePassword, setHidePassword] = useState(true);
+  const [hideCPassword, setHideCPassword] = useState(true);
 
   const handleRegister = async () => {
     console.log("Register Process");
@@ -185,8 +185,8 @@ export const RegisterScreen = ({
               <Input
                 key="registerPassword"
                 context="Password"
-                isHidden={showPassword}
-                setHidden={setShowPassword}
+                isHidden={hidePassword}
+                setHidden={setHidePassword}
                 placeholder="Enter Your Password"
                 value={userRegisterFormData.password}
                 updateValue={(text: string) =>
@@ -199,8 +199,8 @@ export const RegisterScreen = ({
               <Input
                 key="registerConfirmPassword"
                 context="Confirm Password"
-                isHidden={showCPassword}
-                setHidden={setShowCPassword}
+                isHidden={hideCPassword}
+                setHidden={setHideCPassword}
                 placeholder="Enter Your Confirm Password"
                 value={userRegisterFormData.confirmPassword}
                 updateValue={(text: string) =>

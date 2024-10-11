@@ -192,12 +192,14 @@ export const SelectImage = ({ userImage }: SelectImageProps) => {
           styles.selectImageButton,
           {
             backgroundColor: requestStatus
-              ? activeColors.tertiary
+              ? activeColors.accent
               : activeColors.disabledColor,
           },
         ]}
       >
-        <Text style={[styles.selectImageText, { color: activeColors.accent }]}>
+        <Text
+          style={[styles.selectImageText, { color: activeColors.secondary }]}
+        >
           Select Photo
         </Text>
       </Pressable>

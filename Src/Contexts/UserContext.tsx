@@ -19,6 +19,7 @@ import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/AuthContextTypes";
 import { CommonActions, useNavigation } from "@react-navigation/native";
+import { IImageProps } from "../Types/ImageTypes";
 
 //munculin splashscreen selama masih load theme dari AsyncStorage
 SplashScreen.preventAutoHideAsync();
@@ -32,10 +33,14 @@ const defaultContext: IUserContext = {
     phone: "",
     role: "user",
     verified: true,
-    image: "",
+    image: {
+      imageId: "",
+      file: "",
+      path: "",
+    },
   },
   setUser: () => {},
-  updateUserImage: (image: string) => {},
+  updateUserImage: (image: IImageProps) => {},
 };
 export const User = createContext(defaultContext);
 
@@ -50,7 +55,11 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
     phone: "",
     role: "user",
     verified: true,
-    image: "",
+    image: {
+      imageId: "",
+      file: "",
+      path: "",
+    },
   };
   const [user, setUser] = useState<IUserObj>(defaultUser);
 
@@ -108,14 +117,14 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
     };
   }, [auth]);
 
-  const updateUserImage = (image: string) => {
+  const updateUserImage = (image: IImageProps) => {
     console.log("Updating user image:", image);
     setUser((prevUser) => ({
       ...prevUser,
       image,
     }));
   };
-
+  console.log(user);
   return (
     <User.Provider value={{ user, setUser, updateUserImage }}>
       {children}

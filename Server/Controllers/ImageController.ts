@@ -54,26 +54,26 @@ export const uploadImageController = async (req: Request, res: Response) => {
         urlEndpoint: IMAGEKIT_BASEURL,
       });
 
+      //delete user profile in imagekit
+      if (user?.image?.imageId) await imagekit.deleteFile(user?.image?.imageId);
+
+      //upload new user profile to imagekit
       const result = await imagekit.upload({
         file: file, // base64 encoded string
-        fileName: `${user?.firstName}_Profile`,
+        fileName: `${user?.id}_Profile`,
         folder: path,
       });
-
-      await USERS.findByIdAndUpdate(
-        user?.id,
-        { image: result.url },
-        { new: true }
-      );
-
-      console.log("Backend response:", {
-        error: false,
-        data: { image: result.url },
-        message: "Photo profile updated successfully",
+      //update user database with the newest profile
+      await user?.updateOne({
+        image: { imageId: result.fileId, file: result.url, path: path },
       });
+
+      const updatedUser = await USERS.findById(user?.id);
+      console.log(updatedUser?.image);
+
       return res.status(200).json(<ResponseObj<UploadImageResponse>>{
         error: false,
-        data: { image: result.url },
+        data: { image: updatedUser?.image },
         message: "Photo profile updated successfully",
       });
     }

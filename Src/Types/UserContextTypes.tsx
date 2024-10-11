@@ -1,3 +1,5 @@
+import { IImageProps } from "./ImageTypes";
+
 export interface IUserObj {
   _id: string;
   firstName: string;
@@ -6,11 +8,11 @@ export interface IUserObj {
   phone: string;
   role: "admin" | "user" | "store";
   verified: boolean;
-  image: string;
+  image: IImageProps;
 }
 
 export interface IUserContext {
   user: IUserObj;
   setUser: (user: IUserObj) => void;
-  updateUserImage: (image: string) => void;
+  updateUserImage: (image: IImageProps) => void;
 }
