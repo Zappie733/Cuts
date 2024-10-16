@@ -21,7 +21,7 @@ export type RootStackParamsObj = {
   RegisterScreen: undefined;
   Profile: undefined;
   RegisterStoreScreen: undefined;
-  DocumentDetailsScreen: { documentUri: string };
+  DocumentDetailsScreen: { documentUri: string; fileName: string };
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsObj>();

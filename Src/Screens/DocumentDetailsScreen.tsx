@@ -26,7 +26,10 @@ export const DocumentDetailsScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
-  const { documentUri } = route.params || { documentUri: "" };
+  const { documentUri, fileName } = route.params || {
+    documentUri: "",
+    fileName: "",
+  };
 
   console.log(documentUri);
 
@@ -34,14 +37,19 @@ export const DocumentDetailsScreen = ({
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.primary }]}
     >
-      <Header />
-
+      <Header goBack={handleGoBack} />
+      <Text
+        style={[styles.title, { color: activeColors.tertiary }]}
+        numberOfLines={1}
+      >
+        {fileName}
+      </Text>
       {documentUri ? (
         <View style={styles.contentContainer}>
           <Pdf
             trustAllCerts={false}
             source={{
-              uri: "https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-file.pdf",
+              uri: documentUri,
               cache: true,
             }}
             onLoadComplete={(numberOfPages, filePath) => {
@@ -80,10 +88,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    margin: 32,
+    marginHorizontal: 30,
+    marginVertical: 15,
   },
   pdf: {
     flex: 1,
     alignSelf: "stretch",
+  },
+  title: {
+    textAlign: "center",
+    fontSize: 16,
+    marginTop: 20,
   },
 });

@@ -147,10 +147,11 @@ export const Store = ({
         {/* Profile Info */}
         <View style={styles.infoContainer}>
           <Text style={[styles.text, { color: activeColors.accent }]}>
-            <Text style={{ fontWeight: "400" }}>Type:</Text> {type}{" "}
+            <Text style={{ fontWeight: "400" }}>Type:</Text>{" "}
+            {type === "salon" ? "Salon" : "Barbershop"}{" "}
             <Image
               source={
-                type === "Salon"
+                type === "salon"
                   ? require("../../assets/salon.png")
                   : require("../../assets/barbershop.png")
               }
@@ -287,10 +288,10 @@ export const Store = ({
               {/* Password Input */}
               <Input
                 key="inputPassword"
-                context="Password"
+                context="Store Password"
                 isHidden={hidePassword}
                 setHidden={setHidePassword}
-                placeholder="Enter Your Password"
+                placeholder="Enter Store Password"
                 value={deleteStoreFormData.password}
                 updateValue={(text: string) =>
                   handleDeleteStoreTextChange(text, "password")

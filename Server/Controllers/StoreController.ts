@@ -4,6 +4,7 @@ import { STORES } from "../Models/StoreModel";
 import { RegisterStoreValidate } from "../Validation/StoreValidation";
 import { ResponseObj } from "../Response";
 import {
+  IDocumentProps,
   ImageRequestObj,
   PayloadObj,
   PayloadVerifyTokenObj,
@@ -70,6 +71,7 @@ export const registerStore = async (req: Request, res: Response) => {
         storeLocation,
         storeName,
         storeType,
+        storeDocuments,
       } = <RegisterStoreRequestObj>req.body;
 
       //Check if email exist
@@ -89,8 +91,9 @@ export const registerStore = async (req: Request, res: Response) => {
         storeName,
         storeLocation,
         storeType,
+        storeDocuments,
       };
-
+      console.log(pendingStoreData);
       //Create New User
       const user = new USERS({
         email: email.toLowerCase(),
@@ -161,10 +164,16 @@ export const verifyStore = async (req: Request, res: Response) => {
 
       // Array to store the uploaded image URLs
       const uploadedImages: ImageRequestObj[] = [];
+      const uploadedDocuments: IDocumentProps[] = [];
 
       if (pendingStoreData) {
-        const { storeImages, storeName, storeLocation, storeType } =
-          pendingStoreData;
+        const {
+          storeImages,
+          storeName,
+          storeLocation,
+          storeType,
+          storeDocuments,
+        } = pendingStoreData;
 
         //Create new Store
         const store = new STORES({
@@ -173,6 +182,7 @@ export const verifyStore = async (req: Request, res: Response) => {
           name: storeName,
           type: storeType,
           location: storeLocation,
+          documents: storeDocuments,
         });
 
         await store.save();
@@ -181,9 +191,10 @@ export const verifyStore = async (req: Request, res: Response) => {
         for (const [index, imageObj] of storeImages.entries()) {
           const result = await imagekit.upload({
             file: imageObj.file, // base64 encoded string
-            fileName: `${store.id}_Store_${index}`, // Unique filename for each image
+            fileName: `${store.id}_Image_${index}`, // Unique filename for each image
             folder: imageObj.path, // Folder to upload to in ImageKit
           });
+          console.log(result);
           // Add the uploaded image URL to the array
           uploadedImages.push({
             imageId: result.fileId,
@@ -192,7 +203,27 @@ export const verifyStore = async (req: Request, res: Response) => {
           });
         }
 
-        await store.updateOne({ images: uploadedImages });
+        // Upload each document in storeDocuments
+        for (const [index, document] of storeDocuments.entries()) {
+          const result = await imagekit.upload({
+            file: document.file, // base64 encoded string
+            fileName: `${store.id}_Document_${index}`, // Unique filename for each image
+            folder: document.path, // Folder to upload to in ImageKit
+          });
+          console.log(result);
+          // Add the uploaded image URL to the array
+          uploadedDocuments.push({
+            documentId: result.fileId,
+            name: document.name,
+            file: result.url,
+            path: document.path,
+          });
+        }
+
+        await store.updateOne({
+          images: uploadedImages,
+          documents: uploadedDocuments,
+        });
       }
 
       user.pendingStoreData = undefined;
@@ -343,6 +374,12 @@ export const deleteStore = async (req: Request, res: Response) => {
           // Iterate through the store's images to delete them from ImageKit
           for (const imageObj of store.images) {
             if (imageObj.imageId) await imagekit.deleteFile(imageObj.imageId);
+          }
+
+          //Iterate through the store's documents to delete them from ImageKit
+          for (const document of store.documents) {
+            if (document.documentId)
+              await imagekit.deleteFile(document.documentId);
           }
 
           //delete store

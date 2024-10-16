@@ -5,13 +5,20 @@ export interface StoreObj {
   userId: string;
   images: ImageRequestObj[];
   name: string;
-  type: "Salon" | "Barbershop";
+  type: "salon" | "barbershop";
   status: "Waiting for Approval" | "Rejected" | "Active" | "InActive";
   location: string;
   isOpen: boolean;
+  documents: IDocumentProps[];
   // operationalHour: string;
 }
 
+export interface IDocumentProps {
+  documentId?: string;
+  name: string;
+  file: string;
+  path: string;
+}
 export interface RegisterStoreRequestObj {
   userId: string;
   email: string;
@@ -20,15 +27,17 @@ export interface RegisterStoreRequestObj {
   role: "store";
   storeImages: ImageRequestObj[];
   storeName: string;
-  storeType: "Salon" | "Barbershop";
+  storeType: "salon" | "barbershop";
   storeLocation: string;
+  storeDocuments: IDocumentProps[];
 }
 
 export interface PendingStoreObj {
   storeImages: ImageRequestObj[];
   storeName: string;
-  storeType: "Salon" | "Barbershop";
+  storeType: "salon" | "barbershop";
   storeLocation: string;
+  storeDocuments: IDocumentProps[];
 }
 
 export interface StoreId {

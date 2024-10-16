@@ -66,11 +66,27 @@ const UserSchema = new Schema(
         },
         storeType: {
           type: String,
-          enum: ["Salon", "Barbershop"], // Restrict storeType to "Salon" or "Barbershop"
+          enum: ["salon", "barbershop"], // Restrict storeType to "Salon" or "Barbershop"
         },
         storeLocation: {
           type: String,
         },
+        storeDocuments: [
+          {
+            name: {
+              type: String,
+              required: true,
+            },
+            file: {
+              type: String,
+              required: true,
+            },
+            path: {
+              type: String,
+              required: true,
+            },
+          },
+        ],
       },
     },
   },

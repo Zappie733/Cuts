@@ -16,7 +16,7 @@ export interface StoreObj {
   userId: string;
   images: IImageProps[];
   name: string;
-  type: "Salon" | "Barbershop";
+  type: "salon" | "barbershop";
   status: "Waiting for Approval" | "Rejected" | "Active" | "InActive";
   location: string;
   isOpen: boolean;

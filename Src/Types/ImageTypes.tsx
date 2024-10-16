@@ -7,3 +7,7 @@ export interface IImageProps {
 export interface SelectImageProps {
   userImage: string;
 }
+
+export interface SelectImagesProps {
+  handleSetImages: (images: IImageProps[]) => void;
+}

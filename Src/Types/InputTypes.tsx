@@ -6,7 +6,12 @@ export interface IInputProps {
   value: string;
   updateValue: (text: string) => void;
   iconName?: string;
-  iconSource?: "MaterialCommunityIcons" | "Octicons" | "Feather";
+  iconSource?:
+    | "MaterialCommunityIcons"
+    | "Octicons"
+    | "Feather"
+    | "Fontisto"
+    | "EvilIcons";
   isEditable?: boolean;
   setEditable?: (value: boolean) => void;
 }

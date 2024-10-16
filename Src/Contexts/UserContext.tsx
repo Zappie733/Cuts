@@ -124,7 +124,7 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
       image,
     }));
   };
-  console.log(user);
+
   return (
     <User.Provider value={{ user, setUser, updateUserImage }}>
       {children}

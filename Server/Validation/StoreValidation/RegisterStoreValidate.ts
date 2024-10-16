@@ -1,3 +1,4 @@
+/*************  ✨ Codeium Command 🌟  *************/
 import Joi from "joi";
 import PasswordComplexity from "joi-password-complexity";
 import { RegisterStoreRequestObj } from "../../dto/Store";
@@ -14,7 +15,7 @@ export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
   };
 
   const schema = Joi.object<RegisterStoreRequestObj>({
-    userId: Joi.string().required().label("Store Name"),
+    userId: Joi.string().required().label("User ID"),
     email: Joi.string().email().required().label("Email"),
     password: PasswordComplexity(complexityOptions)
       .required()
@@ -29,18 +30,41 @@ export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
     role: Joi.string().valid("store").required().label("Role").messages({
       "any.only": "Role must be 'store'.",
     }),
-    storeImages: Joi.object({
-      file: Joi.string()
-        .pattern(/^[A-Za-z0-9+/]+={0,2}$/) // Base64 validation pattern
-        .required()
-        .label("File"),
-      path: Joi.string().required().label("Path"),
-    })
+    storeImages: Joi.array()
+      .items(
+        Joi.object({
+          file: Joi.string()
+            .pattern(/^[A-Za-z0-9+/]+={0,2}$/) // Base64 validation pattern
+            .required()
+            .label("File"),
+          path: Joi.string().required().label("Path"),
+        })
+      )
       .required()
       .label("Store Image"),
+    storeType: Joi.string()
+      .valid("salon", "barbershop")
+      .required()
+      .label("Store Type")
+      .messages({
+        "any.only": "Store Type must be 'salon' or 'barbershop'.",
+      }),
     storeName: Joi.string().required().label("Store Name"),
-    storeType: Joi.string().required().label("Store Type"),
+
     storeLocation: Joi.string().required().label("Store Location"),
+    storeDocuments: Joi.array()
+      .items(
+        Joi.object({
+          name: Joi.string().required().label("Name"),
+          file: Joi.string()
+            .pattern(/^[A-Za-z0-9+/]+={0,2}$/) // Base64 validation pattern
+            .required()
+            .label("File"),
+          path: Joi.string().required().label("Path"),
+        })
+      )
+      .required()
+      .label("Store Document"),
   });
 
   return schema.validate(data);

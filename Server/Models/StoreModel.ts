@@ -44,6 +44,22 @@ const StoreSchema = new Schema(
       required: true,
       default: false,
     },
+    documents: [
+      {
+        documentId: {
+          type: String,
+        },
+        name: {
+          type: String,
+        },
+        file: {
+          type: String,
+        },
+        path: {
+          type: String,
+        },
+      },
+    ],
   },
   {
     toJSON: {

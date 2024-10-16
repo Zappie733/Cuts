@@ -11,7 +11,13 @@ import {
 import React, { useContext, useRef, useState } from "react";
 import { colors } from "../Config/Theme";
 import { IInputProps } from "../Types/InputTypes";
-import { Feather, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
+import {
+  EvilIcons,
+  Feather,
+  Fontisto,
+  MaterialCommunityIcons,
+  Octicons,
+} from "@expo/vector-icons";
 import { Theme } from "../Contexts";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
@@ -114,6 +120,22 @@ export const Input = ({
           {iconSource === "Feather" && (
             <Feather
               name={iconName as keyof typeof Feather.glyphMap}
+              size={24}
+              color={activeColors.tertiary}
+              style={styles.icon}
+            />
+          )}
+          {iconSource === "Fontisto" && (
+            <Fontisto
+              name={iconName as keyof typeof Fontisto.glyphMap}
+              size={24}
+              color={activeColors.tertiary}
+              style={styles.icon}
+            />
+          )}
+          {iconSource === "EvilIcons" && (
+            <EvilIcons
+              name={iconName as keyof typeof EvilIcons.glyphMap}
               size={24}
               color={activeColors.tertiary}
               style={styles.icon}
