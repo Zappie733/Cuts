@@ -107,7 +107,7 @@ export const SelectDocuments = ({
                 onPress={() => handleOpenDocument(document)} // Open document on click
                 style={[
                   styles.documentItemContainer,
-                  { borderColor: activeColors.secondary },
+                  { borderColor: activeColors.accent },
                 ]}
               >
                 {/* PDF Icon */}
@@ -123,6 +123,7 @@ export const SelectDocuments = ({
                     fontSize: 12,
                     paddingLeft: 10,
                   }}
+                  numberOfLines={2}
                 >
                   {document.name}
                 </Text>

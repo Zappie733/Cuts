@@ -40,7 +40,7 @@ export const DocumentDetailsScreen = ({
       <Header goBack={handleGoBack} />
       <Text
         style={[styles.title, { color: activeColors.tertiary }]}
-        numberOfLines={1}
+        numberOfLines={2}
       >
         {fileName}
       </Text>

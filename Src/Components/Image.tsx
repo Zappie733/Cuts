@@ -342,7 +342,13 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
           >
             {selectedImages.map((uri, index) => (
               <View key={index} style={styles.imageItemContainer}>
-                <Image source={{ uri }} style={styles.imageItem} />
+                <Image
+                  source={{ uri }}
+                  style={[
+                    styles.imageItem,
+                    { borderColor: activeColors.tertiary },
+                  ]}
+                />
                 <Pressable
                   onPress={() => handleDeleteImage(index)}
                   style={[
@@ -399,6 +405,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     width: 80,
     height: 80,
+    borderWidth: 1,
   },
   deleteButton: {
     position: "absolute",

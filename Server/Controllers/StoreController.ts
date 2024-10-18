@@ -55,7 +55,7 @@ export const registerStore = async (req: Request, res: Response) => {
       const { error } = RegisterStoreValidate(
         <RegisterStoreRequestObj>req.body
       );
-      //console.log(error);
+      console.log(error);
       if (error)
         return res.status(400).json(<ResponseObj>{
           error: true,

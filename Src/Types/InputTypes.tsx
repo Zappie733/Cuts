@@ -14,4 +14,5 @@ export interface IInputProps {
     | "EvilIcons";
   isEditable?: boolean;
   setEditable?: (value: boolean) => void;
+  isDisabled?: boolean;
 }

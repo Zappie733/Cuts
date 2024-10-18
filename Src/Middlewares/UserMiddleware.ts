@@ -11,7 +11,7 @@ export const getUserProfile = async (
   auth: IAuthObj,
   updateAccessToken: (accessToken: string) => void
 ): Promise<IResponseProps<UserProfileResponse>> => {
-  console.log("getUserProfile Process");
+  // console.log("getUserProfile Process");
   const apiOptions = {
     method: "GET",
   };
@@ -22,7 +22,7 @@ export const getUserProfile = async (
     auth,
     updateAccessToken
   );
-  console.log(result);
+  // console.log(result);
 
   return {
     status: result.status,
@@ -60,7 +60,7 @@ export const fetchUserStores = async (
   auth: IAuthObj,
   updateAccessToken: (accessToken: string) => void
 ): Promise<IResponseProps<StoreResponse[]>> => {
-  console.log("getUserStores Process");
+  //console.log("getUserStores Process");
 
   const apiOptions = {
     method: "GET",
@@ -72,7 +72,7 @@ export const fetchUserStores = async (
     auth,
     updateAccessToken
   );
-  console.log(JSON.stringify(result, null, 2));
+  //console.log(JSON.stringify(result, null, 2));
 
   return {
     status: result.status,

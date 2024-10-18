@@ -11,6 +11,7 @@ export interface StoreObj {
   isOpen: boolean;
   documents: IDocumentProps[];
   // operationalHour: string;
+  rejectedReason: string;
 }
 
 export interface IDocumentProps {

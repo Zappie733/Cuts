@@ -1,13 +1,8 @@
 import { IImageProps } from "./ImageTypes";
+import { StoreResponse } from "./ResponseTypes";
 
 export interface IStoreProps {
-  email: string;
-  images: IImageProps[];
-  name: string;
-  type: "salon" | "barbershop";
-  status: "Waiting for Approval" | "Rejected" | "Active" | "InActive";
-  location: string;
-  isOpen: boolean;
+  data: StoreResponse;
   refetchData: () => void;
 }
 

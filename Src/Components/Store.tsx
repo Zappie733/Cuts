@@ -20,30 +20,37 @@ import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/AuthContextTypes";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { Input } from "./Input";
+import { RootStackScreenProps } from "../Navigations/RootNavigator";
+import { IRegistrationStoreProps } from "../Types/RegisterStoreScreenTypes";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
-export const Store = ({
-  email,
-  images,
-  name,
-  type,
-  location,
-  isOpen,
-  status,
-  refetchData,
-}: IStoreProps) => {
+export const Store = ({ data, refetchData }: IStoreProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
-  const navigation = useNavigation();
 
+  const navigation =
+    useNavigation<RootStackScreenProps<"RegisterStoreScreen">["navigation"]>();
   const handleLogin = () => {
     console.log("login process");
   };
 
-  const handleEdit = () => {
-    console.log("edit process");
+  const handleReview = () => {
+    console.log("review process");
+    const storeData: IRegistrationStoreProps = {
+      email: data.email,
+      role: "store",
+      storeType: data.store.type,
+      storeName: data.store.name,
+      storeLocation: data.store.location,
+      storeImages: data.store.images,
+      storeDocuments: data.store.documents,
+    };
+    navigation.navigate("RegisterStoreScreen", {
+      data: storeData,
+      reason: data.store.rejectedReason,
+    });
   };
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -51,13 +58,13 @@ export const Store = ({
   const [hidePassword, setHidePassword] = useState(true);
 
   const defaultDeleteStoreFormData: DeleteStoreParams = {
-    email: email,
+    email: data.email,
     password: "",
   };
 
   const [deleteStoreFormData, setDeleteStoreFormData] =
     useState<DeleteStoreParams>(defaultDeleteStoreFormData);
-  console.log(deleteStoreFormData);
+  // console.log(deleteStoreFormData);
   const handleDeleteStoreTextChange = (text: string, fieldname: string) => {
     setDeleteStoreFormData({ ...deleteStoreFormData, [fieldname]: text });
   };
@@ -128,30 +135,33 @@ export const Store = ({
         ]}
         numberOfLines={2}
       >
-        {name}
+        {data.store.name}
       </Text>
       {/* store info */}
       <View style={styles.storeInfoContainer}>
         {/* Image */}
         <View style={styles.imageContainer}>
-          {images[0].file === "" ? (
+          {data.store.images[0].file === "" ? (
             <Fontisto
               name="shopping-store"
               size={80}
               color={activeColors.accent}
             />
           ) : (
-            <Image source={{ uri: images[0].file }} style={styles.image} />
+            <Image
+              source={{ uri: data.store.images[0].file }}
+              style={styles.image}
+            />
           )}
         </View>
         {/* Profile Info */}
         <View style={styles.infoContainer}>
           <Text style={[styles.text, { color: activeColors.accent }]}>
             <Text style={{ fontWeight: "400" }}>Type:</Text>{" "}
-            {type === "salon" ? "Salon" : "Barbershop"}{" "}
+            {data.store.type === "salon" ? "Salon" : "Barbershop"}{" "}
             <Image
               source={
-                type === "salon"
+                data.store.type === "salon"
                   ? require("../../assets/salon.png")
                   : require("../../assets/barbershop.png")
               }
@@ -159,13 +169,15 @@ export const Store = ({
             />
           </Text>
           <Text style={[styles.text, { color: activeColors.accent }]}>
-            <Text style={{ fontWeight: "400" }}>Status:</Text> {status}
+            <Text style={{ fontWeight: "400" }}>Status:</Text>{" "}
+            {data.store.status}
           </Text>
           <Text
             style={[styles.text, { color: activeColors.accent }]}
             numberOfLines={2}
           >
-            <Text style={{ fontWeight: "400" }}>Location:</Text> {location}
+            <Text style={{ fontWeight: "400" }}>Location:</Text>{" "}
+            {data.store.location}
           </Text>
         </View>
       </View>
@@ -176,22 +188,22 @@ export const Store = ({
           styles.button,
           {
             backgroundColor:
-              status === "Waiting for Approval"
+              data.store.status === "Waiting for Approval"
                 ? activeColors.disabledColor
                 : activeColors.accent,
             borderColor: activeColors.tertiary,
           },
         ]}
-        onPress={status === "Rejected" ? handleEdit : handleLogin}
-        disabled={status === "Waiting for Approval"}
+        onPress={data.store.status === "Rejected" ? handleReview : handleLogin}
+        disabled={data.store.status === "Waiting for Approval"}
       >
-        {status === "Active" || status === "InActive" ? (
+        {data.store.status === "Active" || data.store.status === "InActive" ? (
           <Text style={[styles.buttonText, { color: activeColors.secondary }]}>
             Login
           </Text>
-        ) : status === "Rejected" ? (
+        ) : data.store.status === "Rejected" ? (
           <Text style={[styles.buttonText, { color: activeColors.secondary }]}>
-            Edit
+            Review
           </Text>
         ) : (
           <Text style={[styles.buttonText, { color: activeColors.secondary }]}>
@@ -201,7 +213,7 @@ export const Store = ({
       </Pressable>
 
       {/* open/close */}
-      {isOpen === true && (
+      {data.store.isOpen === true && (
         <View style={styles.oc}>
           <Image
             source={require("../../assets/open.png")}
@@ -209,17 +221,20 @@ export const Store = ({
           />
         </View>
       )}
-      {isOpen === false && (status === "Active" || status === "InActive") && (
-        <View style={styles.oc}>
-          <Image
-            source={require("../../assets/closed.png")}
-            style={{ width: 50, height: 50 }}
-          />
-        </View>
-      )}
+      {data.store.isOpen === false &&
+        (data.store.status === "Active" ||
+          data.store.status === "InActive") && (
+          <View style={styles.oc}>
+            <Image
+              source={require("../../assets/closed.png")}
+              style={{ width: 50, height: 50 }}
+            />
+          </View>
+        )}
 
       {/* waiting for approval / rejected */}
-      {(status === "Waiting for Approval" || status === "Rejected") && (
+      {(data.store.status === "Waiting for Approval" ||
+        data.store.status === "Rejected") && (
         <View style={styles.oc}>
           <Image
             source={require("../../assets/onboarding.png")}

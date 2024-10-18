@@ -1,3 +1,4 @@
+import { IDocumentProps } from "../DocumentTypes";
 import { IImageProps } from "../ImageTypes";
 
 export interface UserProfileResponse {
@@ -20,7 +21,9 @@ export interface StoreObj {
   status: "Waiting for Approval" | "Rejected" | "Active" | "InActive";
   location: string;
   isOpen: boolean;
+  documents: IDocumentProps[];
   // operationalHour: string;
+  rejectedReason: string;
 }
 
 export interface StoreResponse {

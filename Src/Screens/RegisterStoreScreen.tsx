@@ -1,6 +1,7 @@
 import {
   Alert,
   Dimensions,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -10,6 +11,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
@@ -17,7 +19,7 @@ import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { Header } from "../Components/Header";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, FontAwesome6 } from "@expo/vector-icons";
 import { Input } from "../Components/Input";
 import { SelectDocuments } from "../Components/Documents";
 import { IRegistrationStoreProps } from "../Types/RegisterStoreScreenTypes";
@@ -30,6 +32,9 @@ import { IResponseProps } from "../Types/ResponseTypes";
 import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/AuthContextTypes";
+import { set } from "mongoose";
+
+const screenWidth = Dimensions.get("screen").width;
 
 export const RegisterStoreScreen = ({
   navigation,
@@ -40,8 +45,6 @@ export const RegisterStoreScreen = ({
 
   const { user } = useContext(User);
   const { auth, updateAccessToken, setAuth } = useContext(Auth);
-
-  const screenWidth = Dimensions.get("screen").width;
 
   const handleGoBack = () => {
     navigation.goBack();
@@ -64,7 +67,9 @@ export const RegisterStoreScreen = ({
 
   const [storeRegisterFormData, setStoreRegisterFormData] =
     useState<IRegistrationStoreProps>(defaultStoreRegisterFormData);
-  console.log(storeRegisterFormData);
+  // console.log(storeRegisterFormData);
+  const [rejectedReason, setRejectedReason] = useState("");
+
   const handleRegisterStoreTextChange = (
     text: string,
     field: keyof IRegistrationStoreProps
@@ -134,14 +139,31 @@ export const RegisterStoreScreen = ({
     }
   };
 
+  const [isReviewRegisterStore, setIsReviewRegisterStore] = useState(false);
+
   useEffect(() => {
-    setStoreRegisterFormData(defaultStoreRegisterFormData);
-  }, []);
-  useFocusEffect(
-    useCallback(() => {
+    if (route.params && route.params.data && route.params.reason) {
+      setStoreRegisterFormData(route.params.data);
+      setIsReviewRegisterStore(true);
+      setModalVisible(false);
+      setRejectedReason(route.params.reason);
+    } else {
       setStoreRegisterFormData(defaultStoreRegisterFormData);
-    }, [])
-  );
+    }
+  }, []);
+
+  const handleOpenDocument = (file: string, name: string) => {
+    navigation.navigate("DocumentDetailsScreen", {
+      documentUri: file,
+      fileName: name,
+    });
+  };
+
+  const goToRegisterStore = () => {
+    setModalVisible(true);
+    setIsReviewRegisterStore(false);
+    setStoreRegisterFormData(defaultStoreRegisterFormData);
+  };
 
   return (
     <SafeAreaView
@@ -195,7 +217,10 @@ export const RegisterStoreScreen = ({
                 },
               ]}
             >
-              • Input all the required information about your store {"\n"}
+              • <Text style={{ fontWeight: "bold" }}>Input</Text> all the field
+              information about your store {"\n"}•{" "}
+              <Text style={{ fontWeight: "bold" }}>Upload</Text> Images &
+              Documents about your store {"\n"}
             </Text>
 
             {/* Status Registration */}
@@ -278,169 +303,435 @@ export const RegisterStoreScreen = ({
           style={{ width: screenWidth }}
         >
           <View style={styles.registerScrollContainer}>
-            {/* Title */}
-            <Text style={[styles.title, { color: activeColors.accent }]}>
-              Join With Cuts & Expands Your Store
-            </Text>
+            {isReviewRegisterStore !== true ? (
+              <>
+                {/* Title */}
+                <Text style={[styles.title, { color: activeColors.accent }]}>
+                  Join With Cuts & Expands Your Store
+                </Text>
 
-            {/* Information Button */}
-            <Pressable onPress={() => setModalVisible(true)}>
-              <Text
-                style={[
-                  styles.informationButton,
-                  {
-                    color: activeColors.tertiary,
-                  },
-                ]}
-              >
-                About Store Registration{" "}
-                <Text style={{ color: activeColors.accent }}>Read here</Text>
-              </Text>
-            </Pressable>
+                {/* Information Button */}
+                <Pressable onPress={() => setModalVisible(true)}>
+                  <Text
+                    style={[
+                      styles.informationButton,
+                      {
+                        color: activeColors.tertiary,
+                      },
+                    ]}
+                  >
+                    About Store Registration{" "}
+                    <Text style={{ color: activeColors.accent }}>
+                      Read here
+                    </Text>
+                  </Text>
+                </Pressable>
 
-            {/* Break Line */}
-            <View
-              style={{
-                marginTop: 10,
-                borderWidth: 1,
-                backgroundColor: activeColors.secondary,
-                borderColor: activeColors.secondary,
-                width: "100%",
-              }}
-            ></View>
+                {/* Break Line */}
+                <View
+                  style={{
+                    marginTop: 10,
+                    borderWidth: 1,
+                    backgroundColor: activeColors.secondary,
+                    borderColor: activeColors.secondary,
+                    width: "100%",
+                  }}
+                ></View>
 
-            {/* Little Text */}
-            <Text style={[styles.text, { color: activeColors.accent }]}>
-              Fill the form below to Register
-            </Text>
+                {/* Little Text */}
+                <Text style={[styles.text, { color: activeColors.accent }]}>
+                  Fill the form below to Register
+                </Text>
 
-            {/* Inputs */}
-            <View style={styles.inputContainer}>
-              {/* Email Input */}
-              <Input
-                key="registerStoreEmail"
-                context="Email"
-                placeholder="Enter Store Email"
-                value={storeRegisterFormData.email}
-                updateValue={(text: string) =>
-                  handleRegisterStoreTextChange(text, "email")
-                }
-                iconName="email-outline"
-                iconSource="MaterialCommunityIcons"
-              />
-              {/* Password Input */}
-              <Input
-                key="registerStorePassword"
-                context="Password"
-                isHidden={hidePassword}
-                setHidden={setHidePassword}
-                placeholder="Enter Store Password"
-                value={storeRegisterFormData.password}
-                updateValue={(text: string) =>
-                  handleRegisterStoreTextChange(text, "password")
-                }
-                iconName="lock"
-                iconSource="Octicons"
-              />
-              {/* Confirm Password Input */}
-              <Input
-                key="registerStoreConfirmPassword"
-                context="Confirm Password"
-                isHidden={hideCPassword}
-                setHidden={setHideCPassword}
-                placeholder="Enter Store Confirm Password"
-                value={storeRegisterFormData.confirmPassword}
-                updateValue={(text: string) =>
-                  handleRegisterStoreTextChange(text, "confirmPassword")
-                }
-                iconName="lock"
-                iconSource="Octicons"
-              />
-              {/* Store Type Input */}
-              <Input
-                key="registerStoreType"
-                context="Type"
-                placeholder="Enter Store Type(Salon / Barbershop)"
-                value={storeRegisterFormData.storeType}
-                updateValue={(text: string) =>
-                  handleRegisterStoreTextChange(text, "storeType")
-                }
-                iconName="scissors"
-                iconSource="Fontisto"
-              />
-              {/* Store Name Input */}
-              <Input
-                key="registerStoreName"
-                context="Name"
-                placeholder="Enter Store Name"
-                value={storeRegisterFormData.storeName}
-                updateValue={(text: string) =>
-                  handleRegisterStoreTextChange(text, "storeName")
-                }
-                iconName="shopping-store"
-                iconSource="Fontisto"
-              />
-              {/* Store Location Input */}
-              <Input
-                key="registerStoreLocation"
-                context="Location"
-                placeholder="Enter Store Location"
-                value={storeRegisterFormData.storeLocation}
-                updateValue={(text: string) =>
-                  handleRegisterStoreTextChange(text, "storeLocation")
-                }
-                iconName="location"
-                iconSource="EvilIcons"
-              />
-              {/* Break Line */}
-              <View
-                style={{
-                  marginVertical: 10,
-                  borderWidth: 1,
-                  backgroundColor: activeColors.secondary,
-                  borderColor: activeColors.secondary,
-                  width: "100%",
-                }}
-              ></View>
-              <SelectImages handleSetImages={handleChangeImages} />
-              {/* Break Line */}
-              <View
-                style={{
-                  marginVertical: 10,
-                  borderWidth: 1,
-                  backgroundColor: activeColors.secondary,
-                  borderColor: activeColors.secondary,
-                  width: "100%",
-                }}
-              ></View>
-              <SelectDocuments handleSetDocument={handleChangeDocuments} />
-              {/* Break Line */}
-              <View
-                style={{
-                  marginVertical: 10,
-                  borderWidth: 1,
-                  backgroundColor: activeColors.secondary,
-                  borderColor: activeColors.secondary,
-                  width: "100%",
-                }}
-              ></View>
-            </View>
+                {/* Inputs */}
+                <View style={styles.inputContainer}>
+                  {/* Email Input */}
+                  <Input
+                    key="registerStoreEmail"
+                    context="Store Email"
+                    placeholder="Enter Store Email"
+                    value={storeRegisterFormData.email}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "email")
+                    }
+                    iconName="email-outline"
+                    iconSource="MaterialCommunityIcons"
+                  />
+                  {/* Password Input */}
+                  <Input
+                    key="registerStorePassword"
+                    context="Store Password"
+                    isHidden={hidePassword}
+                    setHidden={setHidePassword}
+                    placeholder="Enter Store Password"
+                    value={
+                      storeRegisterFormData.password
+                        ? storeRegisterFormData.password
+                        : ""
+                    }
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "password")
+                    }
+                    iconName="lock"
+                    iconSource="Octicons"
+                  />
+                  {/* Confirm Password Input */}
+                  <Input
+                    key="registerStoreConfirmPassword"
+                    context="Confirm Password"
+                    isHidden={hideCPassword}
+                    setHidden={setHideCPassword}
+                    placeholder="Enter Store Confirm Password"
+                    value={
+                      storeRegisterFormData.confirmPassword
+                        ? storeRegisterFormData.confirmPassword
+                        : ""
+                    }
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "confirmPassword")
+                    }
+                    iconName="lock"
+                    iconSource="Octicons"
+                  />
+                  {/* Store Type Input */}
+                  <Input
+                    key="registerStoreType"
+                    context="Type"
+                    placeholder="Enter Store Type(Salon / Barbershop)"
+                    value={storeRegisterFormData.storeType}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeType")
+                    }
+                    iconName="scissors"
+                    iconSource="Fontisto"
+                  />
+                  {/* Store Name Input */}
+                  <Input
+                    key="registerStoreName"
+                    context="Name"
+                    placeholder="Enter Store Name"
+                    value={storeRegisterFormData.storeName}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeName")
+                    }
+                    iconName="shopping-store"
+                    iconSource="Fontisto"
+                  />
+                  {/* Store Location Input */}
+                  <Input
+                    key="registerStoreLocation"
+                    context="Location"
+                    placeholder="Enter Store Location"
+                    value={storeRegisterFormData.storeLocation}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeLocation")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                  />
+                  {/* Break Line */}
+                  <View
+                    style={{
+                      marginVertical: 10,
+                      borderWidth: 1,
+                      backgroundColor: activeColors.secondary,
+                      borderColor: activeColors.secondary,
+                      width: "100%",
+                    }}
+                  ></View>
+                  <SelectImages handleSetImages={handleChangeImages} />
+                  {/* Break Line */}
+                  <View
+                    style={{
+                      marginVertical: 10,
+                      borderWidth: 1,
+                      backgroundColor: activeColors.secondary,
+                      borderColor: activeColors.secondary,
+                      width: "100%",
+                    }}
+                  ></View>
+                  <SelectDocuments handleSetDocument={handleChangeDocuments} />
+                  {/* Break Line */}
+                  <View
+                    style={{
+                      marginVertical: 10,
+                      borderWidth: 1,
+                      backgroundColor: activeColors.secondary,
+                      borderColor: activeColors.secondary,
+                      width: "100%",
+                    }}
+                  ></View>
+                </View>
 
-            {/* Register Button */}
-            <Pressable onPress={handleRegisterStore}>
-              <Text
-                style={[
-                  styles.registerButtonContainer,
-                  {
-                    color: activeColors.secondary,
-                    backgroundColor: activeColors.accent,
-                    width: (screenWidth * 2) / 3 + 50,
-                  },
-                ]}
-              >
-                Register
-              </Text>
-            </Pressable>
+                {/* Register Button */}
+                <Pressable onPress={handleRegisterStore}>
+                  <Text
+                    style={[
+                      styles.registerButtonContainer,
+                      {
+                        color: activeColors.secondary,
+                        backgroundColor: activeColors.accent,
+                        width: (screenWidth * 2) / 3 + 50,
+                      },
+                    ]}
+                  >
+                    Register
+                  </Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                {/* Title */}
+                <Text style={[styles.title, { color: activeColors.accent }]}>
+                  Store Review
+                </Text>
+
+                {/* Information Button */}
+                <Pressable onPress={() => setModalVisible(true)}>
+                  <Text
+                    style={[
+                      styles.informationButton,
+                      {
+                        color: activeColors.tertiary,
+                      },
+                    ]}
+                  >
+                    About Store Registration{" "}
+                    <Text style={{ color: activeColors.accent }}>
+                      Read here
+                    </Text>
+                  </Text>
+                </Pressable>
+
+                {/* Break Line */}
+                <View
+                  style={{
+                    marginTop: 10,
+                    borderWidth: 1,
+                    backgroundColor: activeColors.secondary,
+                    borderColor: activeColors.secondary,
+                    width: "100%",
+                  }}
+                ></View>
+
+                {/* Little Text */}
+                <Text style={[styles.text, { color: activeColors.accent }]}>
+                  Store Infomation
+                </Text>
+
+                {/* Inputs */}
+                <View style={styles.inputContainer}>
+                  {/* Email Input */}
+                  <Input
+                    key="registerStoreReviewEmail"
+                    context="Store Email"
+                    placeholder="Enter Store Email"
+                    value={storeRegisterFormData.email}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "email")
+                    }
+                    iconName="email-outline"
+                    iconSource="MaterialCommunityIcons"
+                    isDisabled={true}
+                  />
+                  {/* Store Type Input */}
+                  <Input
+                    key="registerStoreReviewType"
+                    context="Type"
+                    placeholder="Enter Store Type(Salon / Barbershop)"
+                    value={storeRegisterFormData.storeType}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeType")
+                    }
+                    iconName="scissors"
+                    iconSource="Fontisto"
+                    isDisabled={true}
+                  />
+                  {/* Store Name Input */}
+                  <Input
+                    key="registerStoreReviewName"
+                    context="Name"
+                    placeholder="Enter Store Name"
+                    value={storeRegisterFormData.storeName}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeName")
+                    }
+                    iconName="shopping-store"
+                    iconSource="Fontisto"
+                    isDisabled={true}
+                  />
+                  {/* Store Location Input */}
+                  <Input
+                    key="registerStoreReviewLocation"
+                    context="Location"
+                    placeholder="Enter Store Location"
+                    value={storeRegisterFormData.storeLocation}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeLocation")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                    isDisabled={true}
+                  />
+
+                  {/* Break Line */}
+                  <View
+                    style={{
+                      marginVertical: 10,
+                      borderWidth: 1,
+                      backgroundColor: activeColors.secondary,
+                      borderColor: activeColors.secondary,
+                      width: "100%",
+                    }}
+                  ></View>
+                  {/* Little Text */}
+                  <Text style={[styles.text2, { color: activeColors.accent }]}>
+                    Store Images
+                  </Text>
+                  <View style={styles.imageContainer}>
+                    {storeRegisterFormData.storeImages.length > 0 && (
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.imageList}
+                      >
+                        {storeRegisterFormData.storeImages.map((uri, index) => (
+                          <View key={index} style={styles.imageItemContainer}>
+                            <Image
+                              source={{
+                                uri: storeRegisterFormData.storeImages[index]
+                                  .file,
+                              }}
+                              style={[
+                                styles.imageItem,
+                                { borderColor: activeColors.tertiary },
+                              ]}
+                            />
+                          </View>
+                        ))}
+                      </ScrollView>
+                    )}
+                  </View>
+
+                  {/* Break Line */}
+                  <View
+                    style={{
+                      marginVertical: 10,
+                      borderWidth: 1,
+                      backgroundColor: activeColors.secondary,
+                      borderColor: activeColors.secondary,
+                      width: "100%",
+                    }}
+                  ></View>
+                  {/* Little Text */}
+                  <Text style={[styles.text2, { color: activeColors.accent }]}>
+                    Store Documents
+                  </Text>
+                  <View style={styles.documentContainer}>
+                    {storeRegisterFormData.storeDocuments.length > 0 && (
+                      <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.documentList}
+                      >
+                        {storeRegisterFormData.storeDocuments.map(
+                          (document, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() =>
+                                handleOpenDocument(
+                                  storeRegisterFormData.storeDocuments[index]
+                                    .file,
+                                  storeRegisterFormData.storeDocuments[index]
+                                    .name
+                                )
+                              } // Open document on click
+                              style={[
+                                styles.documentItemContainer,
+                                { borderColor: activeColors.accent },
+                              ]}
+                            >
+                              {/* PDF Icon */}
+                              <FontAwesome6
+                                name={"file-pdf"}
+                                size={30}
+                                color={activeColors.tertiary}
+                              />
+                              {/* Document Name */}
+                              <Text
+                                style={{
+                                  color: activeColors.accent,
+                                  fontSize: 12,
+                                  paddingLeft: 10,
+                                }}
+                              >
+                                {document.name}
+                              </Text>
+                            </TouchableOpacity>
+                          )
+                        )}
+                      </ScrollView>
+                    )}
+                  </View>
+
+                  {/* Break Line */}
+                  <View
+                    style={{
+                      marginVertical: 10,
+                      borderWidth: 1,
+                      backgroundColor: activeColors.secondary,
+                      borderColor: activeColors.secondary,
+                      width: "100%",
+                    }}
+                  ></View>
+                  {/* Little Text */}
+                  <Text style={[styles.text2, { color: activeColors.accent }]}>
+                    Rejected Reasons
+                  </Text>
+                  <View
+                    style={[
+                      styles.reasonContainer,
+                      {
+                        backgroundColor: activeColors.secondary,
+                        borderColor: activeColors.tertiary,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.reason, { color: activeColors.accent }]}
+                      numberOfLines={100}
+                    >
+                      {rejectedReason}
+                    </Text>
+                  </View>
+
+                  {/* Break Line */}
+                  <View
+                    style={{
+                      marginVertical: 10,
+                      borderWidth: 1,
+                      backgroundColor: activeColors.secondary,
+                      borderColor: activeColors.secondary,
+                      width: "100%",
+                    }}
+                  ></View>
+                  {/* Register Button */}
+                  <Pressable onPress={goToRegisterStore}>
+                    <Text
+                      style={[
+                        styles.registerButtonContainer,
+                        {
+                          color: activeColors.secondary,
+                          backgroundColor: activeColors.accent,
+                          width: (screenWidth * 2) / 3 + 50,
+                        },
+                      ]}
+                    >
+                      Register A New Store
+                    </Text>
+                  </Pressable>
+                </View>
+              </>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -516,6 +807,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 20,
     alignSelf: "center",
+    marginBottom: 5,
   },
   inputContainer: {
     flex: 1,
@@ -529,5 +821,58 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 20,
     alignSelf: "center",
+  },
+
+  text2: {
+    fontSize: 20,
+    fontWeight: "500",
+    alignSelf: "center",
+    marginBottom: 10,
+  },
+
+  imageContainer: {
+    marginBottom: 10,
+    width: (screenWidth * 2) / 3 + 50,
+  },
+  imageList: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  imageItemContainer: {
+    marginHorizontal: 5,
+  },
+  imageItem: {
+    borderRadius: 5,
+    width: 80,
+    height: 80,
+    borderWidth: 1,
+  },
+
+  documentContainer: {
+    marginBottom: 10,
+    width: (screenWidth * 2) / 3 + 50,
+  },
+  documentList: {
+    flexDirection: "column",
+    justifyContent: "center",
+  },
+  documentItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    borderWidth: 1,
+    padding: 5,
+    borderRadius: 10,
+  },
+
+  reasonContainer: {
+    width: (screenWidth * 2) / 3 + 50,
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 10,
+  },
+  reason: {
+    fontSize: 15,
+    fontWeight: "400",
   },
 });

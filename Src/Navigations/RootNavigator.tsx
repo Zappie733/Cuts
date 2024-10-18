@@ -13,6 +13,7 @@ import { Auth, User, UserContext } from "../Contexts";
 import { ProfileScreen } from "../Screens/ProfileScreen";
 import { RegisterStoreScreen } from "../Screens/RegisterStoreScreen";
 import { DocumentDetailsScreen } from "../Screens/DocumentDetailsScreen";
+import { IRegistrationStoreProps } from "../Types/RegisterStoreScreenTypes";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;
@@ -20,8 +21,16 @@ export type RootStackParamsObj = {
   LoginScreen: undefined;
   RegisterScreen: undefined;
   Profile: undefined;
-  RegisterStoreScreen: undefined;
-  DocumentDetailsScreen: { documentUri: string; fileName: string };
+  RegisterStoreScreen:
+    | {
+        data: IRegistrationStoreProps | undefined;
+        reason: string | undefined;
+      }
+    | undefined;
+  DocumentDetailsScreen: {
+    documentUri: string;
+    fileName: string;
+  };
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsObj>();

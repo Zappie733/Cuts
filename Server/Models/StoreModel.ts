@@ -60,6 +60,9 @@ const StoreSchema = new Schema(
         },
       },
     ],
+    rejectedReason: {
+      type: String,
+    },
   },
   {
     toJSON: {

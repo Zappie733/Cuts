@@ -83,6 +83,7 @@ export const SettingsScreen = ({
   };
 
   const [getUserStores, setGetUserStores] = useState<StoreResponse[]>([]);
+  //console.log(JSON.stringify(getUserStores, null, 2));
 
   const handleFetchUserStores = async () => {
     if (auth._id !== "") {
@@ -272,13 +273,7 @@ export const SettingsScreen = ({
               {getUserStores.map((item, index) => (
                 <Store
                   key={index}
-                  email={item.email}
-                  images={item.store.images}
-                  name={item.store.name}
-                  type={item.store.type}
-                  status={item.store.status}
-                  location={item.store.location}
-                  isOpen={item.store.isOpen}
+                  data={item}
                   refetchData={handleFetchUserStores}
                 />
               ))}

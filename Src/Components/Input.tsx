@@ -33,16 +33,17 @@ export const Input = ({
   iconSource,
   isEditable,
   setEditable,
+  isDisabled,
 }: IInputProps) => {
   const [isVisible, setIsVisible] = useState(
-    isEditable !== undefined ? true : false
+    isEditable !== undefined || isDisabled === true ? true : false
   );
 
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
   const borderWidth = useRef(
-    new Animated.Value(isEditable !== undefined ? 1 : 0)
+    new Animated.Value(isEditable !== undefined || isDisabled === true ? 1 : 0)
   ).current;
 
   const borderWidthAnimation = (toValue: number) => {
@@ -78,7 +79,7 @@ export const Input = ({
           borderWidth,
           borderColor: borderColorAnimation,
           backgroundColor:
-            isEditable === false
+            isEditable === false || isDisabled === true
               ? activeColors.disabledColor
               : activeColors.secondary,
           marginTop: isVisible ? 20 : 10,
@@ -148,11 +149,19 @@ export const Input = ({
             secureTextEntry={isHidden === undefined ? false : isHidden}
             value={value}
             onChangeText={updateValue}
-            editable={isEditable === undefined ? true : isEditable}
+            editable={
+              isEditable === undefined && isDisabled === undefined
+                ? true
+                : isDisabled === true
+                ? false
+                : isEditable
+            }
             onFocus={onFocusHandler}
             onBlur={onBlurHandler}
-            blurOnSubmit={true}
+            // blurOnSubmit={true}
             autoCapitalize={"none"}
+            multiline={isHidden !== undefined ? false : true}
+            numberOfLines={2}
           />
         </View>
       ) : (
@@ -166,11 +175,18 @@ export const Input = ({
           secureTextEntry={isHidden === undefined ? false : isHidden}
           value={value}
           onChangeText={updateValue}
-          editable={isEditable === undefined ? true : isEditable}
+          editable={
+            isEditable === undefined && isDisabled === undefined
+              ? true
+              : isDisabled === true
+              ? false
+              : isEditable
+          }
           onFocus={onFocusHandler}
           onBlur={onBlurHandler}
-          blurOnSubmit={true}
           autoCapitalize={"none"}
+          multiline={isHidden !== undefined ? false : true}
+          numberOfLines={2}
         />
       )}
 
@@ -209,6 +225,7 @@ const styles = StyleSheet.create({
     width,
     paddingVertical: 8,
     justifyContent: "center",
+    paddingRight: 10,
   },
   input: { flexDirection: "row", alignItems: "center" },
   textInput: {
