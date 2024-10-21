@@ -2,6 +2,7 @@ import {
   Alert,
   Dimensions,
   Image,
+  Keyboard,
   Modal,
   Pressable,
   StyleSheet,
@@ -14,14 +15,15 @@ import { colors } from "../Config/Theme";
 import { DeleteStoreParams, IStoreProps } from "../Types/StoreTypes";
 import { AntDesign, Fontisto } from "@expo/vector-icons";
 import { deleteStore } from "../Middlewares/StoreMiddleware";
-import { IResponseProps } from "../Types/ResponseTypes";
-import { logoutUser } from "../Middlewares/AuthMiddleware";
+import { IResponseProps, LoginDataResponse } from "../Types/ResponseTypes";
+import { loginUser, logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/AuthContextTypes";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { Input } from "./Input";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { IRegistrationStoreProps } from "../Types/RegisterStoreScreenTypes";
+import { ILoginProps } from "../Types/LoginScreenTypes";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -32,9 +34,6 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
 
   const navigation =
     useNavigation<RootStackScreenProps<"RegisterStoreScreen">["navigation"]>();
-  const handleLogin = () => {
-    console.log("login process");
-  };
 
   const handleReview = () => {
     console.log("review process");
@@ -64,7 +63,8 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
 
   const [deleteStoreFormData, setDeleteStoreFormData] =
     useState<DeleteStoreParams>(defaultDeleteStoreFormData);
-  // console.log(deleteStoreFormData);
+  console.log("deleteFormData", deleteStoreFormData);
+
   const handleDeleteStoreTextChange = (text: string, fieldname: string) => {
     setDeleteStoreFormData({ ...deleteStoreFormData, [fieldname]: text });
   };
@@ -111,6 +111,51 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
       refetchData();
     } else {
       Alert.alert("Deletion error", response.message);
+    }
+  };
+
+  const [isLoginModal, setIsLoginModal] = useState(false);
+
+  const defaultLoginStoreFormData: ILoginProps = {
+    email: data.email,
+    password: "",
+  };
+
+  const [loginStoreFormData, setLoginStoreFormData] = useState<ILoginProps>(
+    defaultLoginStoreFormData
+  );
+  console.log("loginFormData", loginStoreFormData);
+
+  const handleLoginStoreTextChange = (
+    text: string,
+    fieldname: keyof ILoginProps
+  ) => {
+    setLoginStoreFormData({ ...loginStoreFormData, [fieldname]: text });
+  };
+
+  const handleLogin = async () => {
+    console.log("Login Process");
+    const result: IResponseProps<LoginDataResponse> = await loginUser(
+      loginStoreFormData
+    );
+    console.log(JSON.stringify(result, null, 2));
+
+    if (result.status >= 200 && result.status < 400) {
+      Keyboard.dismiss();
+      Alert.alert("Success", result.message);
+
+      if (result.data) setAuth(result.data);
+
+      setIsLoginModal(false);
+      setIsModalVisible(false);
+      setHidePassword(true);
+      setLoginStoreFormData(defaultLoginStoreFormData);
+
+      setTimeout(() => {
+        navigation.navigate("TabsStack", { screen: "Home" });
+      }, 1000);
+    } else {
+      Alert.alert("Login Error", result.message);
     }
   };
 
@@ -194,7 +239,13 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
             borderColor: activeColors.tertiary,
           },
         ]}
-        onPress={data.store.status === "Rejected" ? handleReview : handleLogin}
+        onPress={
+          data.store.status === "Rejected"
+            ? handleReview
+            : () => {
+                setIsLoginModal(true), setIsModalVisible(true);
+              }
+        }
         disabled={data.store.status === "Waiting for Approval"}
       >
         {data.store.status === "Active" || data.store.status === "InActive" ? (
@@ -274,6 +325,8 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
           setIsModalVisible(false);
           setHidePassword(true);
           setDeleteStoreFormData(defaultDeleteStoreFormData);
+          setIsLoginModal(false);
+          setLoginStoreFormData(defaultLoginStoreFormData);
         }}
       >
         <View style={styles.modalOverlay}>
@@ -295,25 +348,41 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
                 },
               ]}
             >
-              Verify Password
+              {isLoginModal === true ? "Login Store" : "Delete Store"}
             </Text>
 
             {/* Inputs */}
             <View>
               {/* Password Input */}
-              <Input
-                key="inputPassword"
-                context="Store Password"
-                isHidden={hidePassword}
-                setHidden={setHidePassword}
-                placeholder="Enter Store Password"
-                value={deleteStoreFormData.password}
-                updateValue={(text: string) =>
-                  handleDeleteStoreTextChange(text, "password")
-                }
-                iconName="lock"
-                iconSource="Octicons"
-              />
+              {isLoginModal === true ? (
+                <Input
+                  key="inputPassword"
+                  context="Store Password"
+                  isHidden={hidePassword}
+                  setHidden={setHidePassword}
+                  placeholder="Enter Store Password"
+                  value={loginStoreFormData.password}
+                  updateValue={(text: string) =>
+                    handleLoginStoreTextChange(text, "password")
+                  }
+                  iconName="lock"
+                  iconSource="Octicons"
+                />
+              ) : (
+                <Input
+                  key="inputPassword"
+                  context="Store Password"
+                  isHidden={hidePassword}
+                  setHidden={setHidePassword}
+                  placeholder="Enter Store Password"
+                  value={deleteStoreFormData.password}
+                  updateValue={(text: string) =>
+                    handleDeleteStoreTextChange(text, "password")
+                  }
+                  iconName="lock"
+                  iconSource="Octicons"
+                />
+              )}
             </View>
 
             {/* Submit Button */}
@@ -325,7 +394,7 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
                   width: (screenWidth * 2) / 3 + 50,
                 },
               ]}
-              onPress={handleDelete}
+              onPress={isLoginModal === true ? handleLogin : handleDelete}
             >
               <Text
                 style={[
@@ -343,6 +412,8 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
                 setIsModalVisible(false);
                 setHidePassword(true);
                 setDeleteStoreFormData(defaultDeleteStoreFormData);
+                setIsLoginModal(false);
+                setLoginStoreFormData(defaultLoginStoreFormData);
               }}
               style={styles.modalCloseButton}
             >

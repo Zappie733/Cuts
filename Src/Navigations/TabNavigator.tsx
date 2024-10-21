@@ -6,16 +6,20 @@ import {
 } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { RootStackScreenProps } from "./RootNavigator";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Fontisto } from "@expo/vector-icons";
+
 import { HomeScreen } from "../Screens/HomeScreen";
 import { colors } from "../Config/Theme";
 import { SettingsScreen } from "../Screens/SettingsScreen";
 import { Theme, Auth } from "../Contexts/";
-import { refreshTokenPayloadObj } from "../Types/AuthContextTypes";
+import { AdminHomeScreen } from "../Screens/Admin/AdminHomeScreen";
+import { AdminStoreManagementScreen } from "../Screens/Admin/AdminStoreManagementScreen";
 
 export type TabsStackParamsObj = {
   Home: undefined;
   Settings: undefined;
+
+  StoreManagement: undefined;
 };
 
 const TabsStack = createBottomTabNavigator<TabsStackParamsObj>();
@@ -40,24 +44,36 @@ export const TabsNavigator = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
+          let iconName:
+            | keyof typeof Ionicons.glyphMap
+            | keyof typeof Fontisto.glyphMap;
           const iconSize = 24;
-          let iconColor;
+          let iconColor = focused ? activeColors.accent : activeColors.tertiary;
 
-          switch (route.name) {
-            case "Home":
-              iconName = focused ? "home" : "home-outline";
-              iconColor = focused ? activeColors.accent : activeColors.tertiary;
-              break;
-            case "Settings":
-              iconName = focused ? "settings" : "settings-outline";
-              iconColor = focused ? activeColors.accent : activeColors.tertiary;
-              break;
-            default:
-              iconName = "help";
+          // Use Ionicons for Home and Settings
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+            return (
+              <Ionicons name={iconName} size={iconSize} color={iconColor} />
+            );
+          } else if (route.name === "Settings") {
+            iconName = focused ? "settings" : "settings-outline";
+            return (
+              <Ionicons name={iconName} size={iconSize} color={iconColor} />
+            );
           }
 
-          return <Ionicons name={iconName} size={iconSize} color={iconColor} />;
+          // Use Fontisto for StoreManagement
+          else if (route.name === "StoreManagement") {
+            iconName = "shopping-store"; // Fontisto doesn't have focused/unfocused variants
+            //iconName = focused ? "storefront" : "storefront-outline";
+            return (
+              <Fontisto name={iconName} size={iconSize} color={iconColor} />
+            );
+          }
+
+          // Default fallback icon
+          return <Ionicons name="help" size={iconSize} color={iconColor} />;
         },
         tabBarLabel: ({ children, focused }) => (
           <Text
@@ -97,12 +113,33 @@ export const TabsNavigator = () => {
       {role === "admin" && (
         <>
           {console.log("bottom tab admin")}
+          <TabsStack.Screen name="Home" component={AdminHomeScreen} />
+          <TabsStack.Screen
+            name="StoreManagement"
+            component={AdminStoreManagementScreen}
+            options={{
+              tabBarLabel: ({ focused }) => (
+                <Text
+                  style={{
+                    fontSize: 10,
+                    color: focused
+                      ? activeColors.accent
+                      : activeColors.tertiary,
+                    fontWeight: focused ? "bold" : "normal",
+                  }}
+                >
+                  Store Management
+                </Text>
+              ),
+            }}
+          />
           <TabsStack.Screen name="Settings" component={SettingsScreen} />
         </>
       )}
       {role === "store" && (
         <>
           {console.log("bottom tab store")}
+          <TabsStack.Screen name="Home" component={HomeScreen} />
           <TabsStack.Screen name="Settings" component={SettingsScreen} />
         </>
       )}

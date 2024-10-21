@@ -32,7 +32,6 @@ import { IResponseProps } from "../Types/ResponseTypes";
 import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/AuthContextTypes";
-import { set } from "mongoose";
 
 const screenWidth = Dimensions.get("screen").width;
 

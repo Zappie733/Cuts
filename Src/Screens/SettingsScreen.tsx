@@ -163,7 +163,7 @@ export const SettingsScreen = ({
         >
           {/* Image */}
           <View style={styles.imageContainer}>
-            {user.image.file === "" ? (
+            {!user.image || user.image.file === "" ? (
               <View
                 style={[
                   styles.noImage,

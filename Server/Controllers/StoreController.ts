@@ -423,3 +423,44 @@ export const deleteStore = async (req: Request, res: Response) => {
       .json(<ResponseObj>{ error: true, message: "Internal server error" });
   }
 };
+
+export const getWaitingForApprovalStores = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const stores = await STORES.find({ status: "Waiting for Approval" });
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Stores retrieved successfully",
+        data: stores,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
