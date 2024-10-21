@@ -18,12 +18,14 @@ export interface StoreObj {
   images: IImageProps[];
   name: string;
   type: "salon" | "barbershop";
-  status: "Waiting for Approval" | "Rejected" | "Active" | "InActive";
+  status: "Waiting for Approval" | "Rejected" | "Active" | "InActive" | "Hold";
   location: string;
   isOpen: boolean;
   documents: IDocumentProps[];
   // operationalHour: string;
   rejectedReason: string;
+  adminId: string;
+  onHoldReason: string;
 }
 
 export interface StoreResponse {

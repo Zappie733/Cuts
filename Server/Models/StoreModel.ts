@@ -31,7 +31,7 @@ const StoreSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["Waiting for Approval", "Rejected", "Active", "InActive"],
+      enum: ["Waiting for Approval", "Rejected", "Active", "InActive", "Hold"],
       required: true,
       default: "Waiting for Approval",
     },
@@ -61,6 +61,13 @@ const StoreSchema = new Schema(
       },
     ],
     rejectedReason: {
+      type: String,
+    },
+    adminId: {
+      type: Schema.Types.ObjectId,
+      ref: "Users",
+    },
+    onHoldReason: {
       type: String,
     },
   },

@@ -1,15 +1,16 @@
 import { Request, Response } from "express";
 import { USERS } from "../Models/UserModel";
 import { STORES } from "../Models/StoreModel";
-import { RegisterStoreValidate } from "../Validation/StoreValidation";
 import { ResponseObj } from "../Response";
 import {
   IDocumentProps,
   ImageRequestObj,
+  OnHoldStoreRequestObj,
   PayloadObj,
   PayloadVerifyTokenObj,
   PendingStoreObj,
   RegisterStoreRequestObj,
+  RejectStoreRequestObj,
   StoreId,
   StoreObj,
   UserObj,
@@ -30,8 +31,14 @@ import {
 import { sendEmail } from "../Utils/UserUtil";
 import ImageKit from "imagekit";
 import { GetStoreResponse } from "../Response/StoreResponse";
-import { DeleteStoreValidate } from "../Validation/StoreValidation/DeleteStoreValidation";
 import { USERTOKENS } from "../Models/UserTokenModel";
+import {
+  RegisterStoreValidate,
+  DeleteStoreValidate,
+  RejectStoreValidate,
+} from "../Validation/StoreValidation";
+import mongoose from "mongoose";
+import { OnHoldStoreValidate } from "../Validation/StoreValidation/OnHoldStoreValidate";
 
 export const registerStore = async (req: Request, res: Response) => {
   try {
@@ -447,10 +454,443 @@ export const getWaitingForApprovalStores = async (
     if (!response.error) {
       const stores = await STORES.find({ status: "Waiting for Approval" });
 
+      const responseData: GetStoreResponse[] = [];
+
+      for (const store of stores) {
+        const user = await USERS.findOne({ _id: store.userId });
+
+        if (user) {
+          responseData.push({
+            email: user.email,
+            store,
+          });
+        }
+      }
+
+      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
+        error: false,
+        message: "Waiting for approval stores retrieved successfully",
+        data: responseData,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getRejectedStores = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const stores = await STORES.find({ status: "Rejected" });
+
+      const responseData: GetStoreResponse[] = [];
+
+      for (const store of stores) {
+        const user = await USERS.findOne({ _id: store.userId });
+
+        if (user) {
+          responseData.push({
+            email: user.email,
+            store,
+          });
+        }
+      }
+
+      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
+        error: false,
+        message: "Rejected stores retrieved successfully",
+        data: responseData,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getApprovedStores = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const stores = await STORES.find({
+        status: { $in: ["Active", "InActive"] },
+      });
+
+      const responseData: GetStoreResponse[] = [];
+
+      for (const store of stores) {
+        const user = await USERS.findOne({ _id: store.userId });
+
+        if (user) {
+          responseData.push({
+            email: user.email,
+            store,
+          });
+        }
+      }
+
+      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
+        error: false,
+        message: "Approved stores retrieved successfully",
+        data: responseData,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getHoldStores = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const stores = await STORES.find({ status: "Hold" });
+
+      const responseData: GetStoreResponse[] = [];
+
+      for (const store of stores) {
+        const user = await USERS.findOne({ _id: store.userId });
+
+        if (user) {
+          responseData.push({
+            email: user.email,
+            store,
+          });
+        }
+      }
+
+      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
+        error: false,
+        message: "Hold stores retrieved successfully",
+        data: responseData,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const rejectStore = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const { error } = RejectStoreValidate(<RejectStoreRequestObj>req.body);
+      console.log(error);
+      if (error)
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: error.details[0].message,
+        });
+
+      const { storeId, rejectedReason }: RejectStoreRequestObj = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Store ID",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeId });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      await store.updateOne({
+        status: "Rejected",
+        rejectedReason,
+        adminId: payload._id,
+      });
+
+      const user = await USERS.findOne({ _id: store.userId });
+
+      if (user) {
+        await sendEmail(
+          "rejectStore",
+          user.email,
+          "Store Rejected",
+          rejectedReason,
+          `owner of ${store.name}`
+        );
+
+        let userEmail = user.email;
+        await user.deleteOne();
+
+        return res.status(200).json(<ResponseObj>{
+          error: false,
+          message: `Store rejected successfully, Email sent to ${userEmail}`,
+        });
+      }
+
       return res.status(200).json(<ResponseObj>{
         error: false,
-        message: "Stores retrieved successfully",
-        data: stores,
+        message: "Store rejected successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const holdStore = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const { error } = OnHoldStoreValidate(<OnHoldStoreRequestObj>req.body);
+      console.log(error);
+      if (error)
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: error.details[0].message,
+        });
+
+      const { storeId, onHoldReason }: OnHoldStoreRequestObj = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Store ID",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeId });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      await store.updateOne({
+        status: "Hold",
+        adminId: payload._id,
+        onHoldReason,
+      });
+
+      const user = await USERS.findOne({ _id: store.userId });
+
+      if (user) {
+        await sendEmail(
+          "holdStore",
+          user.email,
+          `${store.name} is on hold`,
+          onHoldReason,
+          `owner of ${store.name}`
+        );
+
+        let userEmail = user.email;
+
+        return res.status(200).json(<ResponseObj>{
+          error: false,
+          message: `Store held successfully, Email sent to ${userEmail}`,
+        });
+      }
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Store held successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const unHoldStore = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const { id: storeId } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Store ID",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeId });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      await store.updateOne({
+        status: "InActive",
+        adminId: payload._id,
+        onHoldReason: "",
+      });
+
+      const user = await USERS.findOne({ _id: store.userId });
+
+      if (user) {
+        await sendEmail(
+          "unHoldStore",
+          user.email,
+          `${store.name} is being unHold`,
+          "",
+          `owner of ${store.name}`
+        );
+
+        let userEmail = user.email;
+
+        return res.status(200).json(<ResponseObj>{
+          error: false,
+          message: `Store un-hold successfully, Email sent to ${userEmail}`,
+        });
+      }
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Store un-hold successfully",
       });
     }
 
