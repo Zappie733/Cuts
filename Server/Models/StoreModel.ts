@@ -67,12 +67,36 @@ const StoreSchema = new Schema(
     rejectedReason: {
       type: String,
     },
-    adminId: {
+    approvedBy: {
       type: Schema.Types.ObjectId,
       ref: "Users",
     },
     onHoldReason: {
       type: String,
+    },
+    approvedDate: {
+      type: Date,
+    },
+    rejectedDate: {
+      type: Date,
+    },
+    onHoldDate: {
+      type: Date,
+    },
+    unHoldDate: {
+      type: Date,
+    },
+    rejectedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "Users",
+    },
+    onHoldBy: {
+      type: Schema.Types.ObjectId,
+      ref: "Users",
+    },
+    unHoldBy: {
+      type: Schema.Types.ObjectId,
+      ref: "Users",
     },
   },
   {

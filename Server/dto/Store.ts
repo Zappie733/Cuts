@@ -13,8 +13,15 @@ export interface StoreObj {
   documents: IDocumentProps[];
   // operationalHour: string;
   rejectedReason?: string;
-  adminId?: string;
   onHoldReason?: string;
+  approvedBy?: string;
+  rejectedBy?: string;
+  onHoldBy?: string;
+  unHoldBy?: string;
+  approvedDate?: Date;
+  rejectedDate?: Date;
+  onHoldDate?: Date;
+  unHoldDate?: Date;
 }
 
 export interface IDocumentProps {

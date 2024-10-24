@@ -73,6 +73,8 @@ export const getWaitingForApprovalStores = async (
   console.log("getWaitingForApprovalStores Process");
   const apiOptions = {
     method: "GET",
+    limit: 10,
+    offset: 0,
   };
 
   const result = await apiCallWithToken<StoreResponse[]>(

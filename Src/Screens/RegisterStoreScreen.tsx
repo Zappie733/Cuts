@@ -31,8 +31,10 @@ import { IDocumentProps } from "../Types/DocumentTypes";
 import {
   approveStore,
   deleteStore,
+  holdStore,
   registerStore,
   rejectStore,
+  unHoldStore,
 } from "../Middlewares/StoreMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
 import { logoutUser } from "../Middlewares/AuthMiddleware";
@@ -54,12 +56,13 @@ export const RegisterStoreScreen = ({
   const { user } = useContext(User);
   const { auth, updateAccessToken, setAuth } = useContext(Auth);
 
+  const [isReviewRegisterStore, setIsReviewRegisterStore] = useState(false);
+
   const handleGoBack = () => {
     navigation.goBack();
   };
 
-  const [isModalVisible, setModalVisible] = useState(true);
-
+  //Data
   const defaultStoreRegisterFormData: IRegistrationStoreProps = {
     userId: user?._id || "",
     email: "",
@@ -72,14 +75,19 @@ export const RegisterStoreScreen = ({
     storeLocation: "",
     storeDocuments: [],
   };
-
   const [storeRegisterFormData, setStoreRegisterFormData] =
     useState<IRegistrationStoreProps>(defaultStoreRegisterFormData);
-  // console.log(storeRegisterFormData);
-  const [rejectedReason, setRejectedReason] = useState("");
+  const [reason, setReason] = useState("");
+
   const [status, setStatus] = useState("");
   const [storeId, setStoreId] = useState("");
 
+  //Modal Information Register Store
+  const [isModalVisible, setIsModalVisible] = useState(true);
+
+  //Register Store (user)
+  const [hidePassword, setHidePassword] = useState(true);
+  const [hideCPassword, setHideCPassword] = useState(true);
   const handleRegisterStoreTextChange = (
     text: string,
     field: keyof IRegistrationStoreProps
@@ -89,29 +97,22 @@ export const RegisterStoreScreen = ({
       [field]: text,
     });
   };
-
+  const typeOptions = [
+    { label: "Salon", value: "salon" },
+    { label: "Barbershop", value: "barbershop" },
+  ];
   const handleChangeImages = (images: IImageProps[]) => {
     setStoreRegisterFormData({
       ...storeRegisterFormData,
       storeImages: images,
     });
   };
-
   const handleChangeDocuments = (documents: IDocumentProps[]) => {
     setStoreRegisterFormData({
       ...storeRegisterFormData,
       storeDocuments: documents,
     });
   };
-
-  const [hidePassword, setHidePassword] = useState(true);
-  const [hideCPassword, setHideCPassword] = useState(true);
-
-  const typeOptions = [
-    { label: "Salon", value: "salon" },
-    { label: "Barbershop", value: "barbershop" },
-  ];
-
   const handleRegisterStore = async () => {
     console.log("Register Store On Process");
     const response = await registerStore(
@@ -154,44 +155,38 @@ export const RegisterStoreScreen = ({
     }
   };
 
-  const [isReviewRegisterStore, setIsReviewRegisterStore] = useState(false);
-
-  useEffect(() => {
-    if (route.params && route.params.data) {
-      setStoreRegisterFormData(route.params.data);
-      setIsReviewRegisterStore(true);
-      setModalVisible(false);
-      if (route.params.reason) setRejectedReason(route.params.reason);
-      if (route.params.status) setStatus(route.params.status);
-      if (route.params.storeId) setStoreId(route.params.storeId);
-    } else {
-      setStoreRegisterFormData(defaultStoreRegisterFormData);
-    }
-  }, []);
-
+  //Utils
+  //Document Detail
   const handleOpenDocument = (file: string, name: string) => {
     navigation.navigate("DocumentDetailsScreen", {
       documentUri: file,
       fileName: name,
     });
   };
+  //Image Viewer
+  const [isImageViewerVisible, setImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const images = storeRegisterFormData.storeImages.map((image) => ({
+    uri: image.file,
+  }));
+  const handleImagePress = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageViewerVisible(true);
+  };
 
+  //Finish Review (user)
   const [isModalDeleteVisible, setIsModalDeleteVisible] = useState(false);
   const [hideDeletePassword, setHideDeletePassword] = useState(true);
-
   const defaultDeleteStoreFormData: DeleteStoreParams = {
     email: storeRegisterFormData.email,
     password: "",
   };
-
   const [deleteStoreFormData, setDeleteStoreFormData] =
     useState<DeleteStoreParams>(defaultDeleteStoreFormData);
   console.log("deleteFormData", deleteStoreFormData);
-
   const handleDeleteStoreTextChange = (text: string, fieldname: string) => {
     setDeleteStoreFormData({ ...deleteStoreFormData, [fieldname]: text });
   };
-
   const handleFinishedReviewing = async () => {
     console.log("Done Review Process");
     const response = await deleteStore(
@@ -234,17 +229,7 @@ export const RegisterStoreScreen = ({
     }
   };
 
-  const [isImageViewerVisible, setImageViewerVisible] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const images = storeRegisterFormData.storeImages.map((image) => ({
-    uri: image.file,
-  }));
-
-  const handleImagePress = (index: number) => {
-    setSelectedImageIndex(index);
-    setImageViewerVisible(true);
-  };
-
+  //Approve Store (admin)
   const handleApproveStore = async () => {
     console.log("Approve Store");
     const response = await approveStore(auth, updateAccessToken, { storeId });
@@ -280,15 +265,26 @@ export const RegisterStoreScreen = ({
         navigation.navigate("TabsStack", { screen: "StoreManagement" });
       }, 500);
     } else {
-      Alert.alert("Approval Error", response.message);
+      Alert.alert("Approval Store Error", response.message);
     }
   };
 
+  //Reject Store (admin)
+  const [isModalReasonVisible, setIsModalReasonVisible] = useState(false);
+  const handleReasonTextChange = (text: string) => {
+    // Split the text into lines and add the "- " prefix for each line
+    const formattedText = text
+      .split("\n") // Split the text by new line
+      .map((line) => (line.startsWith("- ") ? line : `- ${line}`)) // Add the "- " prefix if not already present
+      .join("\n"); // Join the lines back into a single string
+
+    setReason(formattedText); // Set the updated text
+  };
   const handleRejectStore = async () => {
     console.log("Reject Store");
     const response = await rejectStore(auth, updateAccessToken, {
       storeId,
-      rejectedReason,
+      rejectedReason: reason,
     });
 
     if (response.status === 402) {
@@ -322,20 +318,106 @@ export const RegisterStoreScreen = ({
         navigation.navigate("TabsStack", { screen: "StoreManagement" });
       }, 500);
     } else {
-      Alert.alert("Reject Error", response.message);
+      Alert.alert("Reject Store Error", response.message);
     }
   };
-  const [isModalRejectVisible, setModalRejectVisible] = useState(false);
 
-  const handleRejectedReasonTextChange = (text: string) => {
-    // Split the text into lines and add the "- " prefix for each line
-    const formattedText = text
-      .split("\n") // Split the text by new line
-      .map((line) => (line.startsWith("- ") ? line : `- ${line}`)) // Add the "- " prefix if not already present
-      .join("\n"); // Join the lines back into a single string
+  //Hold Store (admin)
+  const [isHold, setIsHold] = useState(false);
+  const handleHoldStore = async () => {
+    console.log("Hold Store");
+    const response = await holdStore(auth, updateAccessToken, {
+      storeId,
+      onHoldReason: reason,
+    });
 
-    setRejectedReason(formattedText); // Set the updated text
+    if (response.status === 402) {
+      Alert.alert("Session Expired", response.message);
+      const result: IResponseProps = await logoutUser(auth.refreshToken);
+      console.log(JSON.stringify(result, null, 2));
+
+      if (result.status >= 200 && result.status < 400) {
+        await removeDataFromAsyncStorage("auth");
+        const defaultAuth: IAuthObj = {
+          _id: "",
+          refreshToken: "",
+          accessToken: "",
+        };
+        setAuth(defaultAuth);
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Welcome" }],
+          })
+        );
+      } else {
+        Alert.alert("Logout Error", result.message);
+      }
+    }
+
+    if (response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+      setTimeout(() => {
+        navigation.navigate("TabsStack", { screen: "StoreManagement" });
+      }, 500);
+    } else {
+      Alert.alert("Hold Store Error", response.message);
+    }
   };
+
+  //Unhold Store (admin)
+  const handleUnHoldStore = async () => {
+    console.log("Unhold Store");
+    const response = await unHoldStore(auth, updateAccessToken, { storeId });
+
+    if (response.status === 402) {
+      Alert.alert("Session Expired", response.message);
+      const result: IResponseProps = await logoutUser(auth.refreshToken);
+      console.log(JSON.stringify(result, null, 2));
+
+      if (result.status >= 200 && result.status < 400) {
+        await removeDataFromAsyncStorage("auth");
+        const defaultAuth: IAuthObj = {
+          _id: "",
+          refreshToken: "",
+          accessToken: "",
+        };
+        setAuth(defaultAuth);
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Welcome" }],
+          })
+        );
+      } else {
+        Alert.alert("Logout Error", result.message);
+      }
+    }
+
+    if (response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+      setTimeout(() => {
+        navigation.navigate("TabsStack", { screen: "StoreManagement" });
+      }, 500);
+    } else {
+      Alert.alert("UnHold Store Error", response.message);
+    }
+  };
+
+  useEffect(() => {
+    if (route.params && route.params.data) {
+      setStoreRegisterFormData(route.params.data);
+      setIsReviewRegisterStore(true);
+      setIsModalVisible(false);
+      if (route.params.reason) setReason(route.params.reason);
+      if (route.params.status) setStatus(route.params.status);
+      if (route.params.storeId) setStoreId(route.params.storeId);
+    } else {
+      setStoreRegisterFormData(defaultStoreRegisterFormData);
+    }
+  }, []);
 
   return (
     <SafeAreaView
@@ -346,7 +428,7 @@ export const RegisterStoreScreen = ({
         animationType="fade"
         transparent={true}
         visible={isModalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => setIsModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View
@@ -453,7 +535,7 @@ export const RegisterStoreScreen = ({
             </Text>
             {/* Close Button */}
             <Pressable
-              onPress={() => setModalVisible(false)}
+              onPress={() => setIsModalVisible(false)}
               style={styles.modalCloseButton}
             >
               <AntDesign name="close" size={22} color={activeColors.accent} />
@@ -462,12 +544,15 @@ export const RegisterStoreScreen = ({
         </View>
       </Modal>
 
-      {/* Modal for reject store reason */}
+      {/* Modal for reason (reject & hold store) */}
       <Modal
         animationType="fade"
         transparent={true}
-        visible={isModalRejectVisible}
-        onRequestClose={() => setModalRejectVisible(false)}
+        visible={isModalReasonVisible}
+        onRequestClose={() => {
+          setIsModalReasonVisible(false);
+          setIsHold(false);
+        }}
       >
         <View style={styles.modalOverlay}>
           <View
@@ -488,7 +573,7 @@ export const RegisterStoreScreen = ({
                 },
               ]}
             >
-              Rejected Reasons
+              {isHold === true ? "Hold Store" : "Reject Store"}
             </Text>
 
             {/* Text Input */}
@@ -501,12 +586,12 @@ export const RegisterStoreScreen = ({
                   backgroundColor: activeColors.secondary,
                 },
               ]}
-              placeholder="Enter reasons for rejection, make a new for every reason."
+              placeholder="Enter reasons, make a new for every reason."
               placeholderTextColor={activeColors.primary}
               multiline={true}
               numberOfLines={5}
-              onChangeText={(text) => handleRejectedReasonTextChange(text)}
-              value={rejectedReason}
+              onChangeText={(text) => handleReasonTextChange(text)}
+              value={reason}
             />
 
             {/* Submit Button */}
@@ -517,7 +602,7 @@ export const RegisterStoreScreen = ({
                   backgroundColor: activeColors.accent,
                 },
               ]}
-              onPress={handleRejectStore}
+              onPress={isHold === true ? handleHoldStore : handleRejectStore}
             >
               <Text
                 style={[
@@ -531,7 +616,10 @@ export const RegisterStoreScreen = ({
 
             {/* Close Button */}
             <Pressable
-              onPress={() => setModalRejectVisible(false)}
+              onPress={() => {
+                setIsModalReasonVisible(false);
+                setIsHold(false);
+              }}
               style={styles.modalCloseButton}
             >
               <AntDesign name="close" size={22} color={activeColors.accent} />
@@ -540,7 +628,7 @@ export const RegisterStoreScreen = ({
         </View>
       </Modal>
 
-      {/* Modal for input Password for delete store */}
+      {/* Modal for finish review proses for user to input Password for delete store */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -648,7 +736,7 @@ export const RegisterStoreScreen = ({
                 </Text>
 
                 {/* Information Button */}
-                <Pressable onPress={() => setModalVisible(true)}>
+                <Pressable onPress={() => setIsModalVisible(true)}>
                   <Text
                     style={[
                       styles.informationButton,
@@ -840,7 +928,7 @@ export const RegisterStoreScreen = ({
                 </Text>
 
                 {/* Information Button */}
-                <Pressable onPress={() => setModalVisible(true)}>
+                <Pressable onPress={() => setIsModalVisible(true)}>
                   <Text
                     style={[
                       styles.informationButton,
@@ -1090,7 +1178,7 @@ export const RegisterStoreScreen = ({
                             [
                               {
                                 text: "Yes",
-                                onPress: () => setModalRejectVisible(true),
+                                onPress: () => setIsModalReasonVisible(true),
                               },
                               { text: "No" },
                             ],
@@ -1113,7 +1201,6 @@ export const RegisterStoreScreen = ({
                       </Pressable>
                     </>
                   )}
-
                   {/* Approved */}
                   {(status === "InActive" || status === "Active") && (
                     <>
@@ -1122,11 +1209,14 @@ export const RegisterStoreScreen = ({
                         onPress={() =>
                           Alert.alert(
                             "Confirmation",
-                            "Are you sure you want to Hold this store?",
+                            "Are you sure you want to HOLD this store?",
                             [
                               {
                                 text: "Yes",
-                                onPress: () => setModalRejectVisible(true),
+                                onPress: () => {
+                                  setIsModalReasonVisible(true);
+                                  setIsHold(true);
+                                },
                               },
                               { text: "No" },
                             ],
@@ -1147,6 +1237,79 @@ export const RegisterStoreScreen = ({
                           Hold Store
                         </Text>
                       </Pressable>
+                    </>
+                  )}
+                  {/* Hold */}
+                  {status === "Hold" && (
+                    <>
+                      {user.role === "admin" && (
+                        <>
+                          {/* UnHold */}
+                          <Pressable
+                            onPress={() =>
+                              Alert.alert(
+                                "Confirmation",
+                                "Are you sure you want to UNHOLD this store?",
+                                [
+                                  {
+                                    text: "Yes",
+                                    onPress: () => handleUnHoldStore(),
+                                  },
+                                  { text: "No" },
+                                ],
+                                { cancelable: true }
+                              )
+                            }
+                          >
+                            <Text
+                              style={[
+                                styles.registerButtonContainer,
+                                {
+                                  color: activeColors.secondary,
+                                  backgroundColor: activeColors.accent,
+                                  width: (screenWidth * 2) / 3 + 50,
+                                },
+                              ]}
+                            >
+                              UnHold Store
+                            </Text>
+                          </Pressable>
+                        </>
+                      )}
+
+                      {user.role === "user" && (
+                        <>
+                          {/* Little Text */}
+                          <Text
+                            style={[
+                              styles.text2,
+                              { color: activeColors.accent },
+                            ]}
+                          >
+                            Hold Reasons
+                          </Text>
+
+                          <View
+                            style={[
+                              styles.reasonContainer,
+                              {
+                                backgroundColor: activeColors.secondary,
+                                borderColor: activeColors.tertiary,
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.reason,
+                                { color: activeColors.accent },
+                              ]}
+                              numberOfLines={100}
+                            >
+                              {reason}
+                            </Text>
+                          </View>
+                        </>
+                      )}
                     </>
                   )}
                   {/* Rejected */}
@@ -1175,14 +1338,14 @@ export const RegisterStoreScreen = ({
                           ]}
                           numberOfLines={100}
                         >
-                          {rejectedReason}
+                          {reason}
                         </Text>
                       </View>
                     </>
                   )}
 
-                  {/* Action button */}
-                  {user.role === "user" && (
+                  {/* Done Review Button */}
+                  {user.role === "user" && status === "Rejected" && (
                     <>
                       {/* Break Line */}
                       <View
@@ -1194,7 +1357,7 @@ export const RegisterStoreScreen = ({
                           width: "100%",
                         }}
                       ></View>
-                      {/* Done Review Button */}
+
                       <Pressable
                         onPress={() =>
                           Alert.alert(

@@ -214,15 +214,34 @@ export const apiCallWithToken = async <T>(
     method: string;
     data?: any; // For POST, PUT requests
     headers?: any;
+    limit?: number;
+    offset?: number;
   } = { method: "GET" }, // Default to GET if no method is provided
   auth: IAuthObj,
   updateAccessToken: (accessToken: string) => void
 ): Promise<IResponseProps<T>> => {
   let accessToken = auth.accessToken;
 
+  // Construct query parameters for limit and offset if provided
+  const params = new URLSearchParams();
+
+  if (options.limit !== undefined) {
+    params.append("limit", options.limit.toString());
+  }
+
+  if (options.offset !== undefined) {
+    params.append("offset", options.offset.toString());
+  }
+
+  // Append query parameters to the endpoint URL if they exist
+  const url = `http://${API_HOST}:${API_PORT}${endpoint}${
+    params.toString() ? `?${params.toString()}` : ""
+  }`;
+
   try {
     const response = await axios({
-      url: `http://${API_HOST}:${API_PORT}${endpoint}`,
+      // url: `http://${API_HOST}:${API_PORT}${endpoint}`,
+      url,
       method: options.method, // Use the method from options (GET, POST, etc.)
       headers: {
         Authorization: `Bearer ${accessToken}`,

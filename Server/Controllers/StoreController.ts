@@ -453,7 +453,11 @@ export const getWaitingForApprovalStores = async (
     });
 
     if (!response.error) {
-      const stores = await STORES.find({ status: "Waiting for Approval" });
+      const { limit, offset } = req.query;
+
+      const stores = await STORES.find({ status: "Waiting for Approval" })
+        .limit(Number(limit))
+        .skip(Number(offset));
 
       const responseData: GetStoreResponse[] = [];
 
@@ -673,7 +677,8 @@ export const rejectStore = async (req: Request, res: Response) => {
       await store.updateOne({
         status: "Rejected",
         rejectedReason,
-        adminId: payload._id,
+        rejectedBy: payload._id,
+        rejectedDate: new Date(Date.now() + 7 * 60 * 60 * 1000),
       });
 
       const user = await USERS.findOne({ _id: store.userId });
@@ -764,8 +769,9 @@ export const holdStore = async (req: Request, res: Response) => {
 
       await store.updateOne({
         status: "Hold",
-        adminId: payload._id,
+        onHoldBy: payload._id,
         onHoldReason,
+        onHoldDate: new Date(Date.now() + 7 * 60 * 60 * 1000),
       });
 
       const user = await USERS.findOne({ _id: store.userId });
@@ -846,8 +852,8 @@ export const unHoldStore = async (req: Request, res: Response) => {
 
       await store.updateOne({
         status: "InActive",
-        adminId: payload._id,
-        onHoldReason: "",
+        unHoldBy: payload._id,
+        unHoldDate: new Date(Date.now() + 7 * 60 * 60 * 1000),
       });
 
       const user = await USERS.findOne({ _id: store.userId });
@@ -928,7 +934,8 @@ export const approveStore = async (req: Request, res: Response) => {
 
       await store.updateOne({
         status: "InActive",
-        adminId: payload._id,
+        approvedBy: payload._id,
+        approvedDate: new Date(Date.now() + 7 * 60 * 60 * 1000),
       });
 
       const user = await USERS.findOne({ _id: store.userId });

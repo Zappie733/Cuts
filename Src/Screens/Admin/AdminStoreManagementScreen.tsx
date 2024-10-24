@@ -193,6 +193,15 @@ export const AdminStoreManagementScreen = ({
     }
   };
 
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  // console.log(selectedStatus);
+  const options = [
+    { label: "Waiting for Approval", value: "Waiting for Approval" },
+    { label: "Approved", value: "Approved" },
+    { label: "Hold", value: "Hold" },
+    { label: "Rejected", value: "Rejected" },
+  ];
+
   //getStores
   useEffect(() => {
     handleFetchWaitingForApprovalStores();
@@ -212,7 +221,7 @@ export const AdminStoreManagementScreen = ({
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [selectedStatus]);
   useFocusEffect(
     useCallback(() => {
       handleFetchWaitingForApprovalStores();
@@ -221,16 +230,6 @@ export const AdminStoreManagementScreen = ({
       handleFetchHoldStores();
     }, [])
   );
-
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  // console.log(selectedStatus);
-  const options = [
-    { label: "Waiting for Approval", value: "Waiting for Approval" },
-    { label: "Approved", value: "Approved" },
-    { label: "Hold", value: "Hold" },
-    { label: "Rejected", value: "Rejected" },
-  ];
-
   return (
     <SafeAreaView
       style={[

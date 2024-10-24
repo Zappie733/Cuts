@@ -49,7 +49,10 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
     };
     navigation.navigate("RegisterStoreScreen", {
       data: storeData,
-      reason: data.store.rejectedReason,
+      reason:
+        data.store.status === "Rejected"
+          ? data.store.rejectedReason
+          : data.store.onHoldReason,
       status: data.store.status,
       storeId: data.store._id,
     });
@@ -244,10 +247,13 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
           },
         ]}
         onPress={
-          data.store.status === "Rejected" || user.role === "admin"
+          data.store.status === "Rejected" ||
+          data.store.status === "Hold" ||
+          user.role === "admin"
             ? handleReview
             : () => {
-                setIsLoginModal(true), setIsModalVisible(true);
+                setIsLoginModal(true);
+                setIsModalVisible(true);
               }
         }
         disabled={
@@ -263,7 +269,8 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
               >
                 Login
               </Text>
-            ) : data.store.status === "Rejected" ? (
+            ) : data.store.status === "Rejected" ||
+              data.store.status === "Hold" ? (
               <Text
                 style={[styles.buttonText, { color: activeColors.secondary }]}
               >
@@ -306,7 +313,8 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
 
       {/* waiting for approval / rejected */}
       {(data.store.status === "Waiting for Approval" ||
-        data.store.status === "Rejected") && (
+        data.store.status === "Rejected" ||
+        data.store.status === "Hold") && (
         <View style={styles.oc}>
           <Image
             source={require("../../assets/onboarding.png")}
