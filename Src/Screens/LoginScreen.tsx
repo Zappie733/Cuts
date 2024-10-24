@@ -95,6 +95,8 @@ export const LoginScreen = ({
     setChangePasswordFormData({ ...changePasswordFormData, [fieldname]: text });
   };
 
+  const [hideChangePassword, setHideChangePassword] = useState(true);
+
   const handleChangePassword = async () => {
     console.log("Change Password Process");
     const result: IResponseProps = await changeUserPassword(
@@ -267,7 +269,7 @@ export const LoginScreen = ({
         visible={isModalVisible}
         onRequestClose={() => {
           setModalVisible(false);
-          setHidePassword(true);
+          setHideChangePassword(true);
           setChangePasswordFormData(defaultChangePasswordFormData);
         }}
       >
@@ -311,8 +313,8 @@ export const LoginScreen = ({
               <Input
                 key="forgotPasswordPassword"
                 context="Password"
-                isHidden={hidePassword}
-                setHidden={setHidePassword}
+                isHidden={hideChangePassword}
+                setHidden={setHideChangePassword}
                 placeholder="Enter Your Password"
                 value={changePasswordFormData.password}
                 updateValue={(text: string) =>
@@ -348,7 +350,7 @@ export const LoginScreen = ({
             <Pressable
               onPress={() => {
                 setModalVisible(false);
-                setHidePassword(true);
+                setHideChangePassword(true);
                 setChangePasswordFormData(defaultChangePasswordFormData);
               }}
               style={styles.modalCloseButton}

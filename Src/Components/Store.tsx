@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
-import { Auth, Theme } from "../Contexts";
+import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { DeleteStoreParams, IStoreProps } from "../Types/StoreTypes";
 import { AntDesign, Fontisto } from "@expo/vector-icons";
@@ -31,6 +31,7 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
+  const { user } = useContext(User);
 
   const navigation =
     useNavigation<RootStackScreenProps<"RegisterStoreScreen">["navigation"]>();
@@ -38,7 +39,7 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
   const handleReview = () => {
     console.log("review process");
     const storeData: IRegistrationStoreProps = {
-      email: data.email,
+      email: data.store.email,
       role: "store",
       storeType: data.store.type,
       storeName: data.store.name,
@@ -49,6 +50,8 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
     navigation.navigate("RegisterStoreScreen", {
       data: storeData,
       reason: data.store.rejectedReason,
+      status: data.store.status,
+      storeId: data.store._id,
     });
   };
 
@@ -57,7 +60,7 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
   const [hidePassword, setHidePassword] = useState(true);
 
   const defaultDeleteStoreFormData: DeleteStoreParams = {
-    email: data.email,
+    email: data.store.email,
     password: "",
   };
 
@@ -117,7 +120,7 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
   const [isLoginModal, setIsLoginModal] = useState(false);
 
   const defaultLoginStoreFormData: ILoginProps = {
-    email: data.email,
+    email: data.store.email,
     password: "",
   };
 
@@ -227,12 +230,13 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
         </View>
       </View>
 
-      {/* Login Button */}
+      {/* Action Button */}
       <Pressable
         style={[
           styles.button,
           {
             backgroundColor:
+              user.role === "user" &&
               data.store.status === "Waiting for Approval"
                 ? activeColors.disabledColor
                 : activeColors.accent,
@@ -240,25 +244,42 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
           },
         ]}
         onPress={
-          data.store.status === "Rejected"
+          data.store.status === "Rejected" || user.role === "admin"
             ? handleReview
             : () => {
                 setIsLoginModal(true), setIsModalVisible(true);
               }
         }
-        disabled={data.store.status === "Waiting for Approval"}
+        disabled={
+          user.role === "user" && data.store.status === "Waiting for Approval"
+        }
       >
-        {data.store.status === "Active" || data.store.status === "InActive" ? (
-          <Text style={[styles.buttonText, { color: activeColors.secondary }]}>
-            Login
-          </Text>
-        ) : data.store.status === "Rejected" ? (
-          <Text style={[styles.buttonText, { color: activeColors.secondary }]}>
-            Review
-          </Text>
+        {user.role === "user" ? (
+          <>
+            {data.store.status === "Active" ||
+            data.store.status === "InActive" ? (
+              <Text
+                style={[styles.buttonText, { color: activeColors.secondary }]}
+              >
+                Login
+              </Text>
+            ) : data.store.status === "Rejected" ? (
+              <Text
+                style={[styles.buttonText, { color: activeColors.secondary }]}
+              >
+                Review
+              </Text>
+            ) : (
+              <Text
+                style={[styles.buttonText, { color: activeColors.secondary }]}
+              >
+                Pending
+              </Text>
+            )}
+          </>
         ) : (
           <Text style={[styles.buttonText, { color: activeColors.secondary }]}>
-            Pending
+            Review
           </Text>
         )}
       </Pressable>
@@ -293,135 +314,144 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
           />
         </View>
       )}
-      {/* Delete Icon */}
-      <Pressable
-        style={styles.deleteContainer}
-        onPress={() =>
-          Alert.alert(
-            "Are you sure want to delete this store?",
-            "Choose an option",
-            [
-              {
-                text: "Delete",
-                onPress: () => {
-                  setIsModalVisible(true);
-                },
-              },
-              { text: "Cancel", style: "cancel" },
-            ],
-            { cancelable: true }
-          )
-        }
-      >
-        <AntDesign name="delete" size={18} color={activeColors.accent} />
-      </Pressable>
 
-      {/* Modal for input Password for delete store */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => {
-          setIsModalVisible(false);
-          setHidePassword(true);
-          setDeleteStoreFormData(defaultDeleteStoreFormData);
-          setIsLoginModal(false);
-          setLoginStoreFormData(defaultLoginStoreFormData);
-        }}
-      >
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.modalContainer,
-              {
-                backgroundColor: activeColors.primary,
-                borderColor: activeColors.secondary,
-              },
-            ]}
+      {user.role === "user" && data.store.status !== "Rejected" && (
+        <>
+          {/* Delete Icon */}
+          <Pressable
+            style={styles.deleteContainer}
+            onPress={() =>
+              Alert.alert(
+                "Are you sure want to delete this store?",
+                "Choose an option",
+                [
+                  {
+                    text: "Delete",
+                    onPress: () => {
+                      setIsModalVisible(true);
+                    },
+                  },
+                  { text: "Cancel", style: "cancel" },
+                ],
+                { cancelable: true }
+              )
+            }
           >
-            {/* Title */}
-            <Text
-              style={[
-                styles.modalTitle,
-                {
-                  color: activeColors.accent,
-                },
-              ]}
-            >
-              {isLoginModal === true ? "Login Store" : "Delete Store"}
-            </Text>
+            <AntDesign name="delete" size={18} color={activeColors.accent} />
+          </Pressable>
 
-            {/* Inputs */}
-            <View>
-              {/* Password Input */}
-              {isLoginModal === true ? (
-                <Input
-                  key="inputPassword"
-                  context="Store Password"
-                  isHidden={hidePassword}
-                  setHidden={setHidePassword}
-                  placeholder="Enter Store Password"
-                  value={loginStoreFormData.password}
-                  updateValue={(text: string) =>
-                    handleLoginStoreTextChange(text, "password")
-                  }
-                  iconName="lock"
-                  iconSource="Octicons"
-                />
-              ) : (
-                <Input
-                  key="inputPassword"
-                  context="Store Password"
-                  isHidden={hidePassword}
-                  setHidden={setHidePassword}
-                  placeholder="Enter Store Password"
-                  value={deleteStoreFormData.password}
-                  updateValue={(text: string) =>
-                    handleDeleteStoreTextChange(text, "password")
-                  }
-                  iconName="lock"
-                  iconSource="Octicons"
-                />
-              )}
-            </View>
-
-            {/* Submit Button */}
-            <Pressable
-              style={[
-                styles.submitButton,
-                {
-                  backgroundColor: activeColors.accent,
-                  width: (screenWidth * 2) / 3 + 50,
-                },
-              ]}
-              onPress={isLoginModal === true ? handleLogin : handleDelete}
-            >
-              <Text
+          {/* Modal for input Password for delete store */}
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={isModalVisible}
+            onRequestClose={() => {
+              setIsModalVisible(false);
+              setHidePassword(true);
+              setDeleteStoreFormData(defaultDeleteStoreFormData);
+              setIsLoginModal(false);
+              setLoginStoreFormData(defaultLoginStoreFormData);
+            }}
+          >
+            <View style={styles.modalOverlay}>
+              <View
                 style={[
-                  styles.submitButtonText,
-                  { color: activeColors.secondary },
+                  styles.modalContainer,
+                  {
+                    backgroundColor: activeColors.primary,
+                    borderColor: activeColors.secondary,
+                  },
                 ]}
               >
-                Submit
-              </Text>
-            </Pressable>
+                {/* Title */}
+                <Text
+                  style={[
+                    styles.modalTitle,
+                    {
+                      color: activeColors.accent,
+                    },
+                  ]}
+                >
+                  {isLoginModal === true ? "Login Store" : "Delete Store"}
+                </Text>
 
-            {/* Close Button */}
-            <Pressable
-              onPress={() => {
-                setIsModalVisible(false);
-                setHidePassword(true);
-                setDeleteStoreFormData(defaultDeleteStoreFormData);
-                setIsLoginModal(false);
-                setLoginStoreFormData(defaultLoginStoreFormData);
-              }}
-              style={styles.modalCloseButton}
-            >
-              <AntDesign name="close" size={22} color={activeColors.accent} />
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+                {/* Inputs */}
+                <View>
+                  {/* Password Input */}
+                  {isLoginModal === true ? (
+                    <Input
+                      key="inputPassword"
+                      context="Store Password"
+                      isHidden={hidePassword}
+                      setHidden={setHidePassword}
+                      placeholder="Enter Store Password"
+                      value={loginStoreFormData.password}
+                      updateValue={(text: string) =>
+                        handleLoginStoreTextChange(text, "password")
+                      }
+                      iconName="lock"
+                      iconSource="Octicons"
+                    />
+                  ) : (
+                    <Input
+                      key="inputPassword"
+                      context="Store Password"
+                      isHidden={hidePassword}
+                      setHidden={setHidePassword}
+                      placeholder="Enter Store Password"
+                      value={deleteStoreFormData.password}
+                      updateValue={(text: string) =>
+                        handleDeleteStoreTextChange(text, "password")
+                      }
+                      iconName="lock"
+                      iconSource="Octicons"
+                    />
+                  )}
+                </View>
+
+                {/* Submit Button */}
+                <Pressable
+                  style={[
+                    styles.submitButton,
+                    {
+                      backgroundColor: activeColors.accent,
+                      width: (screenWidth * 2) / 3 + 50,
+                    },
+                  ]}
+                  onPress={isLoginModal === true ? handleLogin : handleDelete}
+                >
+                  <Text
+                    style={[
+                      styles.submitButtonText,
+                      { color: activeColors.secondary },
+                    ]}
+                  >
+                    Submit
+                  </Text>
+                </Pressable>
+
+                {/* Close Button */}
+                <Pressable
+                  onPress={() => {
+                    setIsModalVisible(false);
+                    setHidePassword(true);
+                    setDeleteStoreFormData(defaultDeleteStoreFormData);
+                    setIsLoginModal(false);
+                    setLoginStoreFormData(defaultLoginStoreFormData);
+                  }}
+                  style={styles.modalCloseButton}
+                >
+                  <AntDesign
+                    name="close"
+                    size={22}
+                    color={activeColors.accent}
+                  />
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+        </>
+      )}
     </View>
   );
 };
@@ -507,6 +537,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: "500",
+    marginBottom: 10,
   },
   modalContent: {
     marginTop: 10,

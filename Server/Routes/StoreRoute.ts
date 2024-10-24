@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  approveStore,
   deleteStore,
   getApprovedStores,
   getHoldStores,
@@ -25,3 +26,4 @@ StoreRoute.get("/getHoldStores", getHoldStores);
 StoreRoute.post("/rejectStore", rejectStore);
 StoreRoute.post("/holdStore", holdStore);
 StoreRoute.post("/unHoldStore/:id", unHoldStore);
+StoreRoute.post("/approveStore/:id", approveStore);

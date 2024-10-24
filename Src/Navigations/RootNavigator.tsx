@@ -25,6 +25,14 @@ export type RootStackParamsObj = {
     | {
         data: IRegistrationStoreProps | undefined;
         reason: string | undefined;
+        status:
+          | "Waiting for Approval"
+          | "Rejected"
+          | "Active"
+          | "InActive"
+          | "Hold"
+          | undefined;
+        storeId: string | undefined;
       }
     | undefined;
   DocumentDetailsScreen: {
@@ -81,6 +89,14 @@ export const RootNavigator = () => {
           {console.log("root nav admin")}
           <RootStack.Screen name="TabsStack" component={TabsNavigator} />
           <RootStack.Screen name="Profile" component={ProfileScreen} />
+          <RootStack.Screen
+            name="RegisterStoreScreen"
+            component={RegisterStoreScreen}
+          />
+          <RootStack.Screen
+            name="DocumentDetailsScreen"
+            component={DocumentDetailsScreen}
+          />
         </>
       )}
     </RootStack.Navigator>

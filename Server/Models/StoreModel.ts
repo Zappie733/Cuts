@@ -8,6 +8,10 @@ const StoreSchema = new Schema(
       ref: "Users",
       required: true,
     },
+    email: {
+      type: String,
+      required: true,
+    },
     images: [
       {
         imageId: {

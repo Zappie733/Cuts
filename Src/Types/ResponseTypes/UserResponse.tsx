@@ -15,6 +15,7 @@ export interface UserProfileResponse {
 export interface StoreObj {
   _id?: string;
   userId: string;
+  email: string;
   images: IImageProps[];
   name: string;
   type: "salon" | "barbershop";
@@ -29,6 +30,5 @@ export interface StoreObj {
 }
 
 export interface StoreResponse {
-  email: string;
   store: StoreObj;
 }

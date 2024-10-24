@@ -13,7 +13,8 @@ export const sendEmail = async (
     | "updateProfile"
     | "rejectStore"
     | "holdStore"
-    | "unHoldStore",
+    | "unHoldStore"
+    | "approveStore",
   email: string,
   subject: string,
   text: string,
@@ -95,6 +96,13 @@ export const sendEmail = async (
         <p>Hi ${name},</p>
         <p>Your store is being un-hold by our admin.</p>
         <p>You can now Actived back your store in the app.</p>
+        <p>Thank you!</p>
+        `
+          : type === "approveStore"
+          ? `
+        <p>Hi ${name},</p>
+        <p>Your store registration was approved by our admin.</p>
+        <p>You can now check your store and make changes in the app.</p>
         <p>Thank you!</p>
         `
           : "",

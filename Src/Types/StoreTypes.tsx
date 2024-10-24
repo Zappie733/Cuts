@@ -10,3 +10,21 @@ export interface DeleteStoreParams {
   email: string;
   password: string;
 }
+
+export interface RejectStoreParams {
+  storeId: string;
+  rejectedReason: string;
+}
+
+export interface HoldStoreParams {
+  storeId: string;
+  onHoldReason: string;
+}
+
+export interface UnHoldStoreParams {
+  storeId: string;
+}
+
+export interface ApproveStoreParams {
+  storeId: string;
+}

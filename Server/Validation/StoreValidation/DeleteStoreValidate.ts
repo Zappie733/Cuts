@@ -1,8 +1,8 @@
 import Joi from "joi";
-import { StoreId } from "../../dto";
+import { DeleteStoreRequestObj } from "../../dto";
 
-export const DeleteStoreValidate = (data: StoreId) => {
-  const schema = Joi.object<StoreId>({
+export const DeleteStoreValidate = (data: DeleteStoreRequestObj) => {
+  const schema = Joi.object<DeleteStoreRequestObj>({
     email: Joi.string().email().required().label("Email"),
     password: Joi.string().required().label("Password"),
   });

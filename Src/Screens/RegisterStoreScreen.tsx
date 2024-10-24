@@ -11,6 +11,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -27,11 +28,19 @@ import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import { SelectImages } from "../Components/Image";
 import { IImageProps } from "../Types/ImageTypes";
 import { IDocumentProps } from "../Types/DocumentTypes";
-import { registerStore } from "../Middlewares/StoreMiddleware";
+import {
+  approveStore,
+  deleteStore,
+  registerStore,
+  rejectStore,
+} from "../Middlewares/StoreMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
 import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/AuthContextTypes";
+import ImageViewing from "react-native-image-viewing";
+import { DropdownPicker } from "../Components/DropdownPicker";
+import { DeleteStoreParams } from "../Types/StoreTypes";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -68,6 +77,8 @@ export const RegisterStoreScreen = ({
     useState<IRegistrationStoreProps>(defaultStoreRegisterFormData);
   // console.log(storeRegisterFormData);
   const [rejectedReason, setRejectedReason] = useState("");
+  const [status, setStatus] = useState("");
+  const [storeId, setStoreId] = useState("");
 
   const handleRegisterStoreTextChange = (
     text: string,
@@ -95,6 +106,11 @@ export const RegisterStoreScreen = ({
 
   const [hidePassword, setHidePassword] = useState(true);
   const [hideCPassword, setHideCPassword] = useState(true);
+
+  const typeOptions = [
+    { label: "Salon", value: "salon" },
+    { label: "Barbershop", value: "barbershop" },
+  ];
 
   const handleRegisterStore = async () => {
     console.log("Register Store On Process");
@@ -141,11 +157,13 @@ export const RegisterStoreScreen = ({
   const [isReviewRegisterStore, setIsReviewRegisterStore] = useState(false);
 
   useEffect(() => {
-    if (route.params && route.params.data && route.params.reason) {
+    if (route.params && route.params.data) {
       setStoreRegisterFormData(route.params.data);
       setIsReviewRegisterStore(true);
       setModalVisible(false);
-      setRejectedReason(route.params.reason);
+      if (route.params.reason) setRejectedReason(route.params.reason);
+      if (route.params.status) setStatus(route.params.status);
+      if (route.params.storeId) setStoreId(route.params.storeId);
     } else {
       setStoreRegisterFormData(defaultStoreRegisterFormData);
     }
@@ -158,10 +176,165 @@ export const RegisterStoreScreen = ({
     });
   };
 
-  const goToRegisterStore = () => {
-    setModalVisible(true);
-    setIsReviewRegisterStore(false);
-    setStoreRegisterFormData(defaultStoreRegisterFormData);
+  const [isModalDeleteVisible, setIsModalDeleteVisible] = useState(false);
+  const [hideDeletePassword, setHideDeletePassword] = useState(true);
+
+  const defaultDeleteStoreFormData: DeleteStoreParams = {
+    email: storeRegisterFormData.email,
+    password: "",
+  };
+
+  const [deleteStoreFormData, setDeleteStoreFormData] =
+    useState<DeleteStoreParams>(defaultDeleteStoreFormData);
+  console.log("deleteFormData", deleteStoreFormData);
+
+  const handleDeleteStoreTextChange = (text: string, fieldname: string) => {
+    setDeleteStoreFormData({ ...deleteStoreFormData, [fieldname]: text });
+  };
+
+  const handleFinishedReviewing = async () => {
+    console.log("Done Review Process");
+    const response = await deleteStore(
+      auth,
+      updateAccessToken,
+      deleteStoreFormData
+    );
+
+    if (response.status === 402) {
+      Alert.alert("Session Expired", response.message);
+      const result: IResponseProps = await logoutUser(auth.refreshToken);
+      console.log(JSON.stringify(result, null, 2));
+
+      if (result.status >= 200 && result.status < 400) {
+        await removeDataFromAsyncStorage("auth");
+        const defaultAuth: IAuthObj = {
+          _id: "",
+          refreshToken: "",
+          accessToken: "",
+        };
+        setAuth(defaultAuth);
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Welcome" }],
+          })
+        );
+      } else {
+        Alert.alert("Logout Error", result.message);
+      }
+    }
+
+    if (response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+
+      navigation.navigate("TabsStack", { screen: "Settings" });
+    } else {
+      Alert.alert("Deletion error", response.message);
+    }
+  };
+
+  const [isImageViewerVisible, setImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const images = storeRegisterFormData.storeImages.map((image) => ({
+    uri: image.file,
+  }));
+
+  const handleImagePress = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageViewerVisible(true);
+  };
+
+  const handleApproveStore = async () => {
+    console.log("Approve Store");
+    const response = await approveStore(auth, updateAccessToken, { storeId });
+
+    if (response.status === 402) {
+      Alert.alert("Session Expired", response.message);
+      const result: IResponseProps = await logoutUser(auth.refreshToken);
+      console.log(JSON.stringify(result, null, 2));
+
+      if (result.status >= 200 && result.status < 400) {
+        await removeDataFromAsyncStorage("auth");
+        const defaultAuth: IAuthObj = {
+          _id: "",
+          refreshToken: "",
+          accessToken: "",
+        };
+        setAuth(defaultAuth);
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Welcome" }],
+          })
+        );
+      } else {
+        Alert.alert("Logout Error", result.message);
+      }
+    }
+
+    if (response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+      setTimeout(() => {
+        navigation.navigate("TabsStack", { screen: "StoreManagement" });
+      }, 500);
+    } else {
+      Alert.alert("Approval Error", response.message);
+    }
+  };
+
+  const handleRejectStore = async () => {
+    console.log("Reject Store");
+    const response = await rejectStore(auth, updateAccessToken, {
+      storeId,
+      rejectedReason,
+    });
+
+    if (response.status === 402) {
+      Alert.alert("Session Expired", response.message);
+      const result: IResponseProps = await logoutUser(auth.refreshToken);
+      console.log(JSON.stringify(result, null, 2));
+
+      if (result.status >= 200 && result.status < 400) {
+        await removeDataFromAsyncStorage("auth");
+        const defaultAuth: IAuthObj = {
+          _id: "",
+          refreshToken: "",
+          accessToken: "",
+        };
+        setAuth(defaultAuth);
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Welcome" }],
+          })
+        );
+      } else {
+        Alert.alert("Logout Error", result.message);
+      }
+    }
+
+    if (response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+      setTimeout(() => {
+        navigation.navigate("TabsStack", { screen: "StoreManagement" });
+      }, 500);
+    } else {
+      Alert.alert("Reject Error", response.message);
+    }
+  };
+  const [isModalRejectVisible, setModalRejectVisible] = useState(false);
+
+  const handleRejectedReasonTextChange = (text: string) => {
+    // Split the text into lines and add the "- " prefix for each line
+    const formattedText = text
+      .split("\n") // Split the text by new line
+      .map((line) => (line.startsWith("- ") ? line : `- ${line}`)) // Add the "- " prefix if not already present
+      .join("\n"); // Join the lines back into a single string
+
+    setRejectedReason(formattedText); // Set the updated text
   };
 
   return (
@@ -289,6 +462,171 @@ export const RegisterStoreScreen = ({
         </View>
       </Modal>
 
+      {/* Modal for reject store reason */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalRejectVisible}
+        onRequestClose={() => setModalRejectVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContainer2,
+              {
+                backgroundColor: activeColors.primary,
+                borderColor: activeColors.secondary,
+              },
+            ]}
+          >
+            {/* Title */}
+            <Text
+              style={[
+                styles.modalTitle,
+                {
+                  color: activeColors.accent,
+                },
+              ]}
+            >
+              Rejected Reasons
+            </Text>
+
+            {/* Text Input */}
+            <TextInput
+              style={[
+                styles.modalTextInput,
+                {
+                  color: activeColors.accent,
+                  borderColor: activeColors.tertiary,
+                  backgroundColor: activeColors.secondary,
+                },
+              ]}
+              placeholder="Enter reasons for rejection, make a new for every reason."
+              placeholderTextColor={activeColors.primary}
+              multiline={true}
+              numberOfLines={5}
+              onChangeText={(text) => handleRejectedReasonTextChange(text)}
+              value={rejectedReason}
+            />
+
+            {/* Submit Button */}
+            <Pressable
+              style={[
+                styles.modalSubmitButton,
+                {
+                  backgroundColor: activeColors.accent,
+                },
+              ]}
+              onPress={handleRejectStore}
+            >
+              <Text
+                style={[
+                  styles.modalSubmitButtonText,
+                  { color: activeColors.secondary },
+                ]}
+              >
+                Submit
+              </Text>
+            </Pressable>
+
+            {/* Close Button */}
+            <Pressable
+              onPress={() => setModalRejectVisible(false)}
+              style={styles.modalCloseButton}
+            >
+              <AntDesign name="close" size={22} color={activeColors.accent} />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal for input Password for delete store */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalDeleteVisible}
+        onRequestClose={() => {
+          setIsModalDeleteVisible(false);
+          setHideDeletePassword(true);
+          setDeleteStoreFormData(defaultDeleteStoreFormData);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContainer2,
+              {
+                backgroundColor: activeColors.primary,
+                borderColor: activeColors.secondary,
+              },
+            ]}
+          >
+            {/* Title */}
+            <Text
+              style={[
+                styles.modalTitle,
+                {
+                  color: activeColors.accent,
+                },
+              ]}
+            >
+              Delete Store
+            </Text>
+
+            {/* Inputs */}
+            <View>
+              {/* Password Input */}
+              <Input
+                key="inputPassword"
+                context="Store Password"
+                isHidden={hideDeletePassword}
+                setHidden={setHideDeletePassword}
+                placeholder="Enter Store Password"
+                value={deleteStoreFormData.password}
+                updateValue={(text: string) =>
+                  handleDeleteStoreTextChange(text, "password")
+                }
+                iconName="lock"
+                iconSource="Octicons"
+              />
+            </View>
+
+            {/* Submit Button */}
+            <Pressable
+              style={[
+                styles.modalSubmitButton,
+                {
+                  backgroundColor: activeColors.accent,
+                  width: (screenWidth * 2) / 3 + 50,
+                },
+              ]}
+              onPress={handleFinishedReviewing}
+            >
+              <Text
+                style={[
+                  styles.modalSubmitButtonText,
+                  { color: activeColors.secondary },
+                ]}
+              >
+                Submit
+              </Text>
+            </Pressable>
+
+            {/* Close Button */}
+            <Pressable
+              onPress={() => {
+                setIsModalDeleteVisible(false);
+                setHideDeletePassword(true);
+                setDeleteStoreFormData(defaultDeleteStoreFormData);
+              }}
+              style={styles.modalCloseButton}
+            >
+              <AntDesign name="close" size={22} color={activeColors.accent} />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       <Header goBack={handleGoBack} />
 
       <KeyboardAvoidingView
@@ -393,7 +731,7 @@ export const RegisterStoreScreen = ({
                     iconSource="Octicons"
                   />
                   {/* Store Type Input */}
-                  <Input
+                  {/* <Input
                     key="registerStoreType"
                     context="Type"
                     placeholder="Enter Store Type(Salon / Barbershop)"
@@ -403,7 +741,23 @@ export const RegisterStoreScreen = ({
                     }
                     iconName="scissors"
                     iconSource="Fontisto"
-                  />
+                  /> */}
+                  <View style={styles.typeInputContainer}>
+                    <DropdownPicker
+                      key={"registerStoreType"}
+                      options={typeOptions}
+                      selectedValue={storeRegisterFormData.storeType}
+                      onValueChange={(text: string) =>
+                        handleRegisterStoreTextChange(text, "storeType")
+                      }
+                      placeHolder="Select Store Type..."
+                      iconName="scissors"
+                      iconSource="Fontisto"
+                      isInput={true}
+                      context="Type"
+                    />
+                  </View>
+
                   {/* Store Name Input */}
                   <Input
                     key="registerStoreName"
@@ -595,22 +949,35 @@ export const RegisterStoreScreen = ({
                         contentContainerStyle={styles.imageList}
                       >
                         {storeRegisterFormData.storeImages.map((uri, index) => (
-                          <View key={index} style={styles.imageItemContainer}>
-                            <Image
-                              source={{
-                                uri: storeRegisterFormData.storeImages[index]
-                                  .file,
-                              }}
-                              style={[
-                                styles.imageItem,
-                                { borderColor: activeColors.tertiary },
-                              ]}
-                            />
-                          </View>
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => handleImagePress(index)}
+                          >
+                            <View style={styles.imageItemContainer}>
+                              <Image
+                                source={{
+                                  uri: storeRegisterFormData.storeImages[index]
+                                    .file,
+                                }}
+                                style={[
+                                  styles.imageItem,
+                                  { borderColor: activeColors.tertiary },
+                                ]}
+                              />
+                            </View>
+                          </TouchableOpacity>
                         ))}
                       </ScrollView>
                     )}
                   </View>
+
+                  {/* Fullscreen Image Viewer */}
+                  <ImageViewing
+                    images={images}
+                    imageIndex={selectedImageIndex}
+                    visible={isImageViewerVisible}
+                    onRequestClose={() => setImageViewerVisible(false)}
+                  />
 
                   {/* Break Line */}
                   <View
@@ -682,52 +1049,183 @@ export const RegisterStoreScreen = ({
                       width: "100%",
                     }}
                   ></View>
-                  {/* Little Text */}
-                  <Text style={[styles.text2, { color: activeColors.accent }]}>
-                    Rejected Reasons
-                  </Text>
-                  <View
-                    style={[
-                      styles.reasonContainer,
-                      {
-                        backgroundColor: activeColors.secondary,
-                        borderColor: activeColors.tertiary,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[styles.reason, { color: activeColors.accent }]}
-                      numberOfLines={100}
-                    >
-                      {rejectedReason}
-                    </Text>
-                  </View>
 
-                  {/* Break Line */}
-                  <View
-                    style={{
-                      marginVertical: 10,
-                      borderWidth: 1,
-                      backgroundColor: activeColors.secondary,
-                      borderColor: activeColors.secondary,
-                      width: "100%",
-                    }}
-                  ></View>
-                  {/* Register Button */}
-                  <Pressable onPress={goToRegisterStore}>
-                    <Text
-                      style={[
-                        styles.registerButtonContainer,
-                        {
-                          color: activeColors.secondary,
-                          backgroundColor: activeColors.accent,
-                          width: (screenWidth * 2) / 3 + 50,
-                        },
-                      ]}
-                    >
-                      Register A New Store
-                    </Text>
-                  </Pressable>
+                  {/* Waiting for Approval */}
+                  {status === "Waiting for Approval" && (
+                    <>
+                      {/* Approve */}
+                      <Pressable
+                        onPress={() =>
+                          Alert.alert(
+                            "Confirmation",
+                            "Are you sure you want to APPROVE this store?",
+                            [
+                              { text: "Yes", onPress: handleApproveStore },
+                              { text: "No" },
+                            ],
+                            { cancelable: true }
+                          )
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.registerButtonContainer,
+                            {
+                              color: activeColors.secondary,
+                              backgroundColor: activeColors.accent,
+                              width: (screenWidth * 2) / 3 + 50,
+                            },
+                          ]}
+                        >
+                          Approve Store
+                        </Text>
+                      </Pressable>
+
+                      {/* Reject */}
+                      <Pressable
+                        onPress={() =>
+                          Alert.alert(
+                            "Confirmation",
+                            "Are you sure you want to REJECT this store?",
+                            [
+                              {
+                                text: "Yes",
+                                onPress: () => setModalRejectVisible(true),
+                              },
+                              { text: "No" },
+                            ],
+                            { cancelable: true }
+                          )
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.registerButtonContainer,
+                            {
+                              color: activeColors.secondary,
+                              backgroundColor: activeColors.accent,
+                              width: (screenWidth * 2) / 3 + 50,
+                            },
+                          ]}
+                        >
+                          Reject Store
+                        </Text>
+                      </Pressable>
+                    </>
+                  )}
+
+                  {/* Approved */}
+                  {(status === "InActive" || status === "Active") && (
+                    <>
+                      {/* Hold */}
+                      <Pressable
+                        onPress={() =>
+                          Alert.alert(
+                            "Confirmation",
+                            "Are you sure you want to Hold this store?",
+                            [
+                              {
+                                text: "Yes",
+                                onPress: () => setModalRejectVisible(true),
+                              },
+                              { text: "No" },
+                            ],
+                            { cancelable: true }
+                          )
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.registerButtonContainer,
+                            {
+                              color: activeColors.secondary,
+                              backgroundColor: activeColors.accent,
+                              width: (screenWidth * 2) / 3 + 50,
+                            },
+                          ]}
+                        >
+                          Hold Store
+                        </Text>
+                      </Pressable>
+                    </>
+                  )}
+                  {/* Rejected */}
+                  {status === "Rejected" && (
+                    <>
+                      {/* Little Text */}
+                      <Text
+                        style={[styles.text2, { color: activeColors.accent }]}
+                      >
+                        Rejected Reasons
+                      </Text>
+
+                      <View
+                        style={[
+                          styles.reasonContainer,
+                          {
+                            backgroundColor: activeColors.secondary,
+                            borderColor: activeColors.tertiary,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.reason,
+                            { color: activeColors.accent },
+                          ]}
+                          numberOfLines={100}
+                        >
+                          {rejectedReason}
+                        </Text>
+                      </View>
+                    </>
+                  )}
+
+                  {/* Action button */}
+                  {user.role === "user" && (
+                    <>
+                      {/* Break Line */}
+                      <View
+                        style={{
+                          marginVertical: 10,
+                          borderWidth: 1,
+                          backgroundColor: activeColors.secondary,
+                          borderColor: activeColors.secondary,
+                          width: "100%",
+                        }}
+                      ></View>
+                      {/* Done Review Button */}
+                      <Pressable
+                        onPress={() =>
+                          Alert.alert(
+                            "Have you reviewed the store?",
+                            `Press YES and System will ask for the store password for deletion process so you can make a new store with the same email.`,
+                            [
+                              {
+                                text: "Yes",
+                                onPress: () => setIsModalDeleteVisible(true),
+                              },
+                              { text: "No" },
+                            ],
+                            { cancelable: true }
+                          )
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.registerButtonContainer,
+                            {
+                              color: activeColors.secondary,
+                              backgroundColor: activeColors.accent,
+                              width: (screenWidth * 2) / 3 + 50,
+                            },
+                          ]}
+                        >
+                          Finish Review
+                        </Text>
+                      </Pressable>
+                    </>
+                  )}
                 </View>
               </>
             )}
@@ -754,15 +1252,23 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContainer: {
-    width: "75%",
+    width: "80%",
     padding: 30,
     borderRadius: 10,
+    borderWidth: 1,
+  },
+  modalContainer2: {
+    width: "90%",
+    padding: 30,
+    borderRadius: 10,
+    alignItems: "center",
     borderWidth: 1,
   },
   modalTitle: {
     fontSize: 22,
     fontWeight: "500",
     textAlign: "center",
+    marginBottom: 10,
   },
   modalSubTitleText: {
     marginTop: 10,
@@ -779,6 +1285,27 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
+  },
+  modalTextInput: {
+    marginTop: 10,
+    fontSize: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    textAlignVertical: "top",
+    height: 120,
+  },
+  modalSubmitButton: {
+    width: "100%",
+    marginTop: 10,
+    paddingVertical: 10,
+    borderRadius: 50,
+    alignItems: "center",
+  },
+  modalSubmitButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
   },
 
   registerContainer: {
@@ -812,6 +1339,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
+  typeInputContainer: {
+    width: (screenWidth * 2) / 3 + 50,
+    zIndex: 99,
+    marginVertical: 10,
+  },
+
   registerButtonContainer: {
     paddingVertical: 12,
     borderRadius: 50,

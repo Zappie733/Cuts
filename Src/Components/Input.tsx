@@ -82,7 +82,7 @@ export const Input = ({
             isEditable === false || isDisabled === true
               ? activeColors.disabledColor
               : activeColors.secondary,
-          marginTop: isVisible ? 20 : 10,
+          marginVertical: 10,
         },
       ]}
     >
@@ -100,50 +100,77 @@ export const Input = ({
         </Text>
       )}
 
-      {iconName !== undefined && iconSource !== undefined ? (
-        <View style={styles.input}>
-          {iconSource === "MaterialCommunityIcons" && (
-            <MaterialCommunityIcons
-              name={iconName as keyof typeof MaterialCommunityIcons.glyphMap}
-              size={24}
-              color={activeColors.tertiary}
-              style={styles.icon}
+      <View style={styles.input}>
+        {iconName !== undefined && iconSource !== undefined ? (
+          <>
+            {iconSource === "MaterialCommunityIcons" && (
+              <MaterialCommunityIcons
+                name={iconName as keyof typeof MaterialCommunityIcons.glyphMap}
+                size={24}
+                color={activeColors.tertiary}
+                style={styles.icon}
+              />
+            )}
+            {iconSource === "Octicons" && (
+              <Octicons
+                name={iconName as keyof typeof Octicons.glyphMap}
+                size={24}
+                color={activeColors.tertiary}
+                style={styles.icon}
+              />
+            )}
+            {iconSource === "Feather" && (
+              <Feather
+                name={iconName as keyof typeof Feather.glyphMap}
+                size={24}
+                color={activeColors.tertiary}
+                style={styles.icon}
+              />
+            )}
+            {iconSource === "Fontisto" && (
+              <Fontisto
+                name={iconName as keyof typeof Fontisto.glyphMap}
+                size={24}
+                color={activeColors.tertiary}
+                style={styles.icon}
+              />
+            )}
+            {iconSource === "EvilIcons" && (
+              <EvilIcons
+                name={iconName as keyof typeof EvilIcons.glyphMap}
+                size={24}
+                color={activeColors.tertiary}
+                style={styles.icon}
+              />
+            )}
+            <TextInput
+              style={[styles.textInput, { color: activeColors.accent }]}
+              placeholder={placeholder}
+              placeholderTextColor={activeColors.accent}
+              secureTextEntry={isHidden === undefined ? false : isHidden}
+              value={value}
+              onChangeText={updateValue}
+              editable={
+                isEditable === undefined && isDisabled === undefined
+                  ? true
+                  : isDisabled === true
+                  ? false
+                  : isEditable
+              }
+              onFocus={onFocusHandler}
+              onBlur={onBlurHandler}
+              // blurOnSubmit={true}
+              autoCapitalize={"none"}
+              multiline={context !== "Location" ? false : true}
+              numberOfLines={1}
             />
-          )}
-          {iconSource === "Octicons" && (
-            <Octicons
-              name={iconName as keyof typeof Octicons.glyphMap}
-              size={24}
-              color={activeColors.tertiary}
-              style={styles.icon}
-            />
-          )}
-          {iconSource === "Feather" && (
-            <Feather
-              name={iconName as keyof typeof Feather.glyphMap}
-              size={24}
-              color={activeColors.tertiary}
-              style={styles.icon}
-            />
-          )}
-          {iconSource === "Fontisto" && (
-            <Fontisto
-              name={iconName as keyof typeof Fontisto.glyphMap}
-              size={24}
-              color={activeColors.tertiary}
-              style={styles.icon}
-            />
-          )}
-          {iconSource === "EvilIcons" && (
-            <EvilIcons
-              name={iconName as keyof typeof EvilIcons.glyphMap}
-              size={24}
-              color={activeColors.tertiary}
-              style={styles.icon}
-            />
-          )}
+          </>
+        ) : (
           <TextInput
-            style={[styles.textInput, { color: activeColors.accent }]}
+            style={[
+              styles.textInput,
+              { color: activeColors.accent, paddingHorizontal: 10 },
+            ]}
             placeholder={placeholder}
             placeholderTextColor={activeColors.accent}
             secureTextEntry={isHidden === undefined ? false : isHidden}
@@ -158,63 +185,38 @@ export const Input = ({
             }
             onFocus={onFocusHandler}
             onBlur={onBlurHandler}
-            // blurOnSubmit={true}
             autoCapitalize={"none"}
-            multiline={isHidden !== undefined ? false : true}
-            numberOfLines={2}
+            multiline={context !== "Location" ? false : true}
+            numberOfLines={1}
           />
-        </View>
-      ) : (
-        <TextInput
-          style={[
-            styles.textInput,
-            { color: activeColors.accent, paddingHorizontal: 10 },
-          ]}
-          placeholder={placeholder}
-          placeholderTextColor={activeColors.accent}
-          secureTextEntry={isHidden === undefined ? false : isHidden}
-          value={value}
-          onChangeText={updateValue}
-          editable={
-            isEditable === undefined && isDisabled === undefined
-              ? true
-              : isDisabled === true
-              ? false
-              : isEditable
-          }
-          onFocus={onFocusHandler}
-          onBlur={onBlurHandler}
-          autoCapitalize={"none"}
-          multiline={isHidden !== undefined ? false : true}
-          numberOfLines={2}
-        />
-      )}
+        )}
 
-      {isHidden !== undefined && (
-        <Pressable
-          style={styles.actionIcon}
-          onPress={() => setHidden && setHidden(!isHidden)}
-        >
-          <Feather
-            name={isHidden ? "eye-off" : "eye"}
-            size={24}
-            color={activeColors.tertiary}
-          />
-        </Pressable>
-      )}
+        {isHidden !== undefined && (
+          <Pressable
+            style={styles.actionIcon}
+            onPress={() => setHidden && setHidden(!isHidden)}
+          >
+            <Feather
+              name={isHidden ? "eye-off" : "eye"}
+              size={24}
+              color={activeColors.tertiary}
+            />
+          </Pressable>
+        )}
 
-      {isEditable !== undefined && (
-        <Pressable
-          style={styles.actionIcon}
-          onPress={() => setEditable && setEditable(!isEditable)}
-        >
-          <Feather
-            name={isEditable ? "x" : "edit-2"}
-            size={24}
-            color={activeColors.tertiary}
-          />
-        </Pressable>
-      )}
+        {isEditable !== undefined && (
+          <Pressable
+            style={styles.actionIcon}
+            onPress={() => setEditable && setEditable(!isEditable)}
+          >
+            <Feather
+              name={isEditable ? "x" : "edit-2"}
+              size={24}
+              color={activeColors.tertiary}
+            />
+          </Pressable>
+        )}
+      </View>
     </Animated.View>
   );
 };
@@ -237,8 +239,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   actionIcon: {
-    position: "absolute",
-    top: 20,
-    right: 15,
+    // position: "absolute",
+    // top: 20,
+    // right: 15,
+    marginHorizontal: 10,
   },
 });

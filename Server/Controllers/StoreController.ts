@@ -11,7 +11,7 @@ import {
   PendingStoreObj,
   RegisterStoreRequestObj,
   RejectStoreRequestObj,
-  StoreId,
+  DeleteStoreRequestObj,
   StoreObj,
   UserObj,
 } from "../dto";
@@ -161,7 +161,7 @@ export const verifyStore = async (req: Request, res: Response) => {
 
       await user.updateOne({ id: _id, verified: verified });
 
-      const { pendingStoreData } = user;
+      const { pendingStoreData, email } = user;
 
       const imagekit = new ImageKit({
         publicKey: IMAGEKIT_PUBLIC_KEY,
@@ -185,6 +185,7 @@ export const verifyStore = async (req: Request, res: Response) => {
         //Create new Store
         const store = new STORES({
           userId: _id,
+          email,
           images: uploadedImages,
           name: storeName,
           type: storeType,
@@ -293,7 +294,6 @@ export const getStoresByUserId = async (req: Request, res: Response) => {
 
           if (store) {
             responseData.push({
-              email: user.email,
               store: store,
             });
           }
@@ -345,7 +345,7 @@ export const deleteStore = async (req: Request, res: Response) => {
 
     if (!response.error) {
       //Validate Inputs
-      const { error } = DeleteStoreValidate(<StoreId>req.body);
+      const { error } = DeleteStoreValidate(<DeleteStoreRequestObj>req.body);
 
       if (error)
         return res.status(400).json(<ResponseObj>{
@@ -353,7 +353,7 @@ export const deleteStore = async (req: Request, res: Response) => {
           message: error.details[0].message,
         });
 
-      const { email, password } = <StoreId>req.body;
+      const { email, password } = <DeleteStoreRequestObj>req.body;
 
       const userStore = await USERS.findOne({ email: email.toLowerCase() });
 
@@ -390,7 +390,8 @@ export const deleteStore = async (req: Request, res: Response) => {
           }
 
           //delete store
-          await STORES.findOneAndDelete({ userId: userStore.id });
+          // await STORES.findOneAndDelete({ userId: userStore.id });
+          await store.deleteOne();
 
           //delete userTokens
           const userTokens = await USERTOKENS.find({ userId: userStore.id });
@@ -457,14 +458,9 @@ export const getWaitingForApprovalStores = async (
       const responseData: GetStoreResponse[] = [];
 
       for (const store of stores) {
-        const user = await USERS.findOne({ _id: store.userId });
-
-        if (user) {
-          responseData.push({
-            email: user.email,
-            store,
-          });
-        }
+        responseData.push({
+          store,
+        });
       }
 
       return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
@@ -508,14 +504,9 @@ export const getRejectedStores = async (req: Request, res: Response) => {
       const responseData: GetStoreResponse[] = [];
 
       for (const store of stores) {
-        const user = await USERS.findOne({ _id: store.userId });
-
-        if (user) {
-          responseData.push({
-            email: user.email,
-            store,
-          });
-        }
+        responseData.push({
+          store,
+        });
       }
 
       return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
@@ -561,14 +552,9 @@ export const getApprovedStores = async (req: Request, res: Response) => {
       const responseData: GetStoreResponse[] = [];
 
       for (const store of stores) {
-        const user = await USERS.findOne({ _id: store.userId });
-
-        if (user) {
-          responseData.push({
-            email: user.email,
-            store,
-          });
-        }
+        responseData.push({
+          store,
+        });
       }
 
       return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
@@ -612,14 +598,9 @@ export const getHoldStores = async (req: Request, res: Response) => {
       const responseData: GetStoreResponse[] = [];
 
       for (const store of stores) {
-        const user = await USERS.findOne({ _id: store.userId });
-
-        if (user) {
-          responseData.push({
-            email: user.email,
-            store,
-          });
-        }
+        responseData.push({
+          store,
+        });
       }
 
       return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
@@ -707,7 +688,7 @@ export const rejectStore = async (req: Request, res: Response) => {
         );
 
         let userEmail = user.email;
-        await user.deleteOne();
+        // await user.deleteOne(); //tidak jadi didelete
 
         return res.status(200).json(<ResponseObj>{
           error: false,
@@ -891,6 +872,87 @@ export const unHoldStore = async (req: Request, res: Response) => {
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: "Store un-hold successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const approveStore = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const { id: storeId } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Store ID",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeId });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      await store.updateOne({
+        status: "InActive",
+        adminId: payload._id,
+      });
+
+      const user = await USERS.findOne({ _id: store.userId });
+
+      if (user) {
+        await sendEmail(
+          "approveStore",
+          user.email,
+          `${store.name} is approved`,
+          "",
+          `owner of ${store.name}`
+        );
+
+        let userEmail = user.email;
+
+        return res.status(200).json(<ResponseObj>{
+          error: false,
+          message: `Store approved successfully, Email sent to ${userEmail}`,
+        });
+      }
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Store approved successfully",
       });
     }
 

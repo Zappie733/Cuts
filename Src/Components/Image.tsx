@@ -11,6 +11,7 @@ import {
   Text,
   ScrollView,
   Dimensions,
+  TouchableOpacity,
 } from "react-native";
 import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
@@ -28,6 +29,7 @@ import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { IAuthObj } from "../Types/AuthContextTypes";
 import { IUserObj } from "../Types/UserContextTypes";
+import ImageViewing from "react-native-image-viewing";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -331,6 +333,16 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
   useEffect(() => {
     handleSetImages(imagesOptionForUpload);
   }, [imagesOptionForUpload]);
+
+  const [isImageViewerVisible, setImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const images = selectedImages.map((image) => ({
+    uri: image,
+  }));
+  const handleImagePress = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageViewerVisible(true);
+  };
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
@@ -341,25 +353,41 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
             contentContainerStyle={styles.imageList}
           >
             {selectedImages.map((uri, index) => (
-              <View key={index} style={styles.imageItemContainer}>
-                <Image
-                  source={{ uri }}
-                  style={[
-                    styles.imageItem,
-                    { borderColor: activeColors.tertiary },
-                  ]}
-                />
-                <Pressable
-                  onPress={() => handleDeleteImage(index)}
-                  style={[
-                    styles.deleteButton,
-                    { backgroundColor: activeColors.tertiary },
-                  ]}
-                >
-                  <Feather name="x" size={20} color={activeColors.secondary} />
-                </Pressable>
-              </View>
+              <TouchableOpacity
+                key={index}
+                onPress={() => handleImagePress(index)}
+              >
+                <View style={styles.imageItemContainer}>
+                  <Image
+                    source={{ uri }}
+                    style={[
+                      styles.imageItem,
+                      { borderColor: activeColors.tertiary },
+                    ]}
+                  />
+                  <Pressable
+                    onPress={() => handleDeleteImage(index)}
+                    style={[
+                      styles.deleteButton,
+                      { backgroundColor: activeColors.tertiary },
+                    ]}
+                  >
+                    <Feather
+                      name="x"
+                      size={20}
+                      color={activeColors.secondary}
+                    />
+                  </Pressable>
+                </View>
+              </TouchableOpacity>
             ))}
+            {/* Fullscreen Image Viewer */}
+            <ImageViewing
+              images={images}
+              imageIndex={selectedImageIndex}
+              visible={isImageViewerVisible}
+              onRequestClose={() => setImageViewerVisible(false)}
+            />
           </ScrollView>
         )}
       </View>

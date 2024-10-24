@@ -3,6 +3,7 @@ import { ImageRequestObj } from "./Image";
 export interface StoreObj {
   _id?: string;
   userId: string;
+  email: string;
   images: ImageRequestObj[];
   name: string;
   type: "salon" | "barbershop";
@@ -43,7 +44,7 @@ export interface PendingStoreObj {
   storeDocuments: IDocumentProps[];
 }
 
-export interface StoreId {
+export interface DeleteStoreRequestObj {
   email: string;
   password: string;
 }
