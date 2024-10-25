@@ -18,12 +18,7 @@ import { Theme } from "../../Contexts/ThemeContext";
 import { IResponseProps, StoreResponse } from "../../Types/ResponseTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import { Auth } from "../../Contexts";
-import {
-  getApprovedStores,
-  getHoldStores,
-  getRejectedStores,
-  getWaitingForApprovalStores,
-} from "../../Middlewares/StoreMiddleware";
+import { getStoresByStatus } from "../../Middlewares/StoreMiddleware";
 import { logoutUser } from "../../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../../Config/AsyncStorage";
 import { IAuthObj } from "../../Types/AuthContextTypes";
@@ -46,50 +41,24 @@ export const AdminStoreManagementScreen = ({
     navigation.goBack();
   };
 
-  const [waitingForApprovalStores, setWaitingForApprovalStores] = useState<
-    StoreResponse[]
-  >([]);
-  const [rejectedStores, setRejectedStores] = useState<StoreResponse[]>([]);
-  const [approvedStores, setApprovedStores] = useState<StoreResponse[]>([]);
-  const [holdStores, setHoldStores] = useState<StoreResponse[]>([]);
+  const [stores, setStores] = useState<StoreResponse[]>([]);
+  const [offset, setOffset] = useState<number>(0);
+  const limit = 10;
+  const [refectch, setRefetch] = useState<boolean>(false);
 
-  const handleFetchWaitingForApprovalStores = async () => {
-    const response = await getWaitingForApprovalStores(auth, updateAccessToken);
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
-
-    if (response.status >= 200 && response.status < 400 && response.data) {
-      setWaitingForApprovalStores(response.data);
-    } else {
-      console.log(response.status, response.message);
-    }
-  };
-
-  const handleFetchRejectedStores = async () => {
-    const response = await getRejectedStores(auth, updateAccessToken);
+  const handleFetchStores = async () => {
+    const data = {
+      limit,
+      offset: offset,
+      status: selectedStatus as
+        | "Waiting for Approval"
+        | "Rejected"
+        | "Active"
+        | "InActive"
+        | "Hold",
+    };
+    console.log(data);
+    const response = await getStoresByStatus(auth, updateAccessToken, data);
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -117,77 +86,10 @@ export const AdminStoreManagementScreen = ({
     }
 
     if (response.status >= 200 && response.status < 400 && response.data) {
-      setRejectedStores(response.data);
-    } else {
-      console.log(response.status, response.message);
-    }
-  };
-
-  const handleFetchApprovedStores = async () => {
-    const response = await getApprovedStores(auth, updateAccessToken);
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
-
-    if (response.status >= 200 && response.status < 400 && response.data) {
-      setApprovedStores(response.data);
-    } else {
-      console.log(response.status, response.message);
-    }
-  };
-
-  const handleFetchHoldStores = async () => {
-    const response = await getHoldStores(auth, updateAccessToken);
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
-
-    if (response.status >= 200 && response.status < 400 && response.data) {
-      setHoldStores(response.data);
+      // setStores(response.data);
+      setStores((prevStores) => [...prevStores, ...(response.data || [])]);
+      setOffset(offset + limit);
+      setRefetch(false);
     } else {
       console.log(response.status, response.message);
     }
@@ -196,40 +98,51 @@ export const AdminStoreManagementScreen = ({
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   // console.log(selectedStatus);
   const options = [
+    { label: "All", value: "" },
     { label: "Waiting for Approval", value: "Waiting for Approval" },
-    { label: "Approved", value: "Approved" },
+    { label: "Active", value: "Active" },
+    { label: "InActive", value: "InActive" },
     { label: "Hold", value: "Hold" },
     { label: "Rejected", value: "Rejected" },
   ];
 
+  const handleScroll = ({ nativeEvent }: any) => {
+    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+    const isNearBottom =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+
+    if (isNearBottom && refectch === false) {
+      setRefetch(true);
+      setTimeout(() => {
+        handleFetchStores();
+      }, 1000);
+    }
+  };
+
   //getStores
   useEffect(() => {
-    handleFetchWaitingForApprovalStores();
-    handleFetchRejectedStores();
-    handleFetchApprovedStores();
-    handleFetchHoldStores();
-
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "active") {
-        handleFetchWaitingForApprovalStores();
-        handleFetchRejectedStores();
-        handleFetchApprovedStores();
-        handleFetchHoldStores();
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
+    setOffset(0);
+    setStores([]);
   }, [selectedStatus]);
+  useEffect(() => {
+    if (offset === 0) handleFetchStores();
+    // const subscription = AppState.addEventListener("change", (nextAppState) => {
+    //   if (nextAppState === "active") {
+    //     handleFetchStores();
+    //   }
+    // });
+
+    // return () => {
+    //   subscription.remove();
+    // };
+  }, [offset]);
   useFocusEffect(
     useCallback(() => {
-      handleFetchWaitingForApprovalStores();
-      handleFetchRejectedStores();
-      handleFetchApprovedStores();
-      handleFetchHoldStores();
+      console.log("a");
+      setSelectedStatus("");
     }, [])
   );
+
   return (
     <SafeAreaView
       style={[
@@ -276,40 +189,11 @@ export const AdminStoreManagementScreen = ({
       ></View>
 
       {/* Store List */}
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} onScroll={handleScroll}>
         <View style={styles.storeList}>
-          {selectedStatus === "Waiting for Approval" &&
-            waitingForApprovalStores.map((item, index) => (
-              <Store
-                key={index}
-                data={item}
-                refetchData={handleFetchWaitingForApprovalStores}
-              />
-            ))}
-          {selectedStatus === "Rejected" &&
-            rejectedStores.map((item, index) => (
-              <Store
-                key={index}
-                data={item}
-                refetchData={handleFetchRejectedStores}
-              />
-            ))}
-          {selectedStatus === "Approved" &&
-            approvedStores.map((item, index) => (
-              <Store
-                key={index}
-                data={item}
-                refetchData={handleFetchApprovedStores}
-              />
-            ))}
-          {selectedStatus === "Hold" &&
-            holdStores.map((item, index) => (
-              <Store
-                key={index}
-                data={item}
-                refetchData={handleFetchHoldStores}
-              />
-            ))}
+          {stores.map((item, index) => (
+            <Store key={index} data={item} refetchData={handleFetchStores} />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

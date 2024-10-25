@@ -69,7 +69,7 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
 
   const [deleteStoreFormData, setDeleteStoreFormData] =
     useState<DeleteStoreParams>(defaultDeleteStoreFormData);
-  console.log("deleteFormData", deleteStoreFormData);
+  // console.log("deleteFormData", deleteStoreFormData);
 
   const handleDeleteStoreTextChange = (text: string, fieldname: string) => {
     setDeleteStoreFormData({ ...deleteStoreFormData, [fieldname]: text });
@@ -130,7 +130,7 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
   const [loginStoreFormData, setLoginStoreFormData] = useState<ILoginProps>(
     defaultLoginStoreFormData
   );
-  console.log("loginFormData", loginStoreFormData);
+  // console.log("loginFormData", loginStoreFormData);
 
   const handleLoginStoreTextChange = (
     text: string,

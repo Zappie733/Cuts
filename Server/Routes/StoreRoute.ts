@@ -2,11 +2,8 @@ import express from "express";
 import {
   approveStore,
   deleteStore,
-  getApprovedStores,
-  getHoldStores,
-  getRejectedStores,
+  getStoresByStatus,
   getStoresByUserId,
-  getWaitingForApprovalStores,
   holdStore,
   registerStore,
   rejectStore,
@@ -19,10 +16,7 @@ StoreRoute.post("/registerStore", registerStore);
 StoreRoute.get("/:id/verifyStore/:token", verifyStore);
 StoreRoute.get("/getStoresByUserId", getStoresByUserId);
 StoreRoute.delete("/deleteStore", deleteStore);
-StoreRoute.get("/getWaitingForApprovalStores", getWaitingForApprovalStores);
-StoreRoute.get("/getRejectedStores", getRejectedStores);
-StoreRoute.get("/getApprovedStores", getApprovedStores);
-StoreRoute.get("/getHoldStores", getHoldStores);
+StoreRoute.get("/getStoresByStatus", getStoresByStatus);
 StoreRoute.post("/rejectStore", rejectStore);
 StoreRoute.post("/holdStore", holdStore);
 StoreRoute.post("/unHoldStore/:id", unHoldStore);

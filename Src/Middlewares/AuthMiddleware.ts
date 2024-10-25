@@ -216,6 +216,12 @@ export const apiCallWithToken = async <T>(
     headers?: any;
     limit?: number;
     offset?: number;
+    status?:
+      | "Waiting for Approval"
+      | "Rejected"
+      | "Active"
+      | "InActive"
+      | "Hold";
   } = { method: "GET" }, // Default to GET if no method is provided
   auth: IAuthObj,
   updateAccessToken: (accessToken: string) => void
@@ -231,6 +237,10 @@ export const apiCallWithToken = async <T>(
 
   if (options.offset !== undefined) {
     params.append("offset", options.offset.toString());
+  }
+
+  if (options.status) {
+    params.append("status", options.status);
   }
 
   // Append query parameters to the endpoint URL if they exist

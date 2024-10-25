@@ -70,7 +70,10 @@ export const DropdownPicker = ({
                 borderWidth: 1,
                 borderColor: activeColors.tertiary,
               }
-            : { backgroundColor: activeColors.secondary },
+            : {
+                backgroundColor: activeColors.secondary,
+                height: isDropdownOpen ? 175 : "auto",
+              },
         ]}
         onPress={() => setDropdownOpen(!isDropdownOpen)}
       >
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     borderRadius: 20,
-    maxHeight: 200,
+    maxHeight: 175,
   },
   dropdownItem: {
     height: 50,

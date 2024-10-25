@@ -183,7 +183,7 @@ export const RegisterStoreScreen = ({
   };
   const [deleteStoreFormData, setDeleteStoreFormData] =
     useState<DeleteStoreParams>(defaultDeleteStoreFormData);
-  console.log("deleteFormData", deleteStoreFormData);
+  // console.log("deleteFormData", deleteStoreFormData);
   const handleDeleteStoreTextChange = (text: string, fieldname: string) => {
     setDeleteStoreFormData({ ...deleteStoreFormData, [fieldname]: text });
   };

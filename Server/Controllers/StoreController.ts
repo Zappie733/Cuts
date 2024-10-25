@@ -432,10 +432,7 @@ export const deleteStore = async (req: Request, res: Response) => {
   }
 };
 
-export const getWaitingForApprovalStores = async (
-  req: Request,
-  res: Response
-) => {
+export const getStoresByStatus = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -453,9 +450,28 @@ export const getWaitingForApprovalStores = async (
     });
 
     if (!response.error) {
-      const { limit, offset } = req.query;
+      const { limit, offset, status } = req.query;
 
-      const stores = await STORES.find({ status: "Waiting for Approval" })
+      let query: any = {};
+
+      if (status) {
+        if (
+          status !== "Active" &&
+          status !== "InActive" &&
+          status !== "Rejected" &&
+          status !== "Hold" &&
+          status !== "Waiting for Approval"
+        ) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message: "Invalid status",
+          });
+        } else {
+          query.status = status;
+        }
+      }
+
+      const stores = await STORES.find(query)
         .limit(Number(limit))
         .skip(Number(offset));
 
@@ -469,147 +485,7 @@ export const getWaitingForApprovalStores = async (
 
       return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
         error: false,
-        message: "Waiting for approval stores retrieved successfully",
-        data: responseData,
-      });
-    }
-
-    return res
-      .status(401)
-      .json(<ResponseObj>{ error: true, message: response.message });
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json(<ResponseObj>{ error: true, message: "Internal server error" });
-  }
-};
-
-export const getRejectedStores = async (req: Request, res: Response) => {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(400).json(<ResponseObj>{
-        error: true,
-        message: "Access Token is required",
-      });
-    }
-    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
-
-    // Verify the access token
-    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
-      accessToken,
-    });
-
-    if (!response.error) {
-      const stores = await STORES.find({ status: "Rejected" });
-
-      const responseData: GetStoreResponse[] = [];
-
-      for (const store of stores) {
-        responseData.push({
-          store,
-        });
-      }
-
-      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
-        error: false,
-        message: "Rejected stores retrieved successfully",
-        data: responseData,
-      });
-    }
-
-    return res
-      .status(401)
-      .json(<ResponseObj>{ error: true, message: response.message });
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json(<ResponseObj>{ error: true, message: "Internal server error" });
-  }
-};
-
-export const getApprovedStores = async (req: Request, res: Response) => {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(400).json(<ResponseObj>{
-        error: true,
-        message: "Access Token is required",
-      });
-    }
-    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
-
-    // Verify the access token
-    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
-      accessToken,
-    });
-
-    if (!response.error) {
-      const stores = await STORES.find({
-        status: { $in: ["Active", "InActive"] },
-      });
-
-      const responseData: GetStoreResponse[] = [];
-
-      for (const store of stores) {
-        responseData.push({
-          store,
-        });
-      }
-
-      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
-        error: false,
-        message: "Approved stores retrieved successfully",
-        data: responseData,
-      });
-    }
-
-    return res
-      .status(401)
-      .json(<ResponseObj>{ error: true, message: response.message });
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json(<ResponseObj>{ error: true, message: "Internal server error" });
-  }
-};
-
-export const getHoldStores = async (req: Request, res: Response) => {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(400).json(<ResponseObj>{
-        error: true,
-        message: "Access Token is required",
-      });
-    }
-    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
-
-    // Verify the access token
-    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
-      accessToken,
-    });
-
-    if (!response.error) {
-      const stores = await STORES.find({ status: "Hold" });
-
-      const responseData: GetStoreResponse[] = [];
-
-      for (const store of stores) {
-        responseData.push({
-          store,
-        });
-      }
-
-      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
-        error: false,
-        message: "Hold stores retrieved successfully",
+        message: "Stores retrieved successfully",
         data: responseData,
       });
     }

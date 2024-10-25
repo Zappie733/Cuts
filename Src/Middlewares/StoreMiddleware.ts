@@ -66,96 +66,35 @@ export const registerStore = async (
   };
 };
 
-export const getWaitingForApprovalStores = async (
+export const getStoresByStatus = async (
   auth: IAuthObj,
-  updateAccessToken: (accessToken: string) => void
+  updateAccessToken: (accessToken: string) => void,
+  data: {
+    limit: number;
+    offset: number;
+    status:
+      | "Waiting for Approval"
+      | "Rejected"
+      | "Active"
+      | "InActive"
+      | "Hold";
+  }
 ): Promise<IResponseProps<StoreResponse[]>> => {
-  console.log("getWaitingForApprovalStores Process");
+  console.log("get Stores By Status Process");
   const apiOptions = {
     method: "GET",
-    limit: 10,
-    offset: 0,
+    limit: data.limit,
+    offset: data.offset,
+    status: data.status,
   };
 
   const result = await apiCallWithToken<StoreResponse[]>(
-    "/store/getWaitingForApprovalStores",
+    "/store/getStoresByStatus",
     apiOptions,
     auth,
     updateAccessToken
   );
-  console.log(JSON.stringify(result, null, 2));
-
-  return {
-    status: result.status,
-    data: result.data,
-    message: result.message,
-  };
-};
-
-export const getRejectedStores = async (
-  auth: IAuthObj,
-  updateAccessToken: (accessToken: string) => void
-): Promise<IResponseProps<StoreResponse[]>> => {
-  console.log("getRejectedStores Process");
-  const apiOptions = {
-    method: "GET",
-  };
-
-  const result = await apiCallWithToken<StoreResponse[]>(
-    "/store/getRejectedStores",
-    apiOptions,
-    auth,
-    updateAccessToken
-  );
-  console.log(JSON.stringify(result, null, 2));
-
-  return {
-    status: result.status,
-    data: result.data,
-    message: result.message,
-  };
-};
-
-export const getApprovedStores = async (
-  auth: IAuthObj,
-  updateAccessToken: (accessToken: string) => void
-): Promise<IResponseProps<StoreResponse[]>> => {
-  console.log("getApprovedStores Process");
-  const apiOptions = {
-    method: "GET",
-  };
-
-  const result = await apiCallWithToken<StoreResponse[]>(
-    "/store/getApprovedStores",
-    apiOptions,
-    auth,
-    updateAccessToken
-  );
-  console.log(JSON.stringify(result, null, 2));
-
-  return {
-    status: result.status,
-    data: result.data,
-    message: result.message,
-  };
-};
-
-export const getHoldStores = async (
-  auth: IAuthObj,
-  updateAccessToken: (accessToken: string) => void
-): Promise<IResponseProps<StoreResponse[]>> => {
-  console.log("getHoldStores Process");
-  const apiOptions = {
-    method: "GET",
-  };
-
-  const result = await apiCallWithToken<StoreResponse[]>(
-    "/store/getHoldStores",
-    apiOptions,
-    auth,
-    updateAccessToken
-  );
-  console.log(JSON.stringify(result, null, 2));
+  // console.log(JSON.stringify(result, null, 2));
 
   return {
     status: result.status,

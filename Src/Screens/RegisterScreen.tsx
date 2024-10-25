@@ -91,15 +91,6 @@ export const RegisterScreen = ({
     }, [])
   );
 
-  const handleScroll = ({ nativeEvent }: any) => {
-    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-    const isNearBottom =
-      layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
-
-    if (isNearBottom) {
-      console.log("near bottom");
-    }
-  };
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.primary }]}
@@ -114,7 +105,6 @@ export const RegisterScreen = ({
         <ScrollView
           showsVerticalScrollIndicator={false}
           style={{ width: screenWidth }}
-          onScroll={handleScroll}
         >
           <View style={styles.registerScrollContainer}>
             {/* Title */}
