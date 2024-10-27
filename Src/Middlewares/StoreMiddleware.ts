@@ -1,6 +1,10 @@
 import { IAuthObj } from "../Types/AuthContextTypes";
 import { IRegistrationStoreProps } from "../Types/RegisterStoreScreenTypes";
-import { IResponseProps, StoreResponse } from "../Types/ResponseTypes";
+import {
+  IResponseProps,
+  StoreResponse,
+  StoresByStatusResponse,
+} from "../Types/ResponseTypes";
 import {
   ApproveStoreParams,
   DeleteStoreParams,
@@ -78,17 +82,19 @@ export const getStoresByStatus = async (
       | "Active"
       | "InActive"
       | "Hold";
+    search: string;
   }
-): Promise<IResponseProps<StoreResponse[]>> => {
+): Promise<IResponseProps<StoresByStatusResponse>> => {
   console.log("get Stores By Status Process");
   const apiOptions = {
     method: "GET",
     limit: data.limit,
     offset: data.offset,
     status: data.status,
+    search: data.search,
   };
-
-  const result = await apiCallWithToken<StoreResponse[]>(
+  console.log(apiOptions);
+  const result = await apiCallWithToken<StoresByStatusResponse>(
     "/store/getStoresByStatus",
     apiOptions,
     auth,

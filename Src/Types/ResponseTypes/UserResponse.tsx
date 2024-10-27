@@ -39,3 +39,8 @@ export interface StoreObj {
 export interface StoreResponse {
   store: StoreObj;
 }
+
+export interface StoresByStatusResponse {
+  stores: StoreObj[];
+  total: number;
+}

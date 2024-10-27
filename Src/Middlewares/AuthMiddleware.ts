@@ -222,6 +222,7 @@ export const apiCallWithToken = async <T>(
       | "Active"
       | "InActive"
       | "Hold";
+    search?: string;
   } = { method: "GET" }, // Default to GET if no method is provided
   auth: IAuthObj,
   updateAccessToken: (accessToken: string) => void
@@ -241,6 +242,10 @@ export const apiCallWithToken = async <T>(
 
   if (options.status) {
     params.append("status", options.status);
+  }
+
+  if (options.search) {
+    params.append("search", options.search);
   }
 
   // Append query parameters to the endpoint URL if they exist

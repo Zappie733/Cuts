@@ -30,7 +30,10 @@ import {
 } from "../Utils/UserTokenUtil";
 import { sendEmail } from "../Utils/UserUtil";
 import ImageKit from "imagekit";
-import { GetStoreResponse } from "../Response/StoreResponse";
+import {
+  GetStoreResponse,
+  GetStoresByStatusResponse,
+} from "../Response/StoreResponse";
 import { USERTOKENS } from "../Models/UserTokenModel";
 import {
   RegisterStoreValidate,
@@ -450,7 +453,7 @@ export const getStoresByStatus = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
-      const { limit, offset, status } = req.query;
+      const { limit, offset, status, search } = req.query;
 
       let query: any = {};
 
@@ -470,20 +473,21 @@ export const getStoresByStatus = async (req: Request, res: Response) => {
           query.status = status;
         }
       }
+      console.log(search);
+      if (search) {
+        query.name = { $regex: search, $options: "i" };
+      }
 
       const stores = await STORES.find(query)
         .limit(Number(limit))
         .skip(Number(offset));
 
-      const responseData: GetStoreResponse[] = [];
+      const responseData: GetStoresByStatusResponse = { stores: [], total: 0 };
 
-      for (const store of stores) {
-        responseData.push({
-          store,
-        });
-      }
+      responseData.stores = stores;
+      responseData.total = await STORES.countDocuments(query);
 
-      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
+      return res.status(200).json(<ResponseObj<GetStoresByStatusResponse>>{
         error: false,
         message: "Stores retrieved successfully",
         data: responseData,

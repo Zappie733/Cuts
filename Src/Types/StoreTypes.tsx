@@ -3,7 +3,8 @@ import { StoreResponse } from "./ResponseTypes";
 
 export interface IStoreProps {
   data: StoreResponse;
-  refetchData: () => void;
+  refetchData?: () => void;
+  changeIsFromReviewRef?: () => void;
 }
 
 export interface DeleteStoreParams {

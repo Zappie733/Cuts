@@ -27,7 +27,11 @@ import { ILoginProps } from "../Types/LoginScreenTypes";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
-export const Store = ({ data, refetchData }: IStoreProps) => {
+export const Store = ({
+  data,
+  refetchData,
+  changeIsFromReviewRef,
+}: IStoreProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
@@ -38,6 +42,10 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
 
   const handleReview = () => {
     console.log("review process");
+    if (changeIsFromReviewRef) {
+      changeIsFromReviewRef();
+    }
+
     const storeData: IRegistrationStoreProps = {
       email: data.store.email,
       role: "store",
@@ -114,7 +122,7 @@ export const Store = ({ data, refetchData }: IStoreProps) => {
       setHidePassword(true);
       setDeleteStoreFormData(defaultDeleteStoreFormData);
 
-      refetchData();
+      if (refetchData) refetchData();
     } else {
       Alert.alert("Deletion error", response.message);
     }
