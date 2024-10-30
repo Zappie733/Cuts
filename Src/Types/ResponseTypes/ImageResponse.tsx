@@ -1,5 +1,5 @@
 import { IImageProps } from "../ImageTypes";
 
-export interface UploadImageResponse {
+export interface UpdateUserImageResponse {
   image: IImageProps;
 }

@@ -33,8 +33,10 @@ import {
 import jwt from "jsonwebtoken";
 import {
   GetNewAccessTokenResponse,
+  GetStoreResponse,
   LoginDataResponse,
   ResponseObj,
+  UpdateUserImageResponse,
   UserProfileResponse,
 } from "../Response";
 import { USERTOKENS } from "../Models/UserTokenModel";
@@ -44,6 +46,7 @@ import { ChangePasswordValidate } from "../Validation/ChangePasswordValidate";
 import { UpdateUserValidate } from "../Validation/UpdateUserValidate";
 import { STORES } from "../Models/StoreModel";
 import ImageKit from "imagekit";
+import { UpdateUserImageValidate } from "../Validation/UploadImageValidate";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -471,6 +474,85 @@ export const getUserProfile = async (req: Request, res: Response) => {
   }
 };
 
+export const updateUserImage = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+      //Validate Inputs
+      const { error } = UpdateUserImageValidate(<ImageRequestObj>req.body);
+
+      if (error)
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: error.details[0].message,
+        });
+
+      const user = await USERS.findOne({ _id: payload._id });
+
+      const { file, path } = <ImageRequestObj>req.body;
+
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      //delete user profile in imagekit
+      if (user?.image?.imageId) await imagekit.deleteFile(user?.image?.imageId);
+
+      //upload new user profile to imagekit
+      const result = await imagekit.upload({
+        file: file, // base64 encoded string
+        fileName: `${user?.id}_Profile`,
+        folder: path,
+      });
+      //update user database with the newest profile
+      await user?.updateOne({
+        image: { imageId: result.fileId, file: result.url, path: path },
+      });
+
+      const updatedUser = await USERS.findById(user?.id);
+      console.log(updatedUser?.image);
+
+      return res.status(200).json(<ResponseObj<UpdateUserImageResponse>>{
+        error: false,
+        data: { image: updatedUser?.image },
+        message: "Photo profile updated successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    let errorMessage = "An unknown error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
+    res.status(500).json(<ResponseObj>{ error: true, message: errorMessage });
+  }
+};
+
 export const updateUserProfile = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
@@ -591,6 +673,90 @@ export const verifyUpdateUser = async (req: Request, res: Response) => {
     return res.render("verification", {
       isError: true,
       message: "An internal error occurred. Please try again later.",
+    });
+  }
+};
+
+export const getAdminRecentActivity = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+    // console.log(response.error);
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const { activity } = req.query;
+      // console.log(activity);
+      let query: any = {};
+      let sort: any = {};
+
+      if (activity) {
+        if (
+          activity !== "Approve" &&
+          activity !== "Reject" &&
+          activity !== "Hold" &&
+          activity !== "UnHold"
+        ) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message: "Invalid status",
+          });
+        } else {
+          if (activity === "Approve") {
+            query.approvedBy = payload._id;
+            sort.approvedDate = -1; // Sorting criteria for Approve
+          } else if (activity === "Reject") {
+            query.rejectedBy = payload._id;
+            sort.rejectedDate = -1; // Sorting criteria for Reject
+          } else if (activity === "Hold") {
+            query.onHoldBy = payload._id;
+            sort.onHoldDate = -1; // Sorting criteria for Hold
+          } else if (activity === "UnHold") {
+            query.unHoldBy = payload._id;
+            sort.unHoldDate = -1; // Sorting criteria for UnHold
+          }
+        }
+      }
+
+      const recentActivities = await STORES.find(query).sort(sort).limit(3);
+
+      const responseData: GetStoreResponse[] = [];
+
+      for (const recentActivity of recentActivities) {
+        responseData.push({
+          store: recentActivity,
+        });
+      }
+
+      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
+        error: false,
+        data: responseData,
+        message: `Admin recent ${activity} activities retrieved successfully`,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    return res.status(500).json(<ResponseObj>{
+      error: true,
+      message: "Internal Server Error",
     });
   }
 };

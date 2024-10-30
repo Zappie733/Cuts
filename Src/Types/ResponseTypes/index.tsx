@@ -6,3 +6,5 @@ export interface IResponseProps<T = {}> {
 
 export * from "./AuthResponse";
 export * from "./UserResponse";
+export * from "./ImageResponse";
+export * from "./AppResponse";

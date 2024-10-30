@@ -22,7 +22,6 @@ import {
   SelectImagesProps,
 } from "../Types/ImageTypes";
 import * as FileSystem from "expo-file-system";
-import { uploadImage } from "../Middlewares/ImageMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
 import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
@@ -30,6 +29,7 @@ import { CommonActions, useNavigation } from "@react-navigation/native";
 import { IAuthObj } from "../Types/AuthContextTypes";
 import { IUserObj } from "../Types/UserContextTypes";
 import ImageViewing from "react-native-image-viewing";
+import { updateUserProfileImage } from "../Middlewares/UserMiddleware";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -129,7 +129,7 @@ export const SelectImage = ({ userImage }: SelectImageProps) => {
   };
 
   const handleUploadImage = async () => {
-    const response = await uploadImage(
+    const response = await updateUserProfileImage(
       auth,
       updateAccessToken,
       imageOptionForUpload
@@ -276,7 +276,7 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
 
       const newImagesOptionForUpload = base64Images.map((file) => ({
         file,
-        path: `Store`,
+        path: `StoreImages`,
       }));
 
       setImagesOptionForUpload([

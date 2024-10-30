@@ -261,8 +261,19 @@ export const RegisterStoreScreen = ({
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
+      // setTimeout(() => {
+      //   navigation.navigate("TabsStack", { screen: "StoreManagement" });
+      // }, 500);
       setTimeout(() => {
-        navigation.navigate("TabsStack", { screen: "StoreManagement" });
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 1, // Index 1 means "StoreManagement" is the focused screen, with "Home" below it in the stack
+            routes: [
+              { name: "TabsStack", params: { screen: "Home" } }, // Set Home as the first screen
+              { name: "TabsStack", params: { screen: "StoreManagement" } }, // Set StoreManagement as the second screen
+            ],
+          })
+        );
       }, 500);
     } else {
       Alert.alert("Approval Store Error", response.message);
@@ -315,7 +326,15 @@ export const RegisterStoreScreen = ({
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
       setTimeout(() => {
-        navigation.navigate("TabsStack", { screen: "StoreManagement" });
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 1, // Index 1 means "StoreManagement" is the focused screen, with "Home" below it in the stack
+            routes: [
+              { name: "TabsStack", params: { screen: "Home" } }, // Set Home as the first screen
+              { name: "TabsStack", params: { screen: "StoreManagement" } }, // Set StoreManagement as the second screen
+            ],
+          })
+        );
       }, 500);
     } else {
       Alert.alert("Reject Store Error", response.message);
@@ -359,7 +378,15 @@ export const RegisterStoreScreen = ({
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
       setTimeout(() => {
-        navigation.navigate("TabsStack", { screen: "StoreManagement" });
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 1, // Index 1 means "StoreManagement" is the focused screen, with "Home" below it in the stack
+            routes: [
+              { name: "TabsStack", params: { screen: "Home" } }, // Set Home as the first screen
+              { name: "TabsStack", params: { screen: "StoreManagement" } }, // Set StoreManagement as the second screen
+            ],
+          })
+        );
       }, 500);
     } else {
       Alert.alert("Hold Store Error", response.message);
@@ -399,7 +426,15 @@ export const RegisterStoreScreen = ({
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
       setTimeout(() => {
-        navigation.navigate("TabsStack", { screen: "StoreManagement" });
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 1, // Index 1 means "StoreManagement" is the focused screen, with "Home" below it in the stack
+            routes: [
+              { name: "TabsStack", params: { screen: "Home" } }, // Set Home as the first screen
+              { name: "TabsStack", params: { screen: "StoreManagement" } }, // Set StoreManagement as the second screen
+            ],
+          })
+        );
       }, 500);
     } else {
       Alert.alert("UnHold Store Error", response.message);

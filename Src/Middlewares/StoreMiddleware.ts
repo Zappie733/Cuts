@@ -5,6 +5,7 @@ import {
   StoreResponse,
   StoresByStatusResponse,
 } from "../Types/ResponseTypes";
+import { GetStoresByStatusQueryParams } from "../Types/AdminStoreManagementScreenTypes";
 import {
   ApproveStoreParams,
   DeleteStoreParams,
@@ -73,17 +74,7 @@ export const registerStore = async (
 export const getStoresByStatus = async (
   auth: IAuthObj,
   updateAccessToken: (accessToken: string) => void,
-  data: {
-    limit: number;
-    offset: number;
-    status:
-      | "Waiting for Approval"
-      | "Rejected"
-      | "Active"
-      | "InActive"
-      | "Hold";
-    search: string;
-  }
+  data: GetStoresByStatusQueryParams
 ): Promise<IResponseProps<StoresByStatusResponse>> => {
   console.log("get Stores By Status Process");
   const apiOptions = {

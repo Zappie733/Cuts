@@ -61,7 +61,7 @@ export const DropdownPicker = ({
 
       <TouchableOpacity
         style={[
-          styles.dropdownButton,
+          isInput === true ? styles.dropdownButtonInput : styles.dropdownButton,
           isInput === true &&
           context !== undefined &&
           selectedLabel !== placeHolder
@@ -72,7 +72,7 @@ export const DropdownPicker = ({
               }
             : {
                 backgroundColor: activeColors.secondary,
-                height: isDropdownOpen ? 175 : "auto",
+                height: "auto",
               },
         ]}
         onPress={() => setDropdownOpen(!isDropdownOpen)}
@@ -141,6 +141,14 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   dropdownButton: {
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 15,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  dropdownButtonInput: {
     borderRadius: 18,
     paddingVertical: 20,
     paddingHorizontal: 15,

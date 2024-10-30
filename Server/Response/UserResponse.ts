@@ -20,3 +20,7 @@ export interface UserProfileResponse {
 export interface GetNewAccessTokenResponse {
   accessToken: string;
 }
+
+export interface UpdateUserImageResponse {
+  image: ImageRequestObj;
+}

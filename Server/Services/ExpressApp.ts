@@ -1,6 +1,6 @@
 import express, { Application } from "express";
 import cors from "cors";
-import { ImageRoute, UserRoute, StoreRoute } from "../Routes";
+import { UserRoute, StoreRoute, AppRoute } from "../Routes";
 
 export default async (app: Application) => {
   app.use(cors());
@@ -10,8 +10,9 @@ export default async (app: Application) => {
   // Set the view engine to EJS
   app.set("view engine", "ejs");
 
+  app.use("/app", AppRoute);
   app.use("/user", UserRoute);
-  app.use("/image", ImageRoute);
   app.use("/store", StoreRoute);
+
   return app;
 };

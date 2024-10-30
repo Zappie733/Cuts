@@ -1,11 +1,14 @@
 import {
   IResponseProps,
   StoreResponse,
+  UpdateUserImageResponse,
   UserProfileResponse,
 } from "../Types/ResponseTypes";
 import { apiCallWithToken } from "./AuthMiddleware";
 import { IAuthObj } from "../Types/AuthContextTypes";
 import { IProfileProps } from "../Types/ProfileScreenTypes";
+import { getAdminRecentActivityQueryParams } from "../Types/AdminHomeScreenTypes";
+import { IImageProps } from "../Types/ImageTypes";
 
 export const getUserProfile = async (
   auth: IAuthObj,
@@ -23,6 +26,32 @@ export const getUserProfile = async (
     updateAccessToken
   );
   // console.log(result);
+
+  return {
+    status: result.status,
+    data: result.data,
+    message: result.message,
+  };
+};
+
+export const updateUserProfileImage = async (
+  auth: IAuthObj,
+  updateAccessToken: (accessToken: string) => void,
+  data: IImageProps
+): Promise<IResponseProps<UpdateUserImageResponse>> => {
+  console.log("updateUserProfile Process");
+  const apiOptions = {
+    method: "POST",
+    data,
+  };
+
+  const result = await apiCallWithToken<UpdateUserImageResponse>(
+    "/user/updateUserImage",
+    apiOptions,
+    auth,
+    updateAccessToken
+  );
+  console.log(result);
 
   return {
     status: result.status,
@@ -73,6 +102,33 @@ export const fetchUserStores = async (
     updateAccessToken
   );
   //console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    data: result.data,
+    message: result.message,
+  };
+};
+
+export const getAdminRecentActivity = async (
+  auth: IAuthObj,
+  updateAccessToken: (accessToken: string) => void,
+  data: getAdminRecentActivityQueryParams
+): Promise<IResponseProps<StoreResponse[]>> => {
+  console.log(`getAdminRecentActivity ${data.activity} Process`);
+
+  const apiOptions = {
+    method: "GET",
+    activity: data.activity,
+  };
+
+  const result = await apiCallWithToken<StoreResponse[]>(
+    "/user/getAdminRecentActivity",
+    apiOptions,
+    auth,
+    updateAccessToken
+  );
+  // console.log(JSON.stringify(result, null, 2));
 
   return {
     status: result.status,

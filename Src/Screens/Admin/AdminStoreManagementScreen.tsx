@@ -36,6 +36,8 @@ import { Header } from "../../Components/Header";
 import { DropdownPicker } from "../../Components/DropdownPicker";
 import { set } from "mongoose";
 import { Store } from "../../Components/Store";
+import { SearchBar } from "../../Components/SearchBar";
+import { GetStoresByStatusQueryParams } from "../../Types/AdminStoreManagementScreenTypes";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -59,9 +61,11 @@ export const AdminStoreManagementScreen = ({
   const [offset, setOffset] = useState<number>(0);
   const limit = 3;
   const [isBeingFetch, setIsBeingFetch] = useState<boolean>(false);
+  const [search, setSearch] = useState("");
+  // console.log(search);
 
   const handleFetchStores = async () => {
-    const data = {
+    const data: GetStoresByStatusQueryParams = {
       limit,
       offset: offset,
       status: selectedStatus as
@@ -70,7 +74,7 @@ export const AdminStoreManagementScreen = ({
         | "Active"
         | "InActive"
         | "Hold",
-      search: "jerico",
+      search,
     };
     // console.log(data);
     const response = await getStoresByStatus(auth, updateAccessToken, data);
@@ -117,6 +121,7 @@ export const AdminStoreManagementScreen = ({
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   // console.log(selectedStatus);
   const options = [
+    { label: "All", value: "" },
     { label: "Waiting for Approval", value: "Waiting for Approval" },
     { label: "Active", value: "Active" },
     { label: "InActive", value: "InActive" },
@@ -126,6 +131,9 @@ export const AdminStoreManagementScreen = ({
 
   const handleScroll = ({ nativeEvent }: any) => {
     const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+    // layoutMeasurement: Contains the dimensions (height and width) of the visible area within the ScrollView.
+    // contentOffset: Tells the current scroll position within the content.
+    // contentSize: Holds the total dimensions of the scrollable content (the full height and width of the entire scrollable area).
     const isNearBottom =
       layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
 
@@ -143,6 +151,10 @@ export const AdminStoreManagementScreen = ({
     isFromReviewRef.current = true;
   };
 
+  const handleChangeSearchText = (input: string) => {
+    setSearch(input);
+  };
+
   //initial fetch
   useEffect(() => {
     console.log("initial fetch data");
@@ -153,25 +165,41 @@ export const AdminStoreManagementScreen = ({
     console.log("set isBeingFetch to false");
     setIsBeingFetch(false);
   }, [data]);
+
+  const firstRenderSelectedStatus = useRef(true);
   // reset when status changes
   useEffect(() => {
-    if (selectedStatus !== "") {
-      console.log("reset data");
-      setData({ stores: [], total: 0 });
-      setOffset(0);
+    if (firstRenderSelectedStatus.current) {
+      console.log(
+        "first render selectedStatus and search so no reset data (only reset when status or search changes)"
+      );
+      firstRenderSelectedStatus.current = false;
+      return;
     }
-  }, [selectedStatus]);
-  const firstRenderOffSet = useRef(true);
 
+    // if (selectedStatus !== "") {
+    console.log("reset data");
+    setData({ stores: [], total: 0 });
+    setOffset(0);
+    // }
+  }, [selectedStatus, search]);
+
+  const firstRenderOffSet = useRef(true);
   // Fetch new data when offset 0 (after reset)
   useEffect(() => {
     if (firstRenderOffSet.current) {
-      console.log("first render offset so no fetch new data for status");
+      console.log(
+        "first render offset so no fetch new data (only fetch for change of status)"
+      );
       firstRenderOffSet.current = false;
       return;
     }
     if (offset === 0) {
-      console.log(`fetch new data for ${selectedStatus}`);
+      console.log(
+        `fetch new data for status ${
+          selectedStatus === "" ? "all" : selectedStatus
+        } and name includes ${search}`
+      );
       handleFetchStores();
     }
   }, [offset]);
@@ -199,6 +227,8 @@ export const AdminStoreManagementScreen = ({
       console.log("reset data from callback");
       setData({ stores: [], total: 0 });
       setOffset(0);
+      setSearch("");
+      setSelectedStatus("");
     }, [])
   );
 
@@ -211,9 +241,10 @@ export const AdminStoreManagementScreen = ({
     >
       <Header goBack={handleGoBack} />
 
+      {/* Dropdown Status */}
       <View
         style={[
-          styles.navContainer,
+          styles.dropDownContainer,
           {
             backgroundColor: activeColors.secondary,
             shadowColor: activeColors.tertiary,
@@ -232,8 +263,17 @@ export const AdminStoreManagementScreen = ({
       {/* Store Title */}
       <View style={styles.titleContainer}>
         <Text style={[styles.titleText, { color: activeColors.tertiary }]}>
-          {selectedStatus} Stores
+          {selectedStatus} {selectedStatus === "" ? "All" : ""} Stores
         </Text>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchBarContainer}>
+        <SearchBar
+          placeHolder="Search Store..."
+          input={search}
+          onSearch={handleChangeSearchText}
+        />
       </View>
 
       {/* Line */}
@@ -271,7 +311,7 @@ const styles = StyleSheet.create({
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
   },
-  navContainer: {
+  dropDownContainer: {
     marginTop: 20,
     marginHorizontal: 20,
     borderRadius: 20,
@@ -282,9 +322,15 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   titleContainer: {
-    marginVertical: 10,
+    marginTop: 10,
     flexDirection: "row",
     justifyContent: "center",
+  },
+  searchBarContainer: {
+    marginVertical: 10,
+    marginHorizontal: 50,
+    borderRadius: 20,
+    shadowOffset: { width: 0, height: 2 },
   },
   titleText: {
     fontSize: 24,

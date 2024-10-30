@@ -2,10 +2,12 @@ import express from "express";
 import {
   changeUserPassword,
   getAccessTokenByRefreshToken,
+  getAdminRecentActivity,
   getUserProfile,
   loginUser,
   logoutUser,
   registerUser,
+  updateUserImage,
   updateUserProfile,
   verifyUpdateUser,
   verifyUser,
@@ -21,5 +23,7 @@ UserRoute.get("/:id/verifyUser/:token", verifyUser);
 UserRoute.post("/changeUserPassword", changeUserPassword);
 UserRoute.get("/:id/verifyUserPassword/:token", verifyUserPassword);
 UserRoute.get("/getUserProfile", getUserProfile);
+UserRoute.post("/updateUserImage", updateUserImage);
 UserRoute.post("/updateUserProfile", updateUserProfile);
 UserRoute.get("/:id/verifyUpdateUser/:token", verifyUpdateUser);
+UserRoute.get("/getAdminRecentActivity", getAdminRecentActivity);

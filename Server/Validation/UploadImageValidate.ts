@@ -1,7 +1,7 @@
 import Joi from "joi";
 import { ImageRequestObj } from "../dto/Image";
 
-export const UpdateImageValidate = (data: ImageRequestObj) => {
+export const UpdateUserImageValidate = (data: ImageRequestObj) => {
   const schema = Joi.object<ImageRequestObj>({
     file: Joi.string()
       .pattern(/^[A-Za-z0-9+/]+={0,2}$/)

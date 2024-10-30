@@ -193,7 +193,12 @@ export const verifyStore = async (req: Request, res: Response) => {
           name: storeName,
           type: storeType,
           location: storeLocation,
-          documents: storeDocuments,
+          documents: uploadedDocuments,
+          openHour: 9,
+          openMinute: 0,
+          closeHour: 18,
+          closeMinute: 0,
+          workers: [],
         });
 
         await store.save();

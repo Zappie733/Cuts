@@ -1,8 +1,10 @@
 import { ImageRequestObj } from "./Image";
+import { ServiceObj } from "./Service";
+import { WorkerObj } from "./Workers";
 
 export interface StoreObj {
   _id?: string;
-  userId: string;
+  userId: string; //user store
   email: string;
   images: ImageRequestObj[];
   name: string;
@@ -11,7 +13,7 @@ export interface StoreObj {
   location: string;
   isOpen: boolean;
   documents: IDocumentProps[];
-  // operationalHour: string;
+
   rejectedReason?: string;
   onHoldReason?: string;
   approvedBy?: string;
@@ -22,6 +24,15 @@ export interface StoreObj {
   rejectedDate?: Date;
   onHoldDate?: Date;
   unHoldDate?: Date;
+
+  openHour: number;
+  openMinute: number;
+  closeHour: number;
+  closeMinute: number;
+
+  workers: WorkerObj[];
+
+  services: ServiceObj[];
 }
 
 export interface IDocumentProps {
