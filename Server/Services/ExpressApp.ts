@@ -1,6 +1,6 @@
 import express, { Application } from "express";
 import cors from "cors";
-import { UserRoute, StoreRoute, AppRoute } from "../Routes";
+import { UserRoute, StoreRoute, AppRoute, OrderRoute } from "../Routes";
 
 export default async (app: Application) => {
   app.use(cors());
@@ -13,6 +13,7 @@ export default async (app: Application) => {
   app.use("/app", AppRoute);
   app.use("/user", UserRoute);
   app.use("/store", StoreRoute);
+  app.use("/order", OrderRoute);
 
   return app;
 };

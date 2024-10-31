@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { UpdateUserParams } from "../dto/Users";
+import { UpdateUserParams } from "../dto/User";
 
 export const UpdateUserValidate = (data: UpdateUserParams) => {
   const schema = Joi.object<UpdateUserParams>({

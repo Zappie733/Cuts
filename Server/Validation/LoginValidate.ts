@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { AuthUser } from "../dto/Users";
+import { AuthUser } from "../dto/User";
 
 export const LoginValidate = (data: AuthUser) => {
   const schema = Joi.object<AuthUser>({

@@ -3,6 +3,23 @@ export interface ServiceObj {
   name: string;
   price: number;
   duration: number;
-  description: string;
+  description?: string;
+  serviceProduct?: string[];
+}
+
+export interface AddServiceRequestObj {
+  name: string;
+  price: number;
+  duration: number;
+  description?: string;
+  serviceProduct?: string[];
+}
+
+export interface UpdateServiceRequestObj {
+  serviceId: string;
+  name: string;
+  price: number;
+  duration: number;
+  description?: string;
   serviceProduct?: string[];
 }

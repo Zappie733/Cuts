@@ -1,18 +1,21 @@
 import { Request, Response } from "express";
-import { GetServicesByStoreIdResponse, ResponseObj } from "../Response";
-import {
-  AddServiceRequestObj,
-  PayloadObj,
-  ServiceObj,
-  UpdateServiceRequestObj,
-} from "../dto";
+import { GetServiceProductsByStoreIdResponse, ResponseObj } from "../Response";
+import { PayloadObj } from "../dto";
 import { verifyAccessToken } from "../Utils/UserTokenUtil";
 import { STORES } from "../Models/StoreModel";
-import { AddServiceValidate } from "../Validation/StoreValidation/ServiceValidation/AddServiceValidate";
+import {
+  AddServiceProductRequestObj,
+  ServiceProductObj,
+  UpdateServiceProductRequestObj,
+} from "../dto/ServiceProduct";
+import { AddServiceProductValidate } from "../Validation/StoreValidation/ServiceProductValidation/AddServiceProductValidate";
 import mongoose from "mongoose";
-import { UpdateServiceValidate } from "../Validation/StoreValidation/ServiceValidation/UpdateServiceValidate";
+import { UpdateServiceProductValidate } from "../Validation/StoreValidation/ServiceProductValidation/UpdateServiceProductValidate";
 
-export const getServicesByStoreId = async (req: Request, res: Response) => {
+export const getServiceProductsByStoreId = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -35,26 +38,28 @@ export const getServicesByStoreId = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
       // console.log(payload);
-      const responseData: GetServicesByStoreIdResponse = {
-        services: [],
+      const responseData: GetServiceProductsByStoreIdResponse = {
+        serviceProducts: [],
       };
 
       const store = await STORES.findOne({ userId: payload._id });
       // console.log(store);
       if (store) {
-        if (store.services.length === 0) {
+        if (store.serviceProducts.length === 0) {
           return res.status(200).json(<ResponseObj>{
             error: false,
-            message: `${store.name} does not have any services`,
+            message: `${store.name} does not have any service products`,
             data: responseData,
           });
         }
 
-        responseData.services = store.services;
+        responseData.serviceProducts = store.serviceProducts;
 
-        return res.status(200).json(<ResponseObj<GetServicesByStoreIdResponse>>{
+        return res.status(200).json(<
+          ResponseObj<GetServiceProductsByStoreIdResponse>
+        >{
           error: false,
-          message: `Services of ${store.name} retrieved successfully`,
+          message: `Service products of ${store.name} retrieved successfully`,
           data: responseData,
         });
       }
@@ -75,7 +80,7 @@ export const getServicesByStoreId = async (req: Request, res: Response) => {
   }
 };
 
-export const addService = async (req: Request, res: Response) => {
+export const addServiceProduct = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -93,7 +98,9 @@ export const addService = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
-      const { error } = AddServiceValidate(<AddServiceRequestObj>req.body);
+      const { error } = AddServiceProductValidate(
+        <AddServiceProductRequestObj>req.body
+      );
       // console.log(error);
       if (error)
         return res.status(400).json(<ResponseObj>{
@@ -106,100 +113,14 @@ export const addService = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
-      const { name, price, duration, description, serviceProduct } = <
-        AddServiceRequestObj
-      >req.body;
-
-      const store = await STORES.findOne({ userId: payload._id });
-
-      if (!store) {
-        return res
-          .status(404)
-          .json(<ResponseObj>{ error: true, message: "Store not found" });
-      }
-
-      const serviceNameExist = store.services.find(
-        (service) => service.name === name
-      );
-
-      if (serviceNameExist) {
-        return res.status(400).json(<ResponseObj>{
-          error: true,
-          message: "Service name is already exist",
-        });
-      }
-
-      for (const sp of serviceProduct ? serviceProduct : []) {
-        if (!mongoose.Types.ObjectId.isValid(sp)) {
-          return res.status(400).json(<ResponseObj>{
-            error: true,
-            message: `Service product with id '${sp}' is Invalid`,
-          });
-        }
-
-        const isServiceProductExist = store.serviceProducts.find(
-          (serviceProduct) => serviceProduct._id?.toString() === sp.toString()
-        );
-
-        if (!isServiceProductExist) {
-          return res.status(404).json(<ResponseObj>{
-            error: true,
-            message: `Service product with id '${sp}' not found`,
-          });
-        }
-      }
-
-      const newService: ServiceObj = {
+      const {
         name,
-        price,
-        duration,
+        quantity,
+        alertQuantity,
         description,
-        serviceProduct,
-      };
-
-      store.services.push(newService);
-
-      await store.save();
-
-      return res.status(200).json(<ResponseObj>{
-        error: false,
-        message: `${newService.name} has been added to store services successfully`,
-      });
-    }
-
-    return res
-      .status(401)
-      .json(<ResponseObj>{ error: true, message: response.message });
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json(<ResponseObj>{ error: true, message: "Internal server error" });
-  }
-};
-
-export const deleteService = async (req: Request, res: Response) => {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(400).json(<ResponseObj>{
-        error: true,
-        message: "Access Token is required",
-      });
-    }
-    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
-
-    // Verify the access token
-    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
-      accessToken,
-    });
-
-    if (!response.error) {
-      const payload = <PayloadObj>{
-        _id: response.data?._id,
-        role: response.data?.role,
-      };
+        isAnOption,
+        addtionalPrice,
+      } = <AddServiceProductRequestObj>req.body;
 
       const store = await STORES.findOne({ userId: payload._id });
 
@@ -209,33 +130,33 @@ export const deleteService = async (req: Request, res: Response) => {
           .json(<ResponseObj>{ error: true, message: "Store not found" });
       }
 
-      const { id: serviceIdParam } = req.params;
-      if (!mongoose.Types.ObjectId.isValid(serviceIdParam)) {
+      const serviceProductNameExist = store.serviceProducts.find(
+        (serviceProduct) => serviceProduct.name === name
+      );
+
+      if (serviceProductNameExist) {
         return res.status(400).json(<ResponseObj>{
           error: true,
-          message: "Invalid Service ID",
+          message: "Service product name is already exist",
         });
       }
 
-      const service = store.services.find(
-        (service) => service._id?.toString() === serviceIdParam.toString()
-      );
+      const newServiceProduct: ServiceProductObj = {
+        name,
+        quantity,
+        alertQuantity,
+        description,
+        isAnOption,
+        addtionalPrice,
+      };
 
-      if (!service) {
-        return res
-          .status(404)
-          .json(<ResponseObj>{ error: true, message: "Service not found" });
-      }
-
-      store.services = store.services.filter(
-        (serviceData) => serviceData._id?.toString() !== service._id?.toString()
-      );
+      store.serviceProducts.push(newServiceProduct);
 
       await store.save();
 
       return res.status(200).json(<ResponseObj>{
         error: false,
-        message: `${service.name} has been deleted successfully`,
+        message: `${newServiceProduct.name} has been added to store service products successfully`,
       });
     }
 
@@ -250,7 +171,7 @@ export const deleteService = async (req: Request, res: Response) => {
   }
 };
 
-export const updateService = async (req: Request, res: Response) => {
+export const deleteServiceProduct = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -281,8 +202,83 @@ export const updateService = async (req: Request, res: Response) => {
           .json(<ResponseObj>{ error: true, message: "Store not found" });
       }
 
-      const { error } = UpdateServiceValidate(
-        <UpdateServiceRequestObj>req.body
+      const { id: serviceProductIdParam } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(serviceProductIdParam)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Service Product ID",
+        });
+      }
+
+      const serviceProduct = store.serviceProducts.find(
+        (serviceProduct) =>
+          serviceProduct._id?.toString() === serviceProductIdParam.toString()
+      );
+
+      if (!serviceProduct) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Service product not found",
+        });
+      }
+
+      store.serviceProducts = store.serviceProducts.filter(
+        (serviceProductData) =>
+          serviceProductData._id?.toString() !== serviceProduct._id?.toString()
+      );
+
+      await store.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: `${serviceProduct.name} has been deleted successfully`,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const updateServiceProduct = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res
+          .status(404)
+          .json(<ResponseObj>{ error: true, message: "Store not found" });
+      }
+
+      const { error } = UpdateServiceProductValidate(
+        <UpdateServiceProductRequestObj>req.body
       );
 
       if (error) {
@@ -293,74 +289,59 @@ export const updateService = async (req: Request, res: Response) => {
       }
 
       const {
-        serviceId,
+        serviceProductId,
         name,
-        price,
-        duration,
+        quantity,
+        alertQuantity,
         description,
-        serviceProduct,
-      }: UpdateServiceRequestObj = req.body;
+        isAnOption,
+        addtionalPrice,
+      }: UpdateServiceProductRequestObj = req.body;
 
-      if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+      if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
         return res.status(400).json(<ResponseObj>{
           error: true,
-          message: "Invalid Service ID",
+          message: "Invalid Service Prodcuct ID",
         });
       }
 
-      const service = store.services.find(
-        (service) => service._id?.toString() === serviceId.toString()
+      const serviceProduct = store.serviceProducts.find(
+        (serviceProduct) =>
+          serviceProduct._id?.toString() === serviceProductId.toString()
       );
 
-      if (!service) {
-        return res
-          .status(404)
-          .json(<ResponseObj>{ error: true, message: "Service not found" });
-      }
-
-      const serviceNameExist = store.services.find(
-        (serviceData) =>
-          serviceData.name === name && serviceData._id !== service._id
-      );
-
-      if (serviceNameExist) {
-        return res.status(400).json(<ResponseObj>{
+      if (!serviceProduct) {
+        return res.status(404).json(<ResponseObj>{
           error: true,
-          message: "Service name is already exist",
+          message: "Service product not found",
         });
       }
 
-      for (const sp of serviceProduct ? serviceProduct : []) {
-        if (!mongoose.Types.ObjectId.isValid(sp)) {
-          return res.status(400).json(<ResponseObj>{
-            error: true,
-            message: `Service product with id '${sp}' is Invalid`,
-          });
-        }
+      const serviceProductNameExist = store.serviceProducts.find(
+        (serviceProductData) =>
+          serviceProductData.name === name &&
+          serviceProductData._id !== serviceProduct._id
+      );
 
-        const isServiceProductExist = store.serviceProducts.find(
-          (serviceProduct) => serviceProduct._id?.toString() === sp.toString()
-        );
-
-        if (!isServiceProductExist) {
-          return res.status(404).json(<ResponseObj>{
-            error: true,
-            message: `Service product with id '${sp}' not found`,
-          });
-        }
+      if (serviceProductNameExist) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Service product name is already exist",
+        });
       }
 
-      service.name = name;
-      service.price = price;
-      service.duration = duration;
-      service.description = description;
-      service.serviceProduct = serviceProduct;
+      serviceProduct.name = name;
+      serviceProduct.quantity = quantity;
+      serviceProduct.alertQuantity = alertQuantity;
+      serviceProduct.description = description;
+      serviceProduct.isAnOption = isAnOption;
+      serviceProduct.addtionalPrice = addtionalPrice;
 
       await store.save();
 
       return res.status(200).json(<ResponseObj>{
         error: false,
-        message: `Service has been updated successfully`,
+        message: `Service product has been updated successfully`,
       });
     }
 

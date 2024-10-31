@@ -1,6 +1,6 @@
 import Joi from "joi";
 import PasswordComplexity from "joi-password-complexity";
-import { UserObj } from "../dto/Users";
+import { UserObj } from "../dto/User";
 
 export const RegisterValidate = (data: UserObj) => {
   const complexityOptions = {

@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { AbsenceWorkerRequestObj } from "../../../dto/Workers";
+import { AbsenceWorkerRequestObj } from "../../../dto/Worker";
 
 export const AbsenceWorkerValidate = (data: AbsenceWorkerRequestObj) => {
   const schema = Joi.object<AbsenceWorkerRequestObj>({

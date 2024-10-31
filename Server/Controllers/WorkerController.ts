@@ -9,7 +9,7 @@ import {
   RegisterWorkerRequestObj,
   UpdateWorkerRequestObj,
   WorkerObj,
-} from "../dto/Workers";
+} from "../dto/Worker";
 import mongoose from "mongoose";
 import { UpdateWorkerValidate } from "../Validation/StoreValidation/WorkerValidation/UpdateWorkerValidate";
 import { AbsenceWorkerValidate } from "../Validation/StoreValidation/WorkerValidation/AbsenceWorkerValidate";
@@ -134,9 +134,11 @@ export const registerWorker = async (req: Request, res: Response) => {
 
       await store.save();
 
-      return res.status(200).json(<ResponseObj<GetWorkersByStoreIdResponse>>{
+      return res.status(200).json(<ResponseObj>{
         error: false,
-        message: `${newWorker.firstName} has been added as worker successfully`,
+        message: `${newWorker.firstName} has been added as ${
+          newWorker.role === "admin" ? "an admin" : "a worker"
+        } successfully`,
       });
     }
 
@@ -204,7 +206,7 @@ export const deleteWorker = async (req: Request, res: Response) => {
 
       store.workers = store.workers.filter((workerData) => {
         if (worker._id && workerData._id)
-          workerData._id.toString() !== worker._id.toString();
+          return workerData._id.toString() !== worker._id.toString();
       });
 
       await store.save();

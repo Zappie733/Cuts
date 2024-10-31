@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { UpdateWorkerRequestObj } from "../../../dto/Workers";
+import { UpdateWorkerRequestObj } from "../../../dto/Worker";
 
 export const UpdateWorkerValidate = (data: UpdateWorkerRequestObj) => {
   const schema = Joi.object<UpdateWorkerRequestObj>({

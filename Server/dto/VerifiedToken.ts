@@ -1,4 +1,4 @@
-import { UpdateUserParams } from "./Users";
+import { UpdateUserParams } from "./User";
 
 export interface VerifiedTokenObj {
   userId: string;

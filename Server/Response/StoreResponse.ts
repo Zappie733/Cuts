@@ -1,5 +1,6 @@
 import { ServiceObj, StoreObj } from "../dto";
-import { WorkerObj } from "../dto/Workers";
+import { ServiceProductObj } from "../dto/ServiceProduct";
+import { WorkerObj } from "../dto/Worker";
 
 export interface GetStoreResponse {
   store: StoreObj;
@@ -16,4 +17,8 @@ export interface GetWorkersByStoreIdResponse {
 
 export interface GetServicesByStoreIdResponse {
   services: ServiceObj[];
+}
+
+export interface GetServiceProductsByStoreIdResponse {
+  serviceProducts: ServiceProductObj[];
 }

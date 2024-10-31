@@ -1,6 +1,7 @@
 import { ImageRequestObj } from "./Image";
 import { ServiceObj } from "./Service";
-import { WorkerObj } from "./Workers";
+import { ServiceProductObj } from "./ServiceProduct";
+import { WorkerObj } from "./Worker";
 
 export interface StoreObj {
   _id?: string;
@@ -33,6 +34,8 @@ export interface StoreObj {
   workers: WorkerObj[];
 
   services: ServiceObj[];
+
+  serviceProducts: ServiceProductObj[];
 }
 
 export interface IDocumentProps {

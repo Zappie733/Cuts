@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { UserObj } from "../dto/Users"; // Assuming UserObj is still imported from a separate file
+import { UserObj } from "../dto/User"; // Assuming UserObj is still imported from a separate file
 
 // Define the UserObj schema
 const UserSchema = new Schema(
