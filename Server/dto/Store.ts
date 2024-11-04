@@ -36,6 +36,8 @@ export interface StoreObj {
   services: ServiceObj[];
 
   serviceProducts: ServiceProductObj[];
+
+  canChooseWorker: boolean;
 }
 
 export interface IDocumentProps {

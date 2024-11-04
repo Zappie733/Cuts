@@ -32,27 +32,46 @@ export const getWorkersByStoreId = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
-      const payload = <PayloadObj>{
-        _id: response.data?._id,
-        role: response.data?.role,
-      };
+      // const payload = <PayloadObj>{
+      //   _id: response.data?._id,
+      //   role: response.data?.role,
+      // };
       // console.log(payload);
+      const limit = parseInt(req.query.limit as string) || 10; // Default limit to 10
+      const offset = parseInt(req.query.offset as string) || 0; // Default offset to 0
+
+      const { id: storeId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res
+          .status(400)
+          .json(<ResponseObj>{ error: true, message: "Invalid store id" });
+      }
+
       const responseData: GetWorkersByStoreIdResponse = {
         workers: [],
+        total: 0,
       };
 
-      const store = await STORES.findOne({ userId: payload._id });
+      const store = await STORES.findOne({ _id: storeId });
       // console.log(store);
       if (store) {
-        if (store.workers.length === 0) {
-          return res.status(200).json(<ResponseObj>{
+        const totalWorkers = store.workers.length;
+
+        if (totalWorkers === 0) {
+          return res.status(200).json(<
+            ResponseObj<GetWorkersByStoreIdResponse>
+          >{
             error: false,
             message: `${store.name}does not have any workers`,
             data: responseData,
           });
         }
 
-        responseData.workers = store.workers;
+        const paginatedWorkers = store.workers.slice(offset, offset + limit);
+
+        responseData.workers = paginatedWorkers;
+        responseData.total = totalWorkers;
 
         return res.status(200).json(<ResponseObj<GetWorkersByStoreIdResponse>>{
           error: false,

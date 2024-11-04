@@ -6,11 +6,15 @@ export interface OrderObj {
   isManual: boolean;
   status?:
     | "Waiting for Confirmation"
+    | "Rejected"
     | "Waiting for Payment"
     | "Paid"
     | "Completed";
   totalPrice: number;
   date: Date;
+  hasRating?: boolean;
+  workerId?: string;
+  rejectedReason?: string;
 }
 
 export interface AddOrderRequestObj {
@@ -18,4 +22,10 @@ export interface AddOrderRequestObj {
   serviceId: string;
   isManual: boolean;
   totalPrice: number;
+  workerId?: string;
+}
+
+export interface RejectOrderRequestObj {
+  orderId: string;
+  rejectedReason: string;
 }

@@ -92,6 +92,14 @@ export const registerStore = async (req: Request, res: Response) => {
           message: "User with given email is already exist",
         });
 
+      //Check if store name exist
+      const isStoreNameExist = await STORES.findOne({ name: storeName });
+      if (isStoreNameExist)
+        return res.status(409).json(<ResponseObj>{
+          error: true,
+          message: "Store with given name is already exist",
+        });
+
       //Hash Password
       const salt = await bcrypt.genSalt(parseInt(SALT || "10"));
       const hashedPassword = await bcrypt.hash(password, salt);
@@ -298,7 +306,9 @@ export const getStoresByUserId = async (req: Request, res: Response) => {
         const responseData: GetStoreResponse[] = [];
 
         for (const user of users) {
-          const store = await STORES.findOne({ userId: user.id });
+          const store = await STORES.findOne({ userId: user.id }).select(
+            "-workers -services -serviceProducts"
+          );
 
           if (store) {
             responseData.push({
@@ -484,6 +494,7 @@ export const getStoresByStatus = async (req: Request, res: Response) => {
       }
 
       const stores = await STORES.find(query)
+        .select("-workers -services -serviceProducts")
         .limit(Number(limit))
         .skip(Number(offset));
 
@@ -532,6 +543,13 @@ export const rejectStore = async (req: Request, res: Response) => {
         _id: response.data?._id,
         role: response.data?.role,
       };
+
+      if (payload.role !== "admin") {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "Unauthorized, you are not an admin",
+        });
+      }
 
       const { error } = RejectStoreValidate(<RejectStoreRequestObj>req.body);
       console.log(error);
@@ -626,6 +644,13 @@ export const holdStore = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
+      if (payload.role !== "admin") {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "Unauthorized, you are not an admin",
+        });
+      }
+
       const { error } = OnHoldStoreValidate(<OnHoldStoreRequestObj>req.body);
       console.log(error);
       if (error)
@@ -718,6 +743,13 @@ export const unHoldStore = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
+      if (payload.role !== "admin") {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "Unauthorized, you are not an admin",
+        });
+      }
+
       const { id: storeId } = req.params;
       if (!mongoose.Types.ObjectId.isValid(storeId)) {
         return res.status(400).json(<ResponseObj>{
@@ -799,6 +831,13 @@ export const approveStore = async (req: Request, res: Response) => {
         _id: response.data?._id,
         role: response.data?.role,
       };
+
+      if (payload.role !== "admin") {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "Unauthorized, you are not an admin",
+        });
+      }
 
       const { id: storeId } = req.params;
       if (!mongoose.Types.ObjectId.isValid(storeId)) {

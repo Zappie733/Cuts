@@ -733,7 +733,10 @@ export const getAdminRecentActivity = async (req: Request, res: Response) => {
         }
       }
 
-      const recentActivities = await STORES.find(query).sort(sort).limit(3);
+      const recentActivities = await STORES.find(query)
+        .select("email name approvedDate rejectedDate onHoldDate unHoldDate")
+        .sort(sort)
+        .limit(3);
 
       const responseData: GetStoreResponse[] = [];
 

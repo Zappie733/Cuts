@@ -43,11 +43,11 @@ StoreRoute.delete("/deleteStore", deleteStore);
 StoreRoute.get("/getStoresByStatus", getStoresByStatus);
 StoreRoute.post("/rejectStore", rejectStore);
 StoreRoute.post("/holdStore", holdStore);
-StoreRoute.post("/unHoldStore/:id", unHoldStore);
-StoreRoute.post("/approveStore/:id", approveStore);
+StoreRoute.get("/unHoldStore/:id", unHoldStore);
+StoreRoute.get("/approveStore/:id", approveStore);
 
 //Worker
-StoreRoute.get("/worker/getWorkersByStoreId", getWorkersByStoreId);
+StoreRoute.get("/worker/getWorkersByStoreId/:id", getWorkersByStoreId);
 StoreRoute.post("/worker/registerWorker", registerWorker);
 StoreRoute.delete("/worker/deleteWorker/:id", deleteWorker);
 StoreRoute.put("/worker/updateWorker", updateWorker);
@@ -56,7 +56,7 @@ StoreRoute.patch("/worker/clockOut/:id", clockOut);
 StoreRoute.post("/worker/absence", absence);
 
 //Service
-StoreRoute.get("/service/getServicesByStoreId", getServicesByStoreId);
+StoreRoute.get("/service/getServicesByStoreId/:id", getServicesByStoreId);
 StoreRoute.post("/service/addService", addService);
 StoreRoute.delete("/service/deleteService/:id", deleteService);
 StoreRoute.put("/service/updateService", updateService);

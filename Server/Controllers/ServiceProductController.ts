@@ -38,22 +38,36 @@ export const getServiceProductsByStoreId = async (
         role: response.data?.role,
       };
       // console.log(payload);
+      const limit = parseInt(req.query.limit as string) || 10; // Default limit to 10
+      const offset = parseInt(req.query.offset as string) || 0; // Default offset to 0
+
       const responseData: GetServiceProductsByStoreIdResponse = {
         serviceProducts: [],
+        total: 0,
       };
 
       const store = await STORES.findOne({ userId: payload._id });
       // console.log(store);
       if (store) {
-        if (store.serviceProducts.length === 0) {
-          return res.status(200).json(<ResponseObj>{
+        const totalServiceProducts = store.serviceProducts.length;
+
+        if (totalServiceProducts === 0) {
+          return res.status(200).json(<
+            ResponseObj<GetServiceProductsByStoreIdResponse>
+          >{
             error: false,
             message: `${store.name} does not have any service products`,
             data: responseData,
           });
         }
 
-        responseData.serviceProducts = store.serviceProducts;
+        const paginatedServiceProducts = store.serviceProducts.slice(
+          offset,
+          offset + limit
+        );
+
+        responseData.serviceProducts = paginatedServiceProducts;
+        responseData.total = totalServiceProducts;
 
         return res.status(200).json(<
           ResponseObj<GetServiceProductsByStoreIdResponse>

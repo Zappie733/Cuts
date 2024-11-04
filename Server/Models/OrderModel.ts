@@ -25,6 +25,7 @@ const OrderSchema = new Schema(
       type: String,
       enum: [
         "Waiting for Confirmation",
+        "Rejected",
         "Waiting for Payment",
         "Paid",
         "Completed",
@@ -37,6 +38,16 @@ const OrderSchema = new Schema(
     date: {
       type: Date,
       required: true,
+    },
+    hasRating: {
+      type: Boolean,
+    },
+    workerId: {
+      type: Schema.Types.ObjectId,
+      ref: "Workers",
+    },
+    rejectedReason: {
+      type: String,
     },
   },
   {

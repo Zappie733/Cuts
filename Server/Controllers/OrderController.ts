@@ -2,8 +2,12 @@ import { Request, Response } from "express";
 import { ResponseObj } from "../Response";
 import { PayloadObj } from "../dto";
 import { verifyAccessToken } from "../Utils/UserTokenUtil";
-import { AddOrderValidate } from "../Validation/AddOrderValidate";
-import { AddOrderRequestObj, OrderObj } from "../dto/Order";
+import { AddOrderValidate } from "../Validation/OrderValidation/AddOrderValidate";
+import {
+  AddOrderRequestObj,
+  OrderObj,
+  RejectOrderRequestObj,
+} from "../dto/Order";
 import { STORES } from "../Models/StoreModel";
 import { USERS } from "../Models/UserModel";
 import { ORDERS } from "../Models/OrderModel";
@@ -14,6 +18,7 @@ import {
   GetStoreOrderHistoryResponse,
   OrderSummary,
 } from "../Response/OrderResponse";
+import { RejectOrderValidate } from "../Validation/OrderValidation/RejectOrderValidate";
 
 export const addOrder = async (req: Request, res: Response) => {
   try {
@@ -46,16 +51,20 @@ export const addOrder = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
-      const { storeId, serviceId, isManual, totalPrice } = <AddOrderRequestObj>(
-        req.body
-      );
+      const { storeId, serviceId, isManual, totalPrice, workerId } = <
+        AddOrderRequestObj
+      >req.body;
 
       if (isManual) {
-        const store = await STORES.findOne({ userId: payload._id });
+        const store = await STORES.findOne({
+          userId: payload._id,
+          status: "Active",
+        });
         if (!store) {
-          return res
-            .status(404)
-            .json(<ResponseObj>{ error: true, message: "Store not found" });
+          return res.status(404).json(<ResponseObj>{
+            error: true,
+            message: "Store not found or not Active",
+          });
         }
 
         if (!mongoose.Types.ObjectId.isValid(serviceId)) {
@@ -74,12 +83,38 @@ export const addOrder = async (req: Request, res: Response) => {
             .json(<ResponseObj>{ error: true, message: "Service not found" });
         }
 
+        if (workerId) {
+          if (!mongoose.Types.ObjectId.isValid(workerId)) {
+            return res.status(400).json(<ResponseObj>{
+              error: true,
+              message: "Invalid Worker ID",
+            });
+          }
+
+          if (!store.canChooseWorker) {
+            return res.status(400).json(<ResponseObj>{
+              error: true,
+              message: "Store cannot choose worker",
+            });
+          }
+
+          const worker = store.workers.find(
+            (worker) => worker._id?.toString() === workerId.toString()
+          );
+          if (!worker) {
+            return res
+              .status(404)
+              .json(<ResponseObj>{ error: true, message: "Worker not found" });
+          }
+        }
+
         const newOrder = new ORDERS({
           storeId: store._id,
           serviceId,
           isManual,
           totalPrice,
           date: new Date(Date.now() + 7 * 60 * 60 * 1000),
+          workerId,
         });
 
         await newOrder.save();
@@ -102,11 +137,12 @@ export const addOrder = async (req: Request, res: Response) => {
             message: "Invalid Store ID",
           });
         }
-        const store = await STORES.findOne({ _id: storeId });
+        const store = await STORES.findOne({ _id: storeId, status: "Active" });
         if (!store) {
-          return res
-            .status(404)
-            .json(<ResponseObj>{ error: true, message: "Store not found" });
+          return res.status(404).json(<ResponseObj>{
+            error: true,
+            message: "Store not found or not Active",
+          });
         }
 
         if (!mongoose.Types.ObjectId.isValid(serviceId)) {
@@ -125,6 +161,31 @@ export const addOrder = async (req: Request, res: Response) => {
             .json(<ResponseObj>{ error: true, message: "Service not found" });
         }
 
+        if (workerId) {
+          if (!mongoose.Types.ObjectId.isValid(workerId)) {
+            return res.status(400).json(<ResponseObj>{
+              error: true,
+              message: "Invalid Worker ID",
+            });
+          }
+
+          if (!store.canChooseWorker) {
+            return res.status(400).json(<ResponseObj>{
+              error: true,
+              message: "Store cannot choose worker",
+            });
+          }
+
+          const worker = store.workers.find(
+            (worker) => worker._id?.toString() === workerId.toString()
+          );
+          if (!worker) {
+            return res
+              .status(404)
+              .json(<ResponseObj>{ error: true, message: "Worker not found" });
+          }
+        }
+
         const newOrder = new ORDERS({
           storeId,
           serviceId: service._id,
@@ -133,6 +194,8 @@ export const addOrder = async (req: Request, res: Response) => {
           date: new Date(Date.now() + 7 * 60 * 60 * 1000),
           status: "Waiting for Confirmation",
           userId: payload._id,
+          hasRating: false,
+          workerId,
         });
 
         await newOrder.save();
@@ -432,6 +495,256 @@ export const getOrderforSchedule = async (req: Request, res: Response) => {
         error: false,
         message: `${store.name} schedule retrieved successfully`,
         data: responseData,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const confirmOrder = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: orderId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Order ID",
+        });
+      }
+
+      const order = await ORDERS.findOne({
+        _id: orderId,
+        status: "Waiting for Confirmation",
+      });
+      if (!order) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message:
+            "Order not found or is not in waiting for confirmation status",
+        });
+      }
+
+      order.status = "Waiting for Payment";
+
+      await order.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Order has been confirmed successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const rejectOrder = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { error } = RejectOrderValidate(<RejectOrderRequestObj>req.body);
+
+      if (error) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: error.details[0].message,
+        });
+      }
+
+      const { orderId, rejectedReason }: RejectOrderRequestObj = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Order ID",
+        });
+      }
+
+      const order = await ORDERS.findOne({
+        _id: orderId,
+        status: "Waiting for Confirmation",
+      });
+      if (!order) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message:
+            "Order not found or is not in waiting for confirmation status",
+        });
+      }
+
+      order.status = "Rejected";
+      order.rejectedReason = rejectedReason;
+
+      await order.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Order has been rejected successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const payOrder = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: orderId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Order ID",
+        });
+      }
+
+      const order = await ORDERS.findOne({
+        _id: orderId,
+        status: "Waiting for Payment",
+      });
+      if (!order) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Order not found or is not in waiting for payment status",
+        });
+      }
+
+      //logic payment
+
+      order.status = "Paid";
+
+      await order.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Order has been paid successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const completeOrder = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: orderId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Order ID",
+        });
+      }
+
+      const order = await ORDERS.findOne({
+        _id: orderId,
+        status: "Paid",
+      });
+      if (!order) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Order not found or is not in Paid Status",
+        });
+      }
+
+      order.status = "Completed";
+
+      await order.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Order has been completed successfully",
       });
     }
 

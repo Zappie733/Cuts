@@ -7,4 +7,6 @@ export interface ResponseObj<T = {}> {
 
 export * from "./UserResponse";
 export * from "./StoreResponse";
-export * from "./ImageResponse";
+export * from "./OrderResponse";
+export * from "./RatingResponse";
+export * from "./AppResponse";

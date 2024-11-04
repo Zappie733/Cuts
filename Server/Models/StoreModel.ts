@@ -251,6 +251,11 @@ const StoreSchema = new Schema(
     workers: [WorkerSchema],
     services: [ServiceSchema],
     serviceProducts: [ServiceProductSchema],
+    canChooseWorker: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     toJSON: {

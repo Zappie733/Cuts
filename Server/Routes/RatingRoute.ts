@@ -4,6 +4,7 @@ import {
   deleteRating,
   getAllRatingByStoreId,
   getAllRatingByStoreIdAndServiceId,
+  getRatingByOrderId,
 } from "../Controllers/RatingController";
 
 export const RatingRoute = express.Router();
@@ -14,3 +15,4 @@ RatingRoute.get(
   "/getAllRatingByStoreIdAndServiceId/:storeId/:serviceId",
   getAllRatingByStoreIdAndServiceId
 );
+RatingRoute.get("/getRatingByOrderId/:id", getRatingByOrderId);

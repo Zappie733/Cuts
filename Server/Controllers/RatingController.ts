@@ -9,7 +9,11 @@ import { STORES } from "../Models/StoreModel";
 import { ORDERS } from "../Models/OrderModel";
 import { RATINGS } from "../Models/RatingModel";
 import mongoose from "mongoose";
-import { GetAllRatingByStoreIdResponse } from "../Response/RatingResponse";
+import {
+  GetAllRatingByStoreIdAndServiceIdResponse,
+  GetAllRatingByStoreIdResponse,
+  GetRatingByOrderIdResponse,
+} from "../Response/RatingResponse";
 
 export const addRating = async (req: Request, res: Response) => {
   try {
@@ -117,7 +121,10 @@ export const addRating = async (req: Request, res: Response) => {
         date: new Date(Date.now() + 7 * 60 * 60 * 1000),
       });
 
+      order.hasRating = true;
+
       await newRating.save();
+      await order.save();
 
       return res.status(200).json(<ResponseObj>{
         error: false,
@@ -323,7 +330,7 @@ export const getAllRatingByStoreIdAndServiceId = async (
         .limit(Number(limit))
         .skip(Number(offset));
 
-      const responseData: GetAllRatingByStoreIdResponse = {
+      const responseData: GetAllRatingByStoreIdAndServiceIdResponse = {
         ratings: ratings,
         total: await RATINGS.countDocuments({
           storeId: storeIdParam,
@@ -331,10 +338,62 @@ export const getAllRatingByStoreIdAndServiceId = async (
         }),
       };
 
-      return res.status(200).json(<ResponseObj<GetAllRatingByStoreIdResponse>>{
+      return res.status(200).json(<
+        ResponseObj<GetAllRatingByStoreIdAndServiceIdResponse>
+      >{
         error: false,
         message: `Rating of ${store.name} for ${service.name} retrieved successfully`,
         data: responseData,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getRatingByOrderId = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: orderIdParam } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(orderIdParam)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Order ID",
+        });
+      }
+      const rating = await RATINGS.findOne({ orderId: orderIdParam });
+      if (!rating) {
+        return res
+          .status(404)
+          .json(<ResponseObj>{ error: true, message: "Rating not found" });
+      }
+
+      return res.status(200).json(<ResponseObj<GetRatingByOrderIdResponse>>{
+        error: false,
+        message: `Rating retrieved successfully`,
+        data: { rating },
       });
     }
 
