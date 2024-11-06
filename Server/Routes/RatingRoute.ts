@@ -1,7 +1,7 @@
 import express from "express";
 import {
   addRating,
-  deleteRating,
+  deleteRatingById,
   getAllRatingByStoreId,
   getAllRatingByStoreIdAndServiceId,
   getRatingByOrderId,
@@ -9,7 +9,7 @@ import {
 
 export const RatingRoute = express.Router();
 RatingRoute.post("/addRating", addRating);
-RatingRoute.delete("/deleteRating/:id", deleteRating);
+RatingRoute.delete("/deleteRatingById/:id", deleteRatingById);
 RatingRoute.get("/getAllRatingByStoreId/:id", getAllRatingByStoreId);
 RatingRoute.get(
   "/getAllRatingByStoreIdAndServiceId/:storeId/:serviceId",

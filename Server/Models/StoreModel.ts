@@ -1,7 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import { StoreObj } from "../dto/Store";
-import { ServiceObj, WorkerObj } from "../dto";
-import { ServiceProductObj } from "../dto/ServiceProduct";
 
 export const WorkerSchema = new Schema(
   {
@@ -85,6 +83,9 @@ export const ServiceSchema = new Schema(
         ref: "ServiceProducts",
       },
     ],
+    discount: {
+      type: Number,
+    },
   },
   {
     toJSON: {
@@ -121,6 +122,53 @@ export const ServiceProductSchema = new Schema(
     },
     addtionalPrice: {
       type: Number,
+    },
+  },
+  {
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.__v;
+        delete ret.createdAt;
+        delete ret.updatedAt;
+      },
+    },
+    timestamps: true,
+  }
+);
+
+export const SalesProductSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+    },
+    images: [
+      {
+        imageId: {
+          type: String,
+        },
+        file: {
+          type: String,
+        },
+        path: {
+          type: String,
+        },
+      },
+    ],
+    price: {
+      type: Number,
+      required: true,
+    },
+    likes: {
+      type: Number,
+      default: 0,
+    },
+    links: {
+      type: [String],
+      required: true,
     },
   },
   {
@@ -248,14 +296,15 @@ const StoreSchema = new Schema(
       type: Number,
       required: true,
     },
-    workers: [WorkerSchema],
-    services: [ServiceSchema],
-    serviceProducts: [ServiceProductSchema],
     canChooseWorker: {
       type: Boolean,
       required: true,
       default: false,
     },
+    workers: [WorkerSchema],
+    services: [ServiceSchema],
+    serviceProducts: [ServiceProductSchema],
+    salesProducts: [SalesProductSchema],
   },
   {
     toJSON: {

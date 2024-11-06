@@ -185,7 +185,7 @@ export const addServiceProduct = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteServiceProduct = async (req: Request, res: Response) => {
+export const deleteServiceProductById = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -334,7 +334,7 @@ export const updateServiceProduct = async (req: Request, res: Response) => {
       const serviceProductNameExist = store.serviceProducts.find(
         (serviceProductData) =>
           serviceProductData.name === name &&
-          serviceProductData._id !== serviceProduct._id
+          serviceProductData._id?.toString() !== serviceProduct._id?.toString()
       );
 
       if (serviceProductNameExist) {

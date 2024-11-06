@@ -1,4 +1,5 @@
 import { ImageRequestObj } from "./Image";
+import { SalesProductObj } from "./SalesProduct";
 import { ServiceObj } from "./Service";
 import { ServiceProductObj } from "./ServiceProduct";
 import { WorkerObj } from "./Worker";
@@ -31,13 +32,15 @@ export interface StoreObj {
   closeHour: number;
   closeMinute: number;
 
+  canChooseWorker: boolean;
+
   workers: WorkerObj[];
 
   services: ServiceObj[];
 
   serviceProducts: ServiceProductObj[];
 
-  canChooseWorker: boolean;
+  salesProducts: SalesProductObj[];
 }
 
 export interface IDocumentProps {

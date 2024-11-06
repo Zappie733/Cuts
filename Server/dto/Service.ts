@@ -5,6 +5,7 @@ export interface ServiceObj {
   duration: number;
   description?: string;
   serviceProduct?: string[];
+  discount?: number;
 }
 
 export interface AddServiceRequestObj {
@@ -22,4 +23,5 @@ export interface UpdateServiceRequestObj {
   duration: number;
   description?: string;
   serviceProduct?: string[];
+  discount?: number;
 }

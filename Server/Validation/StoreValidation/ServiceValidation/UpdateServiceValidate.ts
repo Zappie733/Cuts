@@ -9,6 +9,7 @@ export const UpdateServiceValidate = (data: UpdateServiceRequestObj) => {
     duration: Joi.number().required().label("Duration"),
     description: Joi.string().label("Description"),
     serviceProduct: Joi.array().items(Joi.string()).label("Service Product"),
+    discount: Joi.number().label("Discount"),
   });
 
   return schema.validate(data);

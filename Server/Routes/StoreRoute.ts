@@ -15,7 +15,7 @@ import {
   absence,
   clockIn,
   clockOut,
-  deleteWorker,
+  deleteWorkerById,
   getWorkersByStoreId,
   registerWorker,
   updateWorker,
@@ -30,12 +30,20 @@ import {
 
 import {
   addServiceProduct,
-  deleteServiceProduct,
+  deleteServiceProductById,
   getServiceProductsByStoreId,
   updateServiceProduct,
 } from "../Controllers/ServiceProductController";
 
+import {
+  addSalesProduct,
+  deleteSalesProductById,
+  getSalesProductsByStoreId,
+  updateSalesProduct,
+} from "../Controllers/SalesProductController";
+
 export const StoreRoute = express.Router();
+
 StoreRoute.post("/registerStore", registerStore);
 StoreRoute.get("/:id/verifyStore/:token", verifyStore);
 StoreRoute.get("/getStoresByUserId", getStoresByUserId);
@@ -49,7 +57,7 @@ StoreRoute.get("/approveStore/:id", approveStore);
 //Worker
 StoreRoute.get("/worker/getWorkersByStoreId/:id", getWorkersByStoreId);
 StoreRoute.post("/worker/registerWorker", registerWorker);
-StoreRoute.delete("/worker/deleteWorker/:id", deleteWorker);
+StoreRoute.delete("/worker/deleteWorkerById/:id", deleteWorkerById);
 StoreRoute.put("/worker/updateWorker", updateWorker);
 StoreRoute.patch("/worker/clockIn/:id", clockIn);
 StoreRoute.patch("/worker/clockOut/:id", clockOut);
@@ -68,7 +76,19 @@ StoreRoute.get(
 );
 StoreRoute.post("/serviceProduct/addServiceProduct", addServiceProduct);
 StoreRoute.delete(
-  "/serviceProduct/deleteServiceProduct/:id",
-  deleteServiceProduct
+  "/serviceProduct/deleteServiceProductById/:id",
+  deleteServiceProductById
 );
 StoreRoute.put("/serviceProduct/updateServiceProduct", updateServiceProduct);
+
+//Sales Product
+StoreRoute.get(
+  "/salesProduct/getSalesProductsByStoreId/:id",
+  getSalesProductsByStoreId
+);
+StoreRoute.post("/salesProduct/addSalesProduct", addSalesProduct);
+StoreRoute.delete(
+  "/salesProduct/deleteSalesProductById/:id",
+  deleteSalesProductById
+);
+StoreRoute.put("/salesProduct/updateSalesProduct", updateSalesProduct);

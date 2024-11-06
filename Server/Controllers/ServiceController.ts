@@ -318,6 +318,7 @@ export const updateService = async (req: Request, res: Response) => {
         duration,
         description,
         serviceProduct,
+        discount,
       }: UpdateServiceRequestObj = req.body;
 
       if (!mongoose.Types.ObjectId.isValid(serviceId)) {
@@ -339,7 +340,8 @@ export const updateService = async (req: Request, res: Response) => {
 
       const serviceNameExist = store.services.find(
         (serviceData) =>
-          serviceData.name === name && serviceData._id !== service._id
+          serviceData.name === name &&
+          serviceData._id?.toString() !== service._id?.toString()
       );
 
       if (serviceNameExist) {
@@ -374,6 +376,7 @@ export const updateService = async (req: Request, res: Response) => {
       service.duration = duration;
       service.description = description;
       service.serviceProduct = serviceProduct;
+      service.discount = discount;
 
       await store.save();
 

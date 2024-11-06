@@ -143,7 +143,7 @@ export const addRating = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteRating = async (req: Request, res: Response) => {
+export const deleteRatingById = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
 

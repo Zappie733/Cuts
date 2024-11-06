@@ -172,7 +172,7 @@ export const registerWorker = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteWorker = async (req: Request, res: Response) => {
+export const deleteWorkerById = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
 
