@@ -3,7 +3,7 @@ import { AddSalesProductRequestObj } from "../../../dto/SalesProduct";
 
 export const AddSalesProductValidate = (data: AddSalesProductRequestObj) => {
   const schema = Joi.object<AddSalesProductRequestObj>({
-    name: Joi.string().required().label("Sales Product Name"),
+    name: Joi.string().required().label("Name"),
     description: Joi.string().label("Description"),
     images: Joi.array()
       .items(
@@ -16,7 +16,7 @@ export const AddSalesProductValidate = (data: AddSalesProductRequestObj) => {
         })
       )
       .required()
-      .label("Sales Product Images"),
+      .label("Images"),
     links: Joi.array().items(Joi.string()).required().label("Links"),
     price: Joi.number().required().label("Price"),
   });

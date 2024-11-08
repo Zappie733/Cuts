@@ -1,6 +1,8 @@
 import { ServiceObj, StoreObj } from "../dto";
+import { GalleryObj } from "../dto/Gallery";
 import { SalesProductObj } from "../dto/SalesProduct";
 import { ServiceProductObj } from "../dto/ServiceProduct";
+import { StorePromotionObj } from "../dto/StorePromotion";
 import { WorkerObj } from "../dto/Worker";
 
 export interface GetStoreResponse {
@@ -30,4 +32,22 @@ export interface GetServiceProductsByStoreIdResponse {
 export interface GetSalesProductsByStoreIdResponse {
   salesProducts: SalesProductObj[];
   total: number;
+}
+
+export interface GetStorePromotionsByStoreIdResponse {
+  storePromotions: StorePromotionObj[];
+  total: number;
+}
+
+export interface GetRecentStorePromotionsByStoreIdResponse {
+  storePromotions: StorePromotionObj[];
+}
+
+export interface GetGalleryByStoreIdResponse {
+  gallery: GalleryObj[];
+  total: number;
+}
+
+export interface GetMostLikesGalleryByStoreIdResponse {
+  gallery: GalleryObj[];
 }

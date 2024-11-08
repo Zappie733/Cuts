@@ -162,12 +162,86 @@ export const SalesProductSchema = new Schema(
       type: Number,
       required: true,
     },
+    links: {
+      type: [String],
+      required: true,
+    },
+  },
+  {
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.__v;
+        delete ret.createdAt;
+        delete ret.updatedAt;
+      },
+    },
+    timestamps: true,
+  }
+);
+
+export const StorePromotionSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    image: {
+      imageId: {
+        type: String,
+      },
+      file: {
+        type: String,
+      },
+      path: {
+        type: String,
+      },
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
+    },
+  },
+  {
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.__v;
+        delete ret.createdAt;
+        delete ret.updatedAt;
+      },
+    },
+    timestamps: true,
+  }
+);
+
+export const GallerySchema = new Schema(
+  {
+    images: [
+      {
+        imageId: {
+          type: String,
+        },
+        file: {
+          type: String,
+        },
+        path: {
+          type: String,
+        },
+      },
+    ],
+    caption: {
+      type: String,
+      required: true,
+    },
     likes: {
       type: Number,
       default: 0,
     },
-    links: {
-      type: [String],
+    date: {
+      type: Date,
       required: true,
     },
   },
@@ -305,6 +379,8 @@ const StoreSchema = new Schema(
     services: [ServiceSchema],
     serviceProducts: [ServiceProductSchema],
     salesProducts: [SalesProductSchema],
+    storePromotions: [StorePromotionSchema],
+    gallery: [GallerySchema],
   },
   {
     toJSON: {

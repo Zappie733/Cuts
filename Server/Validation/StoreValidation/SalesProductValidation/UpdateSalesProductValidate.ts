@@ -6,7 +6,7 @@ export const UpdateSalesProductValidate = (
 ) => {
   const schema = Joi.object<UpdateSalesProductRequestObj>({
     salesProductId: Joi.string().required().label("Sales Product ID"),
-    name: Joi.string().required().label("Sales Product Name"),
+    name: Joi.string().required().label("Name"),
     description: Joi.string().label("Description"),
     images: Joi.array()
       .items(
@@ -19,7 +19,7 @@ export const UpdateSalesProductValidate = (
         })
       )
       .required()
-      .label("Sales Product Images"),
+      .label("Images"),
     links: Joi.array().items(Joi.string()).required().label("Links"),
     price: Joi.number().required().label("Price"),
   });

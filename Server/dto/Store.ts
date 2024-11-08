@@ -1,7 +1,9 @@
+import { GalleryObj } from "./Gallery";
 import { ImageRequestObj } from "./Image";
 import { SalesProductObj } from "./SalesProduct";
 import { ServiceObj } from "./Service";
 import { ServiceProductObj } from "./ServiceProduct";
+import { StorePromotionObj } from "./StorePromotion";
 import { WorkerObj } from "./Worker";
 
 export interface StoreObj {
@@ -41,6 +43,10 @@ export interface StoreObj {
   serviceProducts: ServiceProductObj[];
 
   salesProducts: SalesProductObj[];
+
+  storePromotions: StorePromotionObj[];
+
+  gallery: GalleryObj[];
 }
 
 export interface IDocumentProps {

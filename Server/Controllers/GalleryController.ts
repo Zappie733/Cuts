@@ -1,0 +1,532 @@
+import { Response, Request } from "express";
+import {
+  GetGalleryByStoreIdResponse,
+  GetMostLikesGalleryByStoreIdResponse,
+  ResponseObj,
+} from "../Response";
+import { ImageRequestObj, PayloadObj } from "../dto";
+import { verifyAccessToken } from "../Utils/UserTokenUtil";
+import { STORES } from "../Models/StoreModel";
+import mongoose from "mongoose";
+import { AddGalleryValidate } from "../Validation/StoreValidation/GalleryValidation/AddGalleryValidate";
+import {
+  AddGalleryRequestObj,
+  GalleryObj,
+  UpdateGalleryRequestObj,
+} from "../dto/Gallery";
+import ImageKit from "imagekit";
+import {
+  IMAGEKIT_BASEURL,
+  IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_PUBLIC_KEY,
+} from "../Config";
+import { UpdateGalleryValidate } from "../Validation/StoreValidation/GalleryValidation/UpdateGalleryValidate";
+
+export const getGalleryByStoreId = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: storeIdParam } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(storeIdParam)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid store ID",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeIdParam });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      const limit = parseInt(req.query.limit as string) || 10; // Default limit to 10
+      const offset = parseInt(req.query.offset as string) || 0; // Default offset to 0
+
+      const responseData: GetGalleryByStoreIdResponse = {
+        gallery: [],
+        total: 0,
+      };
+
+      const totalStoreGallery = store.gallery.length;
+
+      if (totalStoreGallery === 0) {
+        return res.status(200).json(<ResponseObj>{
+          error: false,
+          message: "Gallery is empty",
+          data: responseData,
+        });
+      }
+
+      const paginatedStoreGallery = store.gallery.slice(offset, offset + limit);
+
+      responseData.gallery = paginatedStoreGallery;
+      responseData.total = totalStoreGallery;
+
+      return res.status(200).json(<ResponseObj<GetGalleryByStoreIdResponse>>{
+        error: false,
+        message: "Gallery fetched successfully",
+        data: responseData,
+      });
+    }
+
+    return res.status(401).json(<ResponseObj>{
+      error: true,
+      message: response.message,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getMostLikesGalleryByStoreId = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: storeIdParam } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(storeIdParam)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid store ID",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeIdParam });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      const { quantity } = req.query;
+
+      const responseData: GetMostLikesGalleryByStoreIdResponse = {
+        gallery: [],
+      };
+
+      const totalStoreGallery = store.gallery.length;
+
+      if (totalStoreGallery === 0) {
+        return res.status(200).json(<
+          ResponseObj<GetMostLikesGalleryByStoreIdResponse>
+        >{
+          error: false,
+          message: "Gallery is empty",
+          data: responseData,
+        });
+      }
+
+      const quantityNum = parseInt(quantity as string, 10) || 5;
+
+      const galleryWithMostLikes = store.gallery
+        .sort((a, b) => {
+          const likesA = a.likes || 0;
+          const likesB = b.likes || 0;
+          return likesB - likesA;
+        })
+        .slice(0, quantityNum);
+
+      responseData.gallery = galleryWithMostLikes;
+
+      return res.status(200).json(<
+        ResponseObj<GetMostLikesGalleryByStoreIdResponse>
+      >{
+        error: false,
+        message: "Most likes gallery fetched successfully",
+        data: responseData,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const addGallery = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      const { error } = AddGalleryValidate(req.body);
+
+      if (error) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: error.details[0].message,
+        });
+      }
+
+      const { images, caption }: AddGalleryRequestObj = req.body;
+
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      const uploadedImages: ImageRequestObj[] = [];
+
+      // Upload each image
+      for (const [index, imageObj] of images.entries()) {
+        const result = await imagekit.upload({
+          file: imageObj.file, // base64 encoded string
+          fileName: `${store.id}_Image_${index}`, // Unique filename for each image
+          folder: imageObj.path, // Folder to upload to in ImageKit
+        });
+        console.log(result);
+        // Add the uploaded image URL to the array
+        uploadedImages.push({
+          imageId: result.fileId,
+          file: result.url,
+          path: imageObj.path,
+        });
+      }
+
+      const newGallery: GalleryObj = {
+        images: uploadedImages,
+        caption,
+        date: new Date(Date.now() + 7 * 60 * 60 * 1000),
+      };
+
+      store.gallery.push(newGallery);
+
+      await store.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Gallery added successfully",
+      });
+    }
+
+    return res.status(401).json(<ResponseObj>{
+      error: true,
+      message: response.message,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const deleteGalleryById = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      const { id: galleryIdParam } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(galleryIdParam)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid gallery id",
+        });
+      }
+
+      const gallery = store.gallery.find((gallery) => {
+        return gallery._id?.toString() === galleryIdParam.toString();
+      });
+
+      if (!gallery) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Gallery not found",
+        });
+      }
+
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+      // Iterate through the images to delete them from ImageKit
+      for (const galleryObj of gallery.images) {
+        if (galleryObj.imageId) await imagekit.deleteFile(galleryObj.imageId);
+      }
+
+      store.gallery = store.gallery.filter(
+        (galleryData) => galleryData._id?.toString() !== gallery._id?.toString()
+      );
+
+      await store.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Gallery deleted successfully",
+      });
+    }
+
+    return res.status(401).json(<ResponseObj>{
+      error: true,
+      message: response.message,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const updateGalleryById = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      const { id: galleryIdParam } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(galleryIdParam)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid gallery id",
+        });
+      }
+
+      const { error } = UpdateGalleryValidate(req.body);
+
+      if (error) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: error.details[0].message,
+        });
+      }
+
+      const { caption }: UpdateGalleryRequestObj = req.body;
+
+      const gallery = store.gallery.find((gallery) => {
+        return gallery._id?.toString() === galleryIdParam.toString();
+      });
+
+      if (!gallery) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Gallery not found",
+        });
+      }
+
+      gallery.caption = caption;
+
+      await store.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Gallery updated successfully",
+      });
+    }
+
+    return res.status(401).json(<ResponseObj>{
+      error: true,
+      message: response.message,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const likeGalleryById = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      const { id: galleryIdParam } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(galleryIdParam)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid gallery id",
+        });
+      }
+
+      const gallery = store.gallery.find((gallery) => {
+        return gallery._id?.toString() === galleryIdParam.toString();
+      });
+
+      if (!gallery) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Gallery not found",
+        });
+      }
+
+      if (gallery.likes || gallery.likes === 0) {
+        gallery.likes++;
+      }
+
+      await store.save();
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Gallery likes updated successfully",
+      });
+    }
+
+    return res.status(401).json(<ResponseObj>{
+      error: true,
+      message: response.message,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};

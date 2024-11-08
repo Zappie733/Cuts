@@ -42,6 +42,24 @@ import {
   updateSalesProduct,
 } from "../Controllers/SalesProductController";
 
+import {
+  addStorePromotion,
+  deleteStorePromotionById,
+  getRecentStorePromotionsByStoreId,
+  getStorePromotionsByStoreId,
+  updateStorePromotion,
+  updateStorePromotionImage,
+} from "../Controllers/StorePromotionController";
+
+import {
+  addGallery,
+  deleteGalleryById,
+  getGalleryByStoreId,
+  getMostLikesGalleryByStoreId,
+  likeGalleryById,
+  updateGalleryById,
+} from "../Controllers/GalleryController";
+
 export const StoreRoute = express.Router();
 
 StoreRoute.post("/registerStore", registerStore);
@@ -92,3 +110,34 @@ StoreRoute.delete(
   deleteSalesProductById
 );
 StoreRoute.put("/salesProduct/updateSalesProduct", updateSalesProduct);
+
+//Store Promotion
+StoreRoute.get(
+  "/storePromotion/getStorePromotionsByStoreId/:id",
+  getStorePromotionsByStoreId
+);
+StoreRoute.get(
+  "/storePromotion/getRecentStorePromotionsByStoreId/:id",
+  getRecentStorePromotionsByStoreId
+);
+StoreRoute.post("/storePromotion/addStorePromotion", addStorePromotion);
+StoreRoute.delete(
+  "/storePromotion/deleteStorePromotionById/:id",
+  deleteStorePromotionById
+);
+StoreRoute.put("/storePromotion/updateStorePromotion", updateStorePromotion);
+StoreRoute.put(
+  "/storePromotion/updateStorePromotionImage",
+  updateStorePromotionImage
+);
+
+//Gallery
+StoreRoute.get("/gallery/getGalleryByStoreId/:id", getGalleryByStoreId);
+StoreRoute.get(
+  "/gallery/getMostLikesGalleryByStoreId/:id",
+  getMostLikesGalleryByStoreId
+);
+StoreRoute.post("/gallery/addGallery", addGallery);
+StoreRoute.delete("/gallery/deleteGalleryById/:id", deleteGalleryById);
+StoreRoute.put("/gallery/updateGalleryById/:id", updateGalleryById);
+StoreRoute.put("/gallery/likeGalleryById/:id", likeGalleryById);

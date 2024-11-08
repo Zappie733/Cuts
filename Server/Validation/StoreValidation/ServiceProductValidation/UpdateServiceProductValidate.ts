@@ -6,7 +6,7 @@ export const UpdateServiceProductValidate = (
 ) => {
   const schema = Joi.object<UpdateServiceProductRequestObj>({
     serviceProductId: Joi.string().required().label("Service Product ID"),
-    name: Joi.string().required().label("Service Product Name"),
+    name: Joi.string().required().label("Name"),
     quantity: Joi.number().required().label("Quantity"),
     alertQuantity: Joi.number().required().label("Alert Quantity"),
     description: Joi.string().label("Description"),

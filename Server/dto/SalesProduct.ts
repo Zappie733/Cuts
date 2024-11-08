@@ -6,7 +6,6 @@ export interface SalesProductObj {
   description?: string;
   images: ImageRequestObj[];
   price: number;
-  likes?: number;
   links: string[];
 }
 
