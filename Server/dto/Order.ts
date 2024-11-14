@@ -2,7 +2,7 @@ export interface OrderObj {
   _id?: string;
   userId?: string;
   storeId: string;
-  serviceId: string;
+  serviceIds: string[];
   isManual: boolean;
   status?:
     | "Waiting for Confirmation"
@@ -11,7 +11,9 @@ export interface OrderObj {
     | "Paid"
     | "Completed";
   totalPrice: number;
+  totalDuration: number;
   date: Date;
+  endTime: Date;
   hasRating?: boolean;
   workerId?: string;
   rejectedReason?: string;
@@ -19,9 +21,11 @@ export interface OrderObj {
 
 export interface AddOrderRequestObj {
   storeId?: string;
-  serviceId: string;
+  serviceIds: string[];
   isManual: boolean;
   totalPrice: number;
+  totalDuration: number;
+  date: Date;
   workerId?: string;
 }
 

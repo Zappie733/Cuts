@@ -12,8 +12,8 @@ const OrderSchema = new Schema(
       ref: "Stores",
       required: true,
     },
-    serviceId: {
-      type: Schema.Types.ObjectId,
+    serviceIds: {
+      type: [Schema.Types.ObjectId],
       ref: "Services",
       required: true,
     },
@@ -35,7 +35,15 @@ const OrderSchema = new Schema(
       type: Number,
       required: true,
     },
+    totalDuration: {
+      type: Number,
+      required: true,
+    },
     date: {
+      type: Date,
+      required: true,
+    },
+    endTime: {
       type: Date,
       required: true,
     },

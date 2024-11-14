@@ -51,36 +51,192 @@ export const addOrder = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
-      const { storeId, serviceId, isManual, totalPrice, workerId } = <
-        AddOrderRequestObj
-      >req.body;
+      const {
+        storeId,
+        serviceIds,
+        isManual,
+        totalPrice,
+        totalDuration,
+        workerId,
+        date,
+      } = <AddOrderRequestObj>req.body;
 
-      if (isManual) {
-        const store = await STORES.findOne({
-          userId: payload._id,
-          status: "Active",
-        });
-        if (!store) {
-          return res.status(404).json(<ResponseObj>{
-            error: true,
-            message: "Store not found or not Active",
-          });
-        }
-
-        if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+      //check store
+      if (!isManual && storeId) {
+        if (!mongoose.Types.ObjectId.isValid(storeId ? storeId : "")) {
           return res.status(400).json(<ResponseObj>{
             error: true,
-            message: "Invalid Service ID",
+            message: "Invalid Store ID",
+          });
+        }
+      }
+
+      const storeQuery = isManual
+        ? { userId: payload._id, status: "Active" }
+        : { _id: storeId, status: "Active" };
+
+      const store = await STORES.findOne(storeQuery);
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found or not Active",
+        });
+      }
+
+      const currentTime = new Date(Date.now() + 7 * 60 * 60 * 1000);
+      let startTime = new Date(date);
+      let endTime = new Date(startTime.getTime() + totalDuration * 60 * 1000);
+      // console.log(startTime);
+      // console.log(endTime);
+      //check order date, can must between opening and closing time
+      // console.log(startTime.getHours() * 60);
+      // console.log(store.openHour * 60);
+      // console.log(endTime.getHours() * 60);
+      // console.log(store.closeHour * 60);
+
+      if (
+        startTime.getHours() * 60 + startTime.getMinutes() <
+          store.openHour * 60 + store.openMinute ||
+        endTime.getHours() * 60 + endTime.getMinutes() >
+          store.closeHour * 60 + store.closeMinute
+      ) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Cannot add order, Store is close",
+        });
+      }
+
+      startTime.setHours(startTime.getHours() + 7);
+      endTime = new Date(startTime.getTime() + totalDuration * 60 * 1000);
+      //check order date, can not be less than current time
+      if (startTime < currentTime) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message:
+            "Cannot add order for past. Date and Time cannot be less than now",
+        });
+      }
+
+      let longestAvailableWorkerId: string | undefined = "";
+      let longestAvailableTime: Date | undefined = undefined;
+
+      // Check if there are any conflicting orders
+      if (workerId) {
+        const conflictingOrder = await ORDERS.findOne({
+          storeId: store._id,
+          workerId: workerId,
+          status: {
+            $in: [
+              undefined,
+              "Waiting for Confirmation",
+              "Waiting for Payment",
+              "Paid",
+            ],
+          },
+          $or: [
+            { date: { $lte: endTime }, endTime: { $gte: startTime } },
+            { date: { $lte: startTime }, endTime: { $gte: endTime } },
+            { date: { $gte: startTime, $lte: endTime } },
+          ],
+        });
+        console.log(conflictingOrder);
+        if (conflictingOrder) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message:
+              "Sorry your order failed, Order time conflicts with an existing order of your chosen worker",
+          });
+        }
+      } else {
+        const conflictingOrders = await ORDERS.find({
+          storeId: store._id,
+          status: {
+            $in: [
+              undefined,
+              "Waiting for Confirmation",
+              "Waiting for Payment",
+              "Paid",
+            ],
+          },
+          $or: [
+            { date: { $lte: endTime }, endTime: { $gte: startTime } },
+            { date: { $lte: startTime }, endTime: { $gte: endTime } },
+            { date: { $gte: startTime, $lte: endTime } },
+          ],
+        });
+
+        const workersId = store.workers.map((worker) => worker._id?.toString());
+
+        // Collect the IDs of workers who have a conflicting order
+        const busyWorkers = new Set(
+          conflictingOrders.map((order) => order.workerId?.toString())
+        );
+
+        // If all workers are busy, return an error
+        if (workersId.every((id) => busyWorkers.has(id))) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message:
+              "Sorry your order failed, All the workers are busy at your order time.",
           });
         }
 
-        const service = store.services.find(
-          (service) => service._id?.toString() === serviceId.toString()
-        );
-        if (!service) {
-          return res
-            .status(404)
-            .json(<ResponseObj>{ error: true, message: "Service not found" });
+        //get available workers
+        const availableWorkers = workersId.filter((id) => !busyWorkers.has(id));
+        console.log(availableWorkers);
+
+        //get the longest available worker
+        for (const availableWorkerId of availableWorkers) {
+          //get worker's last order
+          const lastOrder = await ORDERS.findOne({
+            storeId: store._id,
+            workerId: availableWorkerId,
+            status: {
+              $in: [undefined, "Completed"],
+            },
+          }).sort({ endTime: -1 });
+          console.log(lastOrder);
+
+          if (!lastOrder) {
+            console.log("worker first order");
+            longestAvailableWorkerId = availableWorkerId;
+            break;
+          } else {
+            console.log("worker has order");
+            if (longestAvailableTime === undefined) {
+              console.log("first");
+              longestAvailableTime = lastOrder.endTime;
+              longestAvailableWorkerId = availableWorkerId;
+            } else if (lastOrder.endTime < longestAvailableTime) {
+              console.log("change");
+              longestAvailableTime = lastOrder.endTime;
+              longestAvailableWorkerId = availableWorkerId;
+            }
+          }
+        }
+      }
+
+      if (isManual) {
+        for (const serviceId of serviceIds) {
+          if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+            return res.status(400).json(<ResponseObj>{
+              error: true,
+              message: "Invalid Service ID " + serviceId,
+            });
+          }
+        }
+
+        for (const serviceId of serviceIds) {
+          const service = store.services.find(
+            (service) => service._id?.toString() === serviceId.toString()
+          );
+          if (!service) {
+            return res.status(404).json(<ResponseObj>{
+              error: true,
+              message: "Service not found " + serviceId,
+            });
+          }
         }
 
         if (workerId) {
@@ -110,11 +266,13 @@ export const addOrder = async (req: Request, res: Response) => {
 
         const newOrder = new ORDERS({
           storeId: store._id,
-          serviceId,
+          serviceIds,
           isManual,
           totalPrice,
-          date: new Date(Date.now() + 7 * 60 * 60 * 1000),
-          workerId,
+          totalDuration,
+          date: startTime,
+          endTime: endTime,
+          workerId: workerId ? workerId : longestAvailableWorkerId,
         });
 
         await newOrder.save();
@@ -131,34 +289,25 @@ export const addOrder = async (req: Request, res: Response) => {
             .json(<ResponseObj>{ error: true, message: "User not found" });
         }
 
-        if (!mongoose.Types.ObjectId.isValid(storeId ? storeId : "")) {
-          return res.status(400).json(<ResponseObj>{
-            error: true,
-            message: "Invalid Store ID",
-          });
-        }
-        const store = await STORES.findOne({ _id: storeId, status: "Active" });
-        if (!store) {
-          return res.status(404).json(<ResponseObj>{
-            error: true,
-            message: "Store not found or not Active",
-          });
+        for (const serviceId of serviceIds) {
+          if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+            return res.status(400).json(<ResponseObj>{
+              error: true,
+              message: "Invalid Service ID " + serviceId,
+            });
+          }
         }
 
-        if (!mongoose.Types.ObjectId.isValid(serviceId)) {
-          return res.status(400).json(<ResponseObj>{
-            error: true,
-            message: "Invalid Service ID",
-          });
-        }
-
-        const service = store.services.find(
-          (service) => service._id?.toString() === serviceId.toString()
-        );
-        if (!service) {
-          return res
-            .status(404)
-            .json(<ResponseObj>{ error: true, message: "Service not found" });
+        for (const serviceId of serviceIds) {
+          const service = store.services.find(
+            (service) => service._id?.toString() === serviceId.toString()
+          );
+          if (!service) {
+            return res.status(404).json(<ResponseObj>{
+              error: true,
+              message: "Service not found " + serviceId,
+            });
+          }
         }
 
         if (workerId) {
@@ -188,14 +337,16 @@ export const addOrder = async (req: Request, res: Response) => {
 
         const newOrder = new ORDERS({
           storeId,
-          serviceId: service._id,
+          serviceIds,
           isManual: false,
           totalPrice,
-          date: new Date(Date.now() + 7 * 60 * 60 * 1000),
+          totalDuration,
+          date: startTime,
+          endTime: endTime,
           status: "Waiting for Confirmation",
           userId: payload._id,
           hasRating: false,
-          workerId,
+          workerId: workerId ? workerId : longestAvailableWorkerId,
         });
 
         await newOrder.save();
@@ -381,16 +532,19 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
 
       const summaryMap: { [key: string]: number } = {};
       for (const order of orders) {
-        const service = store.services.find(
-          (service) => service._id?.toString() === order.serviceId.toString()
-        );
+        for (const serviceId of order.serviceIds) {
+          const service = store.services.find(
+            (serviceData) =>
+              serviceData._id?.toString() === serviceId.toString()
+          );
 
-        if (service) {
-          const serviceName = service.name;
-          if (summaryMap[serviceName]) {
-            summaryMap[serviceName]++;
-          } else {
-            summaryMap[serviceName] = 1;
+          if (service) {
+            const serviceName = service.name;
+            if (summaryMap[serviceName]) {
+              summaryMap[serviceName]++;
+            } else {
+              summaryMap[serviceName] = 1;
+            }
           }
         }
       }
@@ -477,7 +631,15 @@ export const getOrderforSchedule = async (req: Request, res: Response) => {
 
       query.storeId = store._id;
 
-      query.status = { $in: ["Paid", "Completed", undefined] };
+      query.status = {
+        $in: [
+          "Waiting for Confirmation",
+          "Waiting for Payment",
+          "Paid",
+          "Completed",
+          undefined,
+        ],
+      };
 
       const orders = await ORDERS.find(query)
         .limit(Number(limit))

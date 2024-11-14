@@ -20,9 +20,5 @@ export interface UpdateStorePromotionRequestObj {
   name: string;
   startDate: Date;
   endDate: Date;
-}
-
-export interface UpdateStorePromotionImageRequestObj {
-  promotionId: string;
   image: ImageRequestObj;
 }

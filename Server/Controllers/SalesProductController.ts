@@ -399,17 +399,49 @@ export const updateSalesProduct = async (req: Request, res: Response) => {
         privateKey: IMAGEKIT_PRIVATE_KEY,
         urlEndpoint: IMAGEKIT_BASEURL,
       });
-      // Iterate through the images to delete them from ImageKit
-      for (const imageObj of salesProduct.images) {
-        if (imageObj.imageId) await imagekit.deleteFile(imageObj.imageId);
+
+      const imageIdsToKeep: any = [];
+
+      for (const imageObj of images) {
+        if (imageObj.imageId === undefined) {
+          console.log("skipping delete because imageId is undefined");
+          continue;
+        }
+
+        const image = salesProduct.images.find(
+          (imageData) => imageData.imageId === imageObj.imageId
+        );
+
+        if (image) {
+          console.log("push imageId to imageIdsToKeep " + imageObj.imageId);
+          imageIdsToKeep.push(imageObj.imageId);
+        }
       }
 
-      salesProduct.images = [];
+      console.log(imageIdsToKeep);
+      for (const imageObj of salesProduct.images) {
+        if (imageObj.imageId) {
+          if (!imageIdsToKeep.includes(imageObj.imageId)) {
+            console.log("deleteing image " + imageObj.imageId);
+            await imagekit.deleteFile(imageObj.imageId);
+          }
+        }
+      }
 
+      salesProduct.images = salesProduct.images.filter((imageData) =>
+        imageIdsToKeep.includes(imageData.imageId)
+      );
+
+      console.log(salesProduct.images);
       await store.save();
 
-      // Upload each image
+      // Upload each new image
       for (const [index, imageObj] of images.entries()) {
+        if (imageObj.imageId !== undefined) {
+          console.log("skipping upload");
+          continue;
+        }
+
         const result = await imagekit.upload({
           file: imageObj.file, // base64 encoded string
           fileName: `${store.id}_Image_${index}`, // Unique filename for each image

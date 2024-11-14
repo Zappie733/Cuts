@@ -11,7 +11,6 @@ import { STORES } from "../Models/StoreModel";
 import {
   AddStorePromotionRequestObj,
   StorePromotionObj,
-  UpdateStorePromotionImageRequestObj,
   UpdateStorePromotionRequestObj,
 } from "../dto/StorePromotion";
 import {
@@ -22,7 +21,6 @@ import {
 import ImageKit from "imagekit";
 import { AddStorePromotionValidate } from "../Validation/StoreValidation/StorePromotionValidation/AddStorePromotionValidate";
 import { UpdateStorePromotionValidate } from "../Validation/StoreValidation/StorePromotionValidation/UpdateStorePromotionValidate";
-import { UpdateStorePromotionImageValidate } from "../Validation/StoreValidation/SalesProductValidation/UpdateSalesProductImageValidate";
 
 export const getStorePromotionsByStoreId = async (
   req: Request,
@@ -442,7 +440,7 @@ export const updateStorePromotion = async (req: Request, res: Response) => {
           .json(<ResponseObj>{ error: true, message: "Store not found" });
       }
 
-      const { promotionId, name, startDate, endDate } = <
+      const { promotionId, name, startDate, endDate, image } = <
         UpdateStorePromotionRequestObj
       >req.body;
 
@@ -484,124 +482,42 @@ export const updateStorePromotion = async (req: Request, res: Response) => {
 
       await store.save();
 
+      if (!image.imageId) {
+        const imagekit = new ImageKit({
+          publicKey: IMAGEKIT_PUBLIC_KEY,
+          privateKey: IMAGEKIT_PRIVATE_KEY,
+          urlEndpoint: IMAGEKIT_BASEURL,
+        });
+
+        await imagekit.deleteFile(
+          storePromotion.image.imageId ? storePromotion.image.imageId : ""
+        );
+
+        const uploadedImage: ImageRequestObj = {
+          imageId: "",
+          file: "",
+          path: "",
+        };
+
+        const result = await imagekit.upload({
+          file: image.file, // base64 encoded string
+          fileName: `${store.id}_Image_${storePromotion.name}`, // Unique filename for each image
+          folder: image.path, // Folder to upload to in ImageKit
+        });
+        console.log(result);
+
+        uploadedImage.imageId = result.fileId;
+        uploadedImage.file = result.url;
+        uploadedImage.path = image.path;
+
+        storePromotion.image = uploadedImage;
+
+        await store.save();
+      }
+
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: `${storePromotion.name} has been updated successfully`,
-      });
-    }
-
-    return res
-      .status(401)
-      .json(<ResponseObj>{ error: true, message: response.message });
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json(<ResponseObj>{ error: true, message: "Internal server error" });
-  }
-};
-
-export const updateStorePromotionImage = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(400).json(<ResponseObj>{
-        error: true,
-        message: "Access Token is required",
-      });
-    }
-    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
-
-    // Verify the access token
-    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
-      accessToken,
-    });
-
-    if (!response.error) {
-      const { error } = UpdateStorePromotionImageValidate(
-        <UpdateStorePromotionImageRequestObj>req.body
-      );
-      // console.log(error);
-      if (error)
-        return res.status(400).json(<ResponseObj>{
-          error: true,
-          message: error.details[0].message,
-        });
-
-      const payload = <PayloadObj>{
-        _id: response.data?._id,
-        role: response.data?.role,
-      };
-
-      const store = await STORES.findOne({ userId: payload._id });
-
-      if (!store) {
-        return res
-          .status(404)
-          .json(<ResponseObj>{ error: true, message: "Store not found" });
-      }
-
-      const { promotionId, image } = <UpdateStorePromotionImageRequestObj>(
-        req.body
-      );
-
-      if (!mongoose.Types.ObjectId.isValid(promotionId)) {
-        return res.status(400).json(<ResponseObj>{
-          error: true,
-          message: "Invalid store Promotion ID",
-        });
-      }
-
-      const storePromotion = store.storePromotions.find(
-        (storePromotion) =>
-          storePromotion._id?.toString() === promotionId.toString()
-      );
-
-      if (!storePromotion) {
-        return res.status(404).json(<ResponseObj>{
-          error: true,
-          message: "Store promotion not found",
-        });
-      }
-
-      const imagekit = new ImageKit({
-        publicKey: IMAGEKIT_PUBLIC_KEY,
-        privateKey: IMAGEKIT_PRIVATE_KEY,
-        urlEndpoint: IMAGEKIT_BASEURL,
-      });
-
-      await imagekit.deleteFile(
-        storePromotion.image.imageId ? storePromotion.image.imageId : ""
-      );
-
-      const uploadedImage: ImageRequestObj = {
-        imageId: "",
-        file: "",
-        path: "",
-      };
-
-      const result = await imagekit.upload({
-        file: image.file, // base64 encoded string
-        fileName: `${store.id}_Image_${storePromotion.name}`, // Unique filename for each image
-        folder: image.path, // Folder to upload to in ImageKit
-      });
-      console.log(result);
-
-      uploadedImage.imageId = result.fileId;
-      uploadedImage.file = result.url;
-      uploadedImage.path = image.path;
-
-      storePromotion.image = uploadedImage;
-
-      await store.save();
-
-      return res.status(200).json(<ResponseObj>{
-        error: false,
-        message: `${storePromotion.name} image has been updated successfully`,
       });
     }
 

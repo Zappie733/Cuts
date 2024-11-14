@@ -48,7 +48,6 @@ import {
   getRecentStorePromotionsByStoreId,
   getStorePromotionsByStoreId,
   updateStorePromotion,
-  updateStorePromotionImage,
 } from "../Controllers/StorePromotionController";
 
 import {
@@ -126,10 +125,6 @@ StoreRoute.delete(
   deleteStorePromotionById
 );
 StoreRoute.put("/storePromotion/updateStorePromotion", updateStorePromotion);
-StoreRoute.put(
-  "/storePromotion/updateStorePromotionImage",
-  updateStorePromotionImage
-);
 
 //Gallery
 StoreRoute.get("/gallery/getGalleryByStoreId/:id", getGalleryByStoreId);
@@ -140,4 +135,4 @@ StoreRoute.get(
 StoreRoute.post("/gallery/addGallery", addGallery);
 StoreRoute.delete("/gallery/deleteGalleryById/:id", deleteGalleryById);
 StoreRoute.put("/gallery/updateGalleryById/:id", updateGalleryById);
-StoreRoute.put("/gallery/likeGalleryById/:id", likeGalleryById);
+StoreRoute.patch("/gallery/likeGalleryById/:id", likeGalleryById);

@@ -77,6 +77,7 @@ export const RegisterStoreScreen = ({
   };
   const [storeRegisterFormData, setStoreRegisterFormData] =
     useState<IRegistrationStoreProps>(defaultStoreRegisterFormData);
+  console.log(storeRegisterFormData);
   const [reason, setReason] = useState("");
 
   const [status, setStatus] = useState("");
