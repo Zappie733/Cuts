@@ -1,3 +1,5 @@
+import { ImageRequestObj } from "./Image";
+
 export interface WorkerObj {
   _id?: string;
   firstName: string;
@@ -7,6 +9,7 @@ export interface WorkerObj {
   role: "admin" | "worker"; //admin adalah org yang diperaya di barber tersebut untuk mengelola bisnis seperti menerima atau menolak pesanan dan melakukan absensi pekerja
   isOnDuty?: boolean;
   history?: HistoryObj[];
+  image: ImageRequestObj;
 }
 
 export interface HistoryObj {
@@ -23,6 +26,7 @@ export interface RegisterWorkerRequestObj {
   age: number;
   email: string;
   role: "admin" | "worker";
+  image: ImageRequestObj;
 }
 
 export interface UpdateWorkerRequestObj {

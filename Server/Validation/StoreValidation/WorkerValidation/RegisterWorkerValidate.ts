@@ -14,6 +14,15 @@ export const RegisterWorkerValidate = (data: RegisterWorkerRequestObj) => {
       .messages({
         "any.only": "Role must be 'admin' or 'worker'.",
       }),
+    image: Joi.object({
+      file: Joi.string()
+        .pattern(/^[A-Za-z0-9+/]+={0,2}$/) // Base64 validation pattern
+        .required()
+        .label("File"),
+      path: Joi.string().required().label("Path"),
+    })
+      .required()
+      .label("Image"),
   });
 
   return schema.validate(data);

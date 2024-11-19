@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { GetWorkersByStoreIdResponse, ResponseObj } from "../Response";
-import { PayloadObj } from "../dto";
+import { ImageRequestObj, PayloadObj } from "../dto";
 import { verifyAccessToken } from "../Utils/UserTokenUtil";
 import { STORES } from "../Models/StoreModel";
 import { RegisterWorkerValidate } from "../Validation/StoreValidation/WorkerValidation/RegisterWorkerValidate";
@@ -13,6 +13,12 @@ import {
 import mongoose from "mongoose";
 import { UpdateWorkerValidate } from "../Validation/StoreValidation/WorkerValidation/UpdateWorkerValidate";
 import { AbsenceWorkerValidate } from "../Validation/StoreValidation/WorkerValidation/AbsenceWorkerValidate";
+import ImageKit from "imagekit";
+import {
+  IMAGEKIT_BASEURL,
+  IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_PUBLIC_KEY,
+} from "../Config";
 
 export const getWorkersByStoreId = async (req: Request, res: Response) => {
   try {
@@ -129,7 +135,7 @@ export const registerWorker = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
-      const { firstName, lastName, age, email, role } = <
+      const { firstName, lastName, age, email, role, image } = <
         RegisterWorkerRequestObj
       >req.body;
 
@@ -141,15 +147,65 @@ export const registerWorker = async (req: Request, res: Response) => {
           .json(<ResponseObj>{ error: true, message: "Store not found" });
       }
 
+      const existingWorker = store.workers.find(
+        (worker) => worker.email === email.toLowerCase()
+      );
+
+      if (existingWorker) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Worker with this email already exists",
+        });
+      }
+
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      const uploadedImage: ImageRequestObj = {
+        imageId: "",
+        file: "",
+        path: "",
+      };
+
       const newWorker: WorkerObj = {
         firstName,
         lastName,
         age,
-        email: email?.toLowerCase(),
+        email: email.toLowerCase(),
         role,
+        image: uploadedImage,
       };
 
       store.workers.push(newWorker);
+
+      await store.save();
+
+      const result = await imagekit.upload({
+        file: image.file, // base64 encoded string
+        fileName: `${store.id}_Image_${firstName + " " + lastName}`, // Unique filename for each image
+        folder: image.path, // Folder to upload to in ImageKit
+      });
+      console.log(result);
+
+      uploadedImage.imageId = result.fileId;
+      uploadedImage.file = result.url;
+      uploadedImage.path = image.path;
+
+      const worker = store.workers.find(
+        (worker) => worker.email === email.toLowerCase()
+      );
+
+      if (!worker) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Worker not found",
+        });
+      }
+
+      worker.image = uploadedImage;
 
       await store.save();
 

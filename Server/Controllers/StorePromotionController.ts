@@ -252,7 +252,6 @@ export const addStorePromotion = async (req: Request, res: Response) => {
         urlEndpoint: IMAGEKIT_BASEURL,
       });
 
-      // Array to store the uploaded image URLs
       const uploadedImage: ImageRequestObj = {
         imageId: "",
         file: "",

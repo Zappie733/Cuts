@@ -47,6 +47,17 @@ export const WorkerSchema = new Schema(
         },
       },
     ],
+    image: {
+      imageId: {
+        type: String,
+      },
+      file: {
+        type: String,
+      },
+      path: {
+        type: String,
+      },
+    },
   },
   {
     toJSON: {
@@ -135,7 +146,7 @@ export const ServiceProductSchema = new Schema(
     timestamps: true,
   }
 );
-
+//image done
 export const SalesProductSchema = new Schema(
   {
     name: {
@@ -178,7 +189,7 @@ export const SalesProductSchema = new Schema(
     timestamps: true,
   }
 );
-
+//image done
 export const StorePromotionSchema = new Schema(
   {
     name: {
@@ -216,7 +227,7 @@ export const StorePromotionSchema = new Schema(
     timestamps: true,
   }
 );
-
+//image done
 export const GallerySchema = new Schema(
   {
     images: [
