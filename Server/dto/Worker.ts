@@ -5,7 +5,6 @@ export interface WorkerObj {
   firstName: string;
   lastName: string;
   age: number;
-  email: string;
   role: "admin" | "worker"; //admin adalah org yang diperaya di barber tersebut untuk mengelola bisnis seperti menerima atau menolak pesanan dan melakukan absensi pekerja
   isOnDuty?: boolean;
   history?: HistoryObj[];
@@ -24,7 +23,6 @@ export interface RegisterWorkerRequestObj {
   firstName: string;
   lastName: string;
   age: number;
-  email: string;
   role: "admin" | "worker";
   image: ImageRequestObj;
 }
@@ -34,8 +32,8 @@ export interface UpdateWorkerRequestObj {
   firstName: string;
   lastName: string;
   age: number;
-  email: string;
   role: "admin" | "worker";
+  image: ImageRequestObj;
 }
 
 export interface AbsenceWorkerRequestObj {

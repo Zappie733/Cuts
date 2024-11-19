@@ -155,7 +155,7 @@ export const addSalesProduct = async (req: Request, res: Response) => {
       }
 
       const salesProductNameExist = store.salesProducts.find(
-        (salesProduct) => salesProduct.name === name
+        (salesProduct) => salesProduct.name.toLowerCase() === name.toLowerCase()
       );
 
       if (salesProductNameExist) {
@@ -190,7 +190,7 @@ export const addSalesProduct = async (req: Request, res: Response) => {
       for (const [index, imageObj] of images.entries()) {
         const result = await imagekit.upload({
           file: imageObj.file, // base64 encoded string
-          fileName: `${store.id}_Image_${index}`, // Unique filename for each image
+          fileName: `${store.id}_Image_${name + " " + index}`, // Unique filename for each image
           folder: imageObj.path, // Folder to upload to in ImageKit
         });
         console.log(result);
@@ -378,7 +378,7 @@ export const updateSalesProduct = async (req: Request, res: Response) => {
 
       const salesProductNameExist = store.salesProducts.find(
         (salesProduct) =>
-          salesProduct.name === name &&
+          salesProduct.name.toLowerCase() === name.toLowerCase() &&
           salesProduct._id?.toString() !== salesProductId.toString()
       );
 
@@ -404,7 +404,7 @@ export const updateSalesProduct = async (req: Request, res: Response) => {
 
       for (const imageObj of images) {
         if (imageObj.imageId === undefined) {
-          console.log("skipping delete because imageId is undefined");
+          console.log("skipping keeping filter because imageId is undefined");
           continue;
         }
 
@@ -419,15 +419,18 @@ export const updateSalesProduct = async (req: Request, res: Response) => {
       }
 
       console.log(imageIdsToKeep);
+
+      //delete images in imagekit that is not in imageIdsToKeep
       for (const imageObj of salesProduct.images) {
         if (imageObj.imageId) {
           if (!imageIdsToKeep.includes(imageObj.imageId)) {
-            console.log("deleteing image " + imageObj.imageId);
+            console.log("deleting image " + imageObj.imageId);
             await imagekit.deleteFile(imageObj.imageId);
           }
         }
       }
 
+      //remove images from salesProduct that is not in imageIdsToKeep
       salesProduct.images = salesProduct.images.filter((imageData) =>
         imageIdsToKeep.includes(imageData.imageId)
       );
@@ -438,13 +441,13 @@ export const updateSalesProduct = async (req: Request, res: Response) => {
       // Upload each new image
       for (const [index, imageObj] of images.entries()) {
         if (imageObj.imageId !== undefined) {
-          console.log("skipping upload");
+          console.log(`skipping upload for ${imageObj.imageId}`);
           continue;
         }
 
         const result = await imagekit.upload({
           file: imageObj.file, // base64 encoded string
-          fileName: `${store.id}_Image_${index}`, // Unique filename for each image
+          fileName: `${store.id}_Image_${name + " " + index}`, // Unique filename for each image
           folder: imageObj.path, // Folder to upload to in ImageKit
         });
         console.log(result);

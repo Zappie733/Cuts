@@ -135,7 +135,7 @@ export const registerWorker = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
-      const { firstName, lastName, age, email, role, image } = <
+      const { firstName, lastName, age, role, image } = <
         RegisterWorkerRequestObj
       >req.body;
 
@@ -148,13 +148,15 @@ export const registerWorker = async (req: Request, res: Response) => {
       }
 
       const existingWorker = store.workers.find(
-        (worker) => worker.email === email.toLowerCase()
+        (worker) =>
+          worker.firstName.toLowerCase() === firstName.toLowerCase() &&
+          worker.lastName.toLowerCase() === lastName.toLowerCase()
       );
 
       if (existingWorker) {
         return res.status(400).json(<ResponseObj>{
           error: true,
-          message: "Worker with this email already exists",
+          message: "Worker with this first & last name is already exists",
         });
       }
 
@@ -174,7 +176,6 @@ export const registerWorker = async (req: Request, res: Response) => {
         firstName,
         lastName,
         age,
-        email: email.toLowerCase(),
         role,
         image: uploadedImage,
       };
@@ -195,7 +196,8 @@ export const registerWorker = async (req: Request, res: Response) => {
       uploadedImage.path = image.path;
 
       const worker = store.workers.find(
-        (worker) => worker.email === email.toLowerCase()
+        (worker) =>
+          worker.firstName === firstName && worker.lastName === lastName
       );
 
       if (!worker) {
@@ -279,6 +281,14 @@ export const deleteWorkerById = async (req: Request, res: Response) => {
           .json(<ResponseObj>{ error: true, message: "Worker not found" });
       }
 
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      await imagekit.deleteFile(worker.image.imageId ?? "");
+
       store.workers = store.workers.filter((workerData) => {
         if (worker._id && workerData._id)
           return workerData._id.toString() !== worker._id.toString();
@@ -348,8 +358,8 @@ export const updateWorker = async (req: Request, res: Response) => {
         firstName,
         lastName,
         age,
-        email,
         role,
+        image,
       }: UpdateWorkerRequestObj = req.body;
 
       if (!mongoose.Types.ObjectId.isValid(workerId)) {
@@ -371,13 +381,57 @@ export const updateWorker = async (req: Request, res: Response) => {
           .json(<ResponseObj>{ error: true, message: "Worker not found" });
       }
 
+      const existingWorker = store.workers.find(
+        (worker) =>
+          worker.firstName.toLowerCase() === firstName.toLowerCase() &&
+          worker.lastName.toLowerCase() === lastName.toLowerCase() &&
+          worker._id?.toString() !== workerId.toString()
+      );
+
+      if (existingWorker) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Worker with this first & last name is already exists",
+        });
+      }
+
       worker.firstName = firstName;
       worker.lastName = lastName;
       worker.age = age;
-      worker.email = email.toLowerCase();
       worker.role = role;
 
       await store.save();
+
+      if (image.imageId === undefined) {
+        const imagekit = new ImageKit({
+          publicKey: IMAGEKIT_PUBLIC_KEY,
+          privateKey: IMAGEKIT_PRIVATE_KEY,
+          urlEndpoint: IMAGEKIT_BASEURL,
+        });
+
+        await imagekit.deleteFile(worker.image.imageId ?? "");
+
+        const uploadedImage: ImageRequestObj = {
+          imageId: "",
+          file: "",
+          path: "",
+        };
+
+        const result = await imagekit.upload({
+          file: image.file, // base64 encoded string
+          fileName: `${store.id}_Image_${firstName + " " + lastName}`, // Unique filename for each image
+          folder: image.path, // Folder to upload to in ImageKit
+        });
+        console.log(result);
+
+        uploadedImage.imageId = result.fileId;
+        uploadedImage.file = result.url;
+        uploadedImage.path = image.path;
+
+        worker.image = uploadedImage;
+
+        await store.save();
+      }
 
       return res.status(200).json(<ResponseObj>{
         error: false,

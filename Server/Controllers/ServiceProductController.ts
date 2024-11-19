@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { GetServiceProductsByStoreIdResponse, ResponseObj } from "../Response";
-import { PayloadObj } from "../dto";
+import { ImageRequestObj, PayloadObj } from "../dto";
 import { verifyAccessToken } from "../Utils/UserTokenUtil";
 import { STORES } from "../Models/StoreModel";
 import {
@@ -11,6 +11,12 @@ import {
 import { AddServiceProductValidate } from "../Validation/StoreValidation/ServiceProductValidation/AddServiceProductValidate";
 import mongoose from "mongoose";
 import { UpdateServiceProductValidate } from "../Validation/StoreValidation/ServiceProductValidation/UpdateServiceProductValidate";
+import ImageKit from "imagekit";
+import {
+  IMAGEKIT_BASEURL,
+  IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_PUBLIC_KEY,
+} from "../Config";
 
 export const getServiceProductsByStoreId = async (
   req: Request,
@@ -134,6 +140,7 @@ export const addServiceProduct = async (req: Request, res: Response) => {
         description,
         isAnOption,
         addtionalPrice,
+        image,
       } = <AddServiceProductRequestObj>req.body;
 
       const store = await STORES.findOne({ userId: payload._id });
@@ -145,7 +152,8 @@ export const addServiceProduct = async (req: Request, res: Response) => {
       }
 
       const serviceProductNameExist = store.serviceProducts.find(
-        (serviceProduct) => serviceProduct.name === name
+        (serviceProduct) =>
+          serviceProduct.name.toLowerCase() === name.toLowerCase()
       );
 
       if (serviceProductNameExist) {
@@ -155,6 +163,18 @@ export const addServiceProduct = async (req: Request, res: Response) => {
         });
       }
 
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      const uploadedImage: ImageRequestObj = {
+        imageId: "",
+        file: "",
+        path: "",
+      };
+
       const newServiceProduct: ServiceProductObj = {
         name,
         quantity,
@@ -162,9 +182,37 @@ export const addServiceProduct = async (req: Request, res: Response) => {
         description,
         isAnOption,
         addtionalPrice,
+        image: uploadedImage,
       };
 
       store.serviceProducts.push(newServiceProduct);
+
+      await store.save();
+
+      const result = await imagekit.upload({
+        file: image.file, // base64 encoded string
+        fileName: `${store.id}_Image_${name}`, // Unique filename for each image
+        folder: image.path, // Folder to upload to in ImageKit
+      });
+      console.log(result);
+
+      uploadedImage.imageId = result.fileId;
+      uploadedImage.file = result.url;
+      uploadedImage.path = image.path;
+
+      const serviceProduct = store.serviceProducts.find(
+        (serviceProduct) =>
+          serviceProduct.name.toLowerCase() === name.toLowerCase()
+      );
+
+      if (!serviceProduct) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Service product not found",
+        });
+      }
+
+      serviceProduct.image = uploadedImage;
 
       await store.save();
 
@@ -235,6 +283,14 @@ export const deleteServiceProductById = async (req: Request, res: Response) => {
           message: "Service product not found",
         });
       }
+
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      await imagekit.deleteFile(serviceProduct.image.imageId ?? "");
 
       store.serviceProducts = store.serviceProducts.filter(
         (serviceProductData) =>
@@ -310,6 +366,7 @@ export const updateServiceProduct = async (req: Request, res: Response) => {
         description,
         isAnOption,
         addtionalPrice,
+        image,
       }: UpdateServiceProductRequestObj = req.body;
 
       if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
@@ -333,7 +390,7 @@ export const updateServiceProduct = async (req: Request, res: Response) => {
 
       const serviceProductNameExist = store.serviceProducts.find(
         (serviceProductData) =>
-          serviceProductData.name === name &&
+          serviceProductData.name.toLowerCase() === name.toLowerCase() &&
           serviceProductData._id?.toString() !== serviceProduct._id?.toString()
       );
 
@@ -352,6 +409,37 @@ export const updateServiceProduct = async (req: Request, res: Response) => {
       serviceProduct.addtionalPrice = addtionalPrice;
 
       await store.save();
+
+      if (image.imageId === undefined) {
+        const imagekit = new ImageKit({
+          publicKey: IMAGEKIT_PUBLIC_KEY,
+          privateKey: IMAGEKIT_PRIVATE_KEY,
+          urlEndpoint: IMAGEKIT_BASEURL,
+        });
+
+        await imagekit.deleteFile(serviceProduct.image.imageId ?? "");
+
+        const uploadedImage: ImageRequestObj = {
+          imageId: "",
+          file: "",
+          path: "",
+        };
+
+        const result = await imagekit.upload({
+          file: image.file, // base64 encoded string
+          fileName: `${store.id}_Image_${name}`, // Unique filename for each image
+          folder: image.path, // Folder to upload to in ImageKit
+        });
+        console.log(result);
+
+        uploadedImage.imageId = result.fileId;
+        uploadedImage.file = result.url;
+        uploadedImage.path = image.path;
+
+        serviceProduct.image = uploadedImage;
+
+        await store.save();
+      }
 
       return res.status(200).json(<ResponseObj>{
         error: false,

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { GetServicesByStoreIdResponse, ResponseObj } from "../Response";
 import {
   AddServiceRequestObj,
+  ImageRequestObj,
   PayloadObj,
   ServiceObj,
   UpdateServiceRequestObj,
@@ -11,6 +12,12 @@ import { STORES } from "../Models/StoreModel";
 import { AddServiceValidate } from "../Validation/StoreValidation/ServiceValidation/AddServiceValidate";
 import mongoose from "mongoose";
 import { UpdateServiceValidate } from "../Validation/StoreValidation/ServiceValidation/UpdateServiceValidate";
+import ImageKit from "imagekit";
+import {
+  IMAGEKIT_BASEURL,
+  IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_PUBLIC_KEY,
+} from "../Config";
 
 export const getServicesByStoreId = async (req: Request, res: Response) => {
   try {
@@ -125,7 +132,7 @@ export const addService = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
-      const { name, price, duration, description, serviceProduct } = <
+      const { name, price, duration, description, serviceProduct, images } = <
         AddServiceRequestObj
       >req.body;
 
@@ -138,7 +145,7 @@ export const addService = async (req: Request, res: Response) => {
       }
 
       const serviceNameExist = store.services.find(
-        (service) => service.name === name
+        (service) => service.name.toLowerCase() === name.toLowerCase()
       );
 
       if (serviceNameExist) {
@@ -168,15 +175,49 @@ export const addService = async (req: Request, res: Response) => {
         }
       }
 
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      // Array to store the uploaded image URLs
+      const uploadedImages: ImageRequestObj[] = [];
+
       const newService: ServiceObj = {
         name,
         price,
         duration,
         description,
         serviceProduct,
+        images: uploadedImages,
       };
 
       store.services.push(newService);
+
+      await store.save();
+
+      // Upload each image
+      for (const [index, imageObj] of images.entries()) {
+        const result = await imagekit.upload({
+          file: imageObj.file, // base64 encoded string
+          fileName: `${store.id}_Image_${name + " " + index}`, // Unique filename for each image
+          folder: imageObj.path, // Folder to upload to in ImageKit
+        });
+        console.log(result);
+        // Add the uploaded image URL to the array
+        uploadedImages.push({
+          imageId: result.fileId,
+          file: result.url,
+          path: imageObj.path,
+        });
+      }
+
+      const newServiceData = store.services.find(
+        (serviceData) => serviceData.name === newService.name
+      );
+
+      if (newServiceData) newServiceData.images = uploadedImages;
 
       await store.save();
 
@@ -244,6 +285,17 @@ export const deleteService = async (req: Request, res: Response) => {
         return res
           .status(404)
           .json(<ResponseObj>{ error: true, message: "Service not found" });
+      }
+
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      // Iterate through the images to delete them from ImageKit
+      for (const imageObj of service.images) {
+        if (imageObj.imageId) await imagekit.deleteFile(imageObj.imageId);
       }
 
       store.services = store.services.filter(
@@ -319,6 +371,7 @@ export const updateService = async (req: Request, res: Response) => {
         description,
         serviceProduct,
         discount,
+        images,
       }: UpdateServiceRequestObj = req.body;
 
       if (!mongoose.Types.ObjectId.isValid(serviceId)) {
@@ -340,7 +393,7 @@ export const updateService = async (req: Request, res: Response) => {
 
       const serviceNameExist = store.services.find(
         (serviceData) =>
-          serviceData.name === name &&
+          serviceData.name.toLowerCase() === name.toLowerCase() &&
           serviceData._id?.toString() !== service._id?.toString()
       );
 
@@ -377,6 +430,72 @@ export const updateService = async (req: Request, res: Response) => {
       service.description = description;
       service.serviceProduct = serviceProduct;
       service.discount = discount;
+
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      const imageIdsToKeep: any = [];
+
+      for (const imageObj of images) {
+        if (imageObj.imageId === undefined) {
+          console.log("skipping keeping filter because imageId is undefined");
+          continue;
+        }
+
+        const image = service.images.find(
+          (imageData) => imageData.imageId === imageObj.imageId
+        );
+
+        if (image) {
+          console.log("push imageId to imageIdsToKeep " + imageObj.imageId);
+          imageIdsToKeep.push(imageObj.imageId);
+        }
+      }
+
+      console.log(imageIdsToKeep);
+
+      //delete images in imagekit that is not in imageIdsToKeep
+      for (const imageObj of service.images) {
+        if (imageObj.imageId) {
+          if (!imageIdsToKeep.includes(imageObj.imageId)) {
+            console.log("deleting image " + imageObj.imageId);
+            await imagekit.deleteFile(imageObj.imageId);
+          }
+        }
+      }
+
+      //remove images from service that is not in imageIdsToKeep
+      service.images = service.images.filter((imageData) =>
+        imageIdsToKeep.includes(imageData.imageId)
+      );
+
+      console.log(service.images);
+
+      await store.save();
+
+      // Upload each new image
+      for (const [index, imageObj] of images.entries()) {
+        if (imageObj.imageId !== undefined) {
+          console.log(`skipping upload for ${imageObj.imageId}`);
+          continue;
+        }
+
+        const result = await imagekit.upload({
+          file: imageObj.file, // base64 encoded string
+          fileName: `${store.id}_Image_${name + " " + index}`, // Unique filename for each image
+          folder: imageObj.path, // Folder to upload to in ImageKit
+        });
+        console.log(result);
+        // Add the uploaded image URL to the array
+        service.images.push({
+          imageId: result.fileId,
+          file: result.url,
+          path: imageObj.path,
+        });
+      }
 
       await store.save();
 

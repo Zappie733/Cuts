@@ -1,3 +1,5 @@
+import { ImageRequestObj } from "./Image";
+
 export interface ServiceObj {
   _id?: string;
   name: string;
@@ -6,6 +8,7 @@ export interface ServiceObj {
   description?: string;
   serviceProduct?: string[];
   discount?: number;
+  images: ImageRequestObj[];
 }
 
 export interface AddServiceRequestObj {
@@ -14,6 +17,7 @@ export interface AddServiceRequestObj {
   duration: number;
   description?: string;
   serviceProduct?: string[];
+  images: ImageRequestObj[];
 }
 
 export interface UpdateServiceRequestObj {
@@ -24,4 +28,5 @@ export interface UpdateServiceRequestObj {
   description?: string;
   serviceProduct?: string[];
   discount?: number;
+  images: ImageRequestObj[];
 }

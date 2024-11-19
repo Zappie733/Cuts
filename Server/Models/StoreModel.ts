@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { StoreObj } from "../dto/Store";
-
+//image done
 export const WorkerSchema = new Schema(
   {
     firstName: {
@@ -13,10 +13,6 @@ export const WorkerSchema = new Schema(
     },
     age: {
       type: Number,
-      required: true,
-    },
-    email: {
-      type: String,
       required: true,
     },
     role: {
@@ -70,7 +66,7 @@ export const WorkerSchema = new Schema(
     timestamps: true,
   }
 );
-
+//image done
 export const ServiceSchema = new Schema(
   {
     name: {
@@ -97,6 +93,19 @@ export const ServiceSchema = new Schema(
     discount: {
       type: Number,
     },
+    images: [
+      {
+        imageId: {
+          type: String,
+        },
+        file: {
+          type: String,
+        },
+        path: {
+          type: String,
+        },
+      },
+    ],
   },
   {
     toJSON: {
@@ -109,7 +118,7 @@ export const ServiceSchema = new Schema(
     timestamps: true,
   }
 );
-
+//image done
 export const ServiceProductSchema = new Schema(
   {
     name: {
@@ -133,6 +142,17 @@ export const ServiceProductSchema = new Schema(
     },
     addtionalPrice: {
       type: Number,
+    },
+    image: {
+      imageId: {
+        type: String,
+      },
+      file: {
+        type: String,
+      },
+      path: {
+        type: String,
+      },
     },
   },
   {

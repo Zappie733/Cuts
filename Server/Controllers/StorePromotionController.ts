@@ -236,7 +236,8 @@ export const addStorePromotion = async (req: Request, res: Response) => {
       }
 
       const storePromotionNameExist = store.storePromotions.find(
-        (storePromotion) => storePromotion.name === name
+        (storePromotion) =>
+          storePromotion.name.toLowerCase() === name.toLowerCase()
       );
 
       if (storePromotionNameExist) {
@@ -464,7 +465,7 @@ export const updateStorePromotion = async (req: Request, res: Response) => {
 
       const storePromotionNameExist = store.storePromotions.find(
         (storePromotion) =>
-          storePromotion.name === name &&
+          storePromotion.name.toLowerCase() === name.toLowerCase() &&
           storePromotion._id?.toString() !== promotionId.toString()
       );
 
