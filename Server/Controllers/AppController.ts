@@ -63,6 +63,7 @@ export const getAppSummary = async (req: Request, res: Response) => {
       responseData.totalActiveStores = totalActiveStores;
       responseData.totalInActiveStores = totalInActiveStores;
       responseData.totalHoldStores = totalHoldStores;
+
       return res.status(200).json(<ResponseObj<GetAppSummaryResponse>>{
         error: false,
         message: "App summary retrieved successfully",

@@ -389,6 +389,7 @@ export const deleteStore = async (req: Request, res: Response) => {
         }
 
         const store = await STORES.findOne({ userId: userStore.id });
+
         if (store) {
           const imagekit = new ImageKit({
             publicKey: IMAGEKIT_PUBLIC_KEY,
@@ -405,6 +406,23 @@ export const deleteStore = async (req: Request, res: Response) => {
           for (const document of store.documents) {
             if (document.documentId)
               await imagekit.deleteFile(document.documentId);
+          }
+
+          const workers = store.workers;
+          for (const worker of workers) {
+            await imagekit.deleteFile(worker.image.imageId ?? "");
+          }
+
+          const services = store.services;
+          for (const service of services) {
+            for (const imageObj of service.images) {
+              await imagekit.deleteFile(imageObj.imageId ?? "");
+            }
+          }
+
+          const serviceProducts = store.serviceProducts;
+          for (const serviceProduct of serviceProducts) {
+            await imagekit.deleteFile(serviceProduct.image.imageId ?? "");
           }
 
           //delete store
