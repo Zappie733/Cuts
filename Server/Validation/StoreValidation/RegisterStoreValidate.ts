@@ -1,7 +1,7 @@
 /*************  ✨ Codeium Command 🌟  *************/
 import Joi from "joi";
 import PasswordComplexity from "joi-password-complexity";
-import { RegisterStoreRequestObj } from "../../dto/Store";
+import { RegisterStoreRequestObj } from "../../dto";
 
 export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
   const complexityOptions = {
@@ -37,7 +37,7 @@ export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
             .pattern(/^[A-Za-z0-9+/]+={0,2}$/) // Base64 validation pattern
             .required()
             .label("File"),
-          path: Joi.string().required().label("Path"),
+          // path: Joi.string().required().label("Path"),
         })
       )
       .required()
@@ -60,7 +60,7 @@ export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
             .pattern(/^[A-Za-z0-9+/]+={0,2}$/) // Base64 validation pattern
             .required()
             .label("File"),
-          path: Joi.string().required().label("Path"),
+          // path: Joi.string().required().label("Path"),
         })
       )
       .required()

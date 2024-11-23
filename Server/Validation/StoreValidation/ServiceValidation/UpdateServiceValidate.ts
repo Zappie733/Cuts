@@ -20,7 +20,7 @@ export const UpdateServiceValidate = (data: UpdateServiceRequestObj) => {
             )
             .required()
             .label("File"),
-          path: Joi.string().required().label("Path"),
+          // path: Joi.string().required().label("Path"),
         })
       )
       .required()

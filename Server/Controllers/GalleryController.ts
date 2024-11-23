@@ -240,22 +240,6 @@ export const addGallery = async (req: Request, res: Response) => {
 
       const uploadedImages: ImageRequestObj[] = [];
 
-      // Upload each image
-      for (const [index, imageObj] of images.entries()) {
-        const result = await imagekit.upload({
-          file: imageObj.file, // base64 encoded string
-          fileName: `${store.id}_Image_${index}`, // Unique filename for each image
-          folder: imageObj.path, // Folder to upload to in ImageKit
-        });
-        console.log(result);
-        // Add the uploaded image URL to the array
-        uploadedImages.push({
-          imageId: result.fileId,
-          file: result.url,
-          path: imageObj.path,
-        });
-      }
-
       const newGallery: GalleryObj = {
         images: uploadedImages,
         caption,
@@ -263,6 +247,35 @@ export const addGallery = async (req: Request, res: Response) => {
       };
 
       store.gallery.push(newGallery);
+
+      await store.save();
+
+      const gallery = store.gallery[store.gallery.length - 1];
+
+      if (!gallery) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Gallery not found",
+        });
+      }
+
+      // Upload each image
+      for (const [index, imageObj] of images.entries()) {
+        const result = await imagekit.upload({
+          file: imageObj.file, // base64 encoded string
+          fileName: `Image_${index}`, // Unique filename for each image
+          folder: `Stores/${store.id}/Gallery/${gallery._id}`, // Folder to upload to in ImageKit
+        });
+        console.log(result);
+        // Add the uploaded image URL to the array
+        uploadedImages.push({
+          imageId: result.fileId,
+          file: result.url,
+          path: `Stores/${store.id}/Gallery/${gallery._id}`,
+        });
+      }
+
+      gallery.images = uploadedImages;
 
       await store.save();
 
@@ -342,9 +355,10 @@ export const deleteGalleryById = async (req: Request, res: Response) => {
         urlEndpoint: IMAGEKIT_BASEURL,
       });
       // Iterate through the images to delete them from ImageKit
-      for (const galleryObj of gallery.images) {
-        if (galleryObj.imageId) await imagekit.deleteFile(galleryObj.imageId);
-      }
+      // for (const galleryObj of gallery.images) {
+      //   if (galleryObj.imageId) await imagekit.deleteFile(galleryObj.imageId);
+      // }
+      await imagekit.deleteFolder(`Stores/${store.id}/Gallery/${gallery._id}`);
 
       store.gallery = store.gallery.filter(
         (galleryData) => galleryData._id?.toString() !== gallery._id?.toString()

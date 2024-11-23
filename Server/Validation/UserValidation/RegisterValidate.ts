@@ -1,6 +1,6 @@
 import Joi from "joi";
 import PasswordComplexity from "joi-password-complexity";
-import { UserObj } from "../dto/User";
+import { UserObj } from "../../dto/User";
 
 export const RegisterValidate = (data: UserObj) => {
   const complexityOptions = {
@@ -35,9 +35,13 @@ export const RegisterValidate = (data: UserObj) => {
         "string.pattern.base":
           "Phone number must start with 0 and have 12 digits.",
       }),
-    role: Joi.string().valid("user").required().label("Role").messages({
-      "any.only": "Role must be one of ['user'].",
-    }),
+    role: Joi.string()
+      .valid("user", "admin")
+      .required()
+      .label("Role")
+      .messages({
+        "any.only": "Role must be one of ['user', 'admin'].",
+      }),
   });
   return schema.validate(data);
 };

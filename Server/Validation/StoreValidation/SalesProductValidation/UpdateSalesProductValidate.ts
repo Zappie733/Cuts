@@ -18,7 +18,7 @@ export const UpdateSalesProductValidate = (
             )
             .required()
             .label("File"),
-          path: Joi.string().required().label("Path"),
+          // path: Joi.string().required().label("Path"),
         })
       )
       .required()

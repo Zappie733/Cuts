@@ -22,7 +22,7 @@ export const UpdateWorkerValidate = (data: UpdateWorkerRequestObj) => {
         )
         .required()
         .label("File"),
-      path: Joi.string().required().label("Path"),
+      // path: Joi.string().required().label("Path"),
     })
       .required()
       .label("Image"),

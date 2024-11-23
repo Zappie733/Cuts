@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { ImageRequestObj } from "../dto/Image";
+import { ImageRequestObj } from "../../dto/Image";
 
 export const UpdateUserImageValidate = (data: ImageRequestObj) => {
   const schema = Joi.object<ImageRequestObj>({
@@ -7,7 +7,7 @@ export const UpdateUserImageValidate = (data: ImageRequestObj) => {
       .pattern(/^[A-Za-z0-9+/]+={0,2}$/)
       .required()
       .label("File"),
-    path: Joi.string().required().label("Path"),
+    // path: Joi.string().required().label("Path"),
   });
   return schema.validate(data);
 };

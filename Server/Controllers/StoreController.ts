@@ -65,7 +65,7 @@ export const registerStore = async (req: Request, res: Response) => {
       const { error } = RegisterStoreValidate(
         <RegisterStoreRequestObj>req.body
       );
-      console.log(error);
+      // console.log(error);
       if (error)
         return res.status(400).json(<ResponseObj>{
           error: true,
@@ -111,7 +111,7 @@ export const registerStore = async (req: Request, res: Response) => {
         storeType,
         storeDocuments,
       };
-      console.log(pendingStoreData);
+      // console.log(pendingStoreData);
       //Create New User
       const user = new USERS({
         email: email.toLowerCase(),
@@ -206,7 +206,6 @@ export const verifyStore = async (req: Request, res: Response) => {
           openMinute: 0,
           closeHour: 18,
           closeMinute: 0,
-          workers: [],
         });
 
         await store.save();
@@ -215,15 +214,15 @@ export const verifyStore = async (req: Request, res: Response) => {
         for (const [index, imageObj] of storeImages.entries()) {
           const result = await imagekit.upload({
             file: imageObj.file, // base64 encoded string
-            fileName: `${store.id}_Image_${index}`, // Unique filename for each image
-            folder: imageObj.path, // Folder to upload to in ImageKit
+            fileName: `Image_${index}`, // Unique filename for each image
+            folder: `/Stores/${store.id}/Images`, // Folder to upload to in ImageKit
           });
           console.log(result);
           // Add the uploaded image URL to the array
           uploadedImages.push({
             imageId: result.fileId,
             file: result.url,
-            path: imageObj.path,
+            path: `/Stores/${store.id}/Images`,
           });
         }
 
@@ -231,8 +230,8 @@ export const verifyStore = async (req: Request, res: Response) => {
         for (const [index, document] of storeDocuments.entries()) {
           const result = await imagekit.upload({
             file: document.file, // base64 encoded string
-            fileName: `${store.id}_Document_${index}`, // Unique filename for each image
-            folder: document.path, // Folder to upload to in ImageKit
+            fileName: `Document_${index}`, // Unique filename for each image
+            folder: `/Stores/${store.id}/Documents`, // Folder to upload to in ImageKit
           });
           console.log(result);
           // Add the uploaded image URL to the array
@@ -240,7 +239,7 @@ export const verifyStore = async (req: Request, res: Response) => {
             documentId: result.fileId,
             name: document.name,
             file: result.url,
-            path: document.path,
+            path: `/Stores/${store.id}/Documents`,
           });
         }
 
@@ -397,33 +396,7 @@ export const deleteStore = async (req: Request, res: Response) => {
             urlEndpoint: IMAGEKIT_BASEURL,
           });
 
-          // Iterate through the store's images to delete them from ImageKit
-          for (const imageObj of store.images) {
-            if (imageObj.imageId) await imagekit.deleteFile(imageObj.imageId);
-          }
-
-          //Iterate through the store's documents to delete them from ImageKit
-          for (const document of store.documents) {
-            if (document.documentId)
-              await imagekit.deleteFile(document.documentId);
-          }
-
-          const workers = store.workers;
-          for (const worker of workers) {
-            await imagekit.deleteFile(worker.image.imageId ?? "");
-          }
-
-          const services = store.services;
-          for (const service of services) {
-            for (const imageObj of service.images) {
-              await imagekit.deleteFile(imageObj.imageId ?? "");
-            }
-          }
-
-          const serviceProducts = store.serviceProducts;
-          for (const serviceProduct of serviceProducts) {
-            await imagekit.deleteFile(serviceProduct.image.imageId ?? "");
-          }
+          await imagekit.deleteFolder("Stores/" + store.id);
 
           //delete store
           // await STORES.findOneAndDelete({ userId: userStore.id });

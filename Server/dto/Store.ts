@@ -53,8 +53,9 @@ export interface IDocumentProps {
   documentId?: string;
   name: string;
   file: string;
-  path: string;
+  path?: string;
 }
+
 export interface RegisterStoreRequestObj {
   userId: string;
   email: string;

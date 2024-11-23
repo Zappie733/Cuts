@@ -1,6 +1,6 @@
 import Joi from "joi";
 import PasswordComplexity from "joi-password-complexity";
-import { AuthUser } from "../dto/User";
+import { AuthUser } from "../../dto/User";
 
 export const ChangePasswordValidate = (data: AuthUser) => {
   const complexityOptions = {

@@ -197,29 +197,31 @@ export const addService = async (req: Request, res: Response) => {
 
       await store.save();
 
-      // Upload each image
-      for (const [index, imageObj] of images.entries()) {
-        const result = await imagekit.upload({
-          file: imageObj.file, // base64 encoded string
-          fileName: `${store.id}_Image_${name + " " + index}`, // Unique filename for each image
-          folder: imageObj.path, // Folder to upload to in ImageKit
-        });
-        console.log(result);
-        // Add the uploaded image URL to the array
-        uploadedImages.push({
-          imageId: result.fileId,
-          file: result.url,
-          path: imageObj.path,
-        });
-      }
-
       const newServiceData = store.services.find(
         (serviceData) => serviceData.name === newService.name
       );
 
-      if (newServiceData) newServiceData.images = uploadedImages;
+      if (newServiceData) {
+        // Upload each image
+        for (const [index, imageObj] of images.entries()) {
+          const result = await imagekit.upload({
+            file: imageObj.file, // base64 encoded string
+            fileName: `Image_${name + " " + index}`, // Unique filename for each image
+            folder: `Stores/${store.id}/Services/${newServiceData._id}`, // Folder to upload to in ImageKit
+          });
+          console.log(result);
+          // Add the uploaded image URL to the array
+          uploadedImages.push({
+            imageId: result.fileId,
+            file: result.url,
+            path: `Stores/${store.id}/Services/${newServiceData._id}`,
+          });
+        }
 
-      await store.save();
+        newServiceData.images = uploadedImages;
+
+        await store.save();
+      }
 
       return res.status(200).json(<ResponseObj>{
         error: false,
@@ -294,9 +296,10 @@ export const deleteService = async (req: Request, res: Response) => {
       });
 
       // Iterate through the images to delete them from ImageKit
-      for (const imageObj of service.images) {
-        if (imageObj.imageId) await imagekit.deleteFile(imageObj.imageId);
-      }
+      // for (const imageObj of service.images) {
+      //   if (imageObj.imageId) await imagekit.deleteFile(imageObj.imageId);
+      // }
+      await imagekit.deleteFolder(`Stores/${store.id}/Services/${service._id}`);
 
       store.services = store.services.filter(
         (serviceData) => serviceData._id?.toString() !== service._id?.toString()
@@ -485,15 +488,15 @@ export const updateService = async (req: Request, res: Response) => {
 
         const result = await imagekit.upload({
           file: imageObj.file, // base64 encoded string
-          fileName: `${store.id}_Image_${name + " " + index}`, // Unique filename for each image
-          folder: imageObj.path, // Folder to upload to in ImageKit
+          fileName: `Image_${name + " " + index}`, // Unique filename for each image
+          folder: `Stores/${store.id}/Services/${service._id}`, // Folder to upload to in ImageKit
         });
         console.log(result);
         // Add the uploaded image URL to the array
         service.images.push({
           imageId: result.fileId,
           file: result.url,
-          path: imageObj.path,
+          path: `Stores/${store.id}/Services/${service._id}`,
         });
       }
 

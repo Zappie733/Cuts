@@ -186,29 +186,31 @@ export const addSalesProduct = async (req: Request, res: Response) => {
 
       await store.save();
 
-      // Upload each image
-      for (const [index, imageObj] of images.entries()) {
-        const result = await imagekit.upload({
-          file: imageObj.file, // base64 encoded string
-          fileName: `${store.id}_Image_${name + " " + index}`, // Unique filename for each image
-          folder: imageObj.path, // Folder to upload to in ImageKit
-        });
-        console.log(result);
-        // Add the uploaded image URL to the array
-        uploadedImages.push({
-          imageId: result.fileId,
-          file: result.url,
-          path: imageObj.path,
-        });
-      }
-
       const newSalesProductData = store.salesProducts.find(
         (salesProductData) => salesProductData.name === newSalesProduct.name
       );
-      console.log(newSalesProductData);
-      if (newSalesProductData) newSalesProductData.images = uploadedImages;
 
-      await store.save();
+      if (newSalesProductData) {
+        // Upload each image
+        for (const [index, imageObj] of images.entries()) {
+          const result = await imagekit.upload({
+            file: imageObj.file, // base64 encoded string
+            fileName: `Image_${name + " " + index}`, // Unique filename for each image
+            folder: `Stores/${store.id}/SalesProducts/${newSalesProductData._id}`, // Folder to upload to in ImageKit
+          });
+          console.log(result);
+          // Add the uploaded image URL to the array
+          uploadedImages.push({
+            imageId: result.fileId,
+            file: result.url,
+            path: `Stores/${store.id}/SalesProducts/${newSalesProductData._id}`,
+          });
+        }
+
+        newSalesProductData.images = uploadedImages;
+
+        await store.save();
+      }
 
       return res.status(200).json(<ResponseObj>{
         error: false,
@@ -285,9 +287,12 @@ export const deleteSalesProductById = async (req: Request, res: Response) => {
       });
 
       // Iterate through the images to delete them from ImageKit
-      for (const imageObj of salesProduct.images) {
-        if (imageObj.imageId) await imagekit.deleteFile(imageObj.imageId);
-      }
+      // for (const imageObj of salesProduct.images) {
+      //   if (imageObj.imageId) await imagekit.deleteFile(imageObj.imageId);
+      // }
+      await imagekit.deleteFolder(
+        `Stores/${store.id}/SalesProducts/${salesProduct._id}`
+      );
 
       store.salesProducts = store.salesProducts.filter(
         (salesProductData) =>
@@ -447,15 +452,15 @@ export const updateSalesProduct = async (req: Request, res: Response) => {
 
         const result = await imagekit.upload({
           file: imageObj.file, // base64 encoded string
-          fileName: `${store.id}_Image_${name + " " + index}`, // Unique filename for each image
-          folder: imageObj.path, // Folder to upload to in ImageKit
+          fileName: `Image_${name + " " + index}`, // Unique filename for each image
+          folder: `Stores/${store.id}/SalesProducts/${salesProduct._id}`, // Folder to upload to in ImageKit
         });
         console.log(result);
         // Add the uploaded image URL to the array
         salesProduct.images.push({
           imageId: result.fileId,
           file: result.url,
-          path: imageObj.path,
+          path: `Stores/${store.id}/SalesProducts/${salesProduct._id}`,
         });
       }
 

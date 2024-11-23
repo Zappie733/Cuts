@@ -1,11 +1,6 @@
 import { Request, Response } from "express";
 import { USERS } from "../Models/UserModel";
 import {
-  RegisterValidate,
-  LoginValidate,
-  RefreshTokenValidate,
-} from "../Validation";
-import {
   UserObj,
   AuthUser,
   RefreshToken,
@@ -42,11 +37,14 @@ import {
 import { USERTOKENS } from "../Models/UserTokenModel";
 
 import { sendEmail } from "../Utils/UserUtil";
-import { ChangePasswordValidate } from "../Validation/ChangePasswordValidate";
-import { UpdateUserValidate } from "../Validation/UpdateUserValidate";
+import { ChangePasswordValidate } from "../Validation/UserValidation/ChangePasswordValidate";
 import { STORES } from "../Models/StoreModel";
 import ImageKit from "imagekit";
-import { UpdateUserImageValidate } from "../Validation/UploadImageValidate";
+import { RegisterValidate } from "../Validation/UserValidation/RegisterValidate";
+import { LoginValidate } from "../Validation/UserValidation/LoginValidate";
+import { RefreshTokenValidate } from "../Validation/UserValidation/RefreshTokenValidate";
+import { UpdateUserImageValidate } from "../Validation/UserValidation/UploadImageValidate";
+import { UpdateUserValidate } from "../Validation/UserValidation/UpdateUserValidate";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -122,70 +120,12 @@ export const verifyUser = async (req: Request, res: Response) => {
     if (!response.error && response.data) {
       const { _id, verified } = response.data;
 
-      if (user.role === "user") {
+      if (user.role === "user" || user.role === "admin") {
         await user.updateOne({ id: _id, verified: verified });
 
         return res.render("verification", {
           isError: false,
           message: "Your account has been verified successfully!",
-        });
-      } else if (user.role === "store") {
-        await user.updateOne({ id: _id, verified: verified });
-
-        const { pendingStoreData } = user;
-
-        const imagekit = new ImageKit({
-          publicKey: IMAGEKIT_PUBLIC_KEY,
-          privateKey: IMAGEKIT_PRIVATE_KEY,
-          urlEndpoint: IMAGEKIT_BASEURL,
-        });
-
-        // Array to store the uploaded image URLs
-        const uploadedImages: ImageRequestObj[] = [];
-
-        if (pendingStoreData) {
-          const { storeImages, storeName, storeLocation, storeType } =
-            pendingStoreData;
-
-          //Create new Store
-          const store = new STORES({
-            userId: _id,
-            images: uploadedImages,
-            name: storeName,
-            type: storeType,
-            location: storeLocation,
-          });
-
-          await store.save();
-
-          // Upload each image in storeImages
-          for (const [index, imageObj] of storeImages.entries()) {
-            const result = await imagekit.upload({
-              file: imageObj.file, // base64 encoded string
-              fileName: `${store.id}_Store_${index}`, // Unique filename for each image
-              folder: imageObj.path, // Folder to upload to in ImageKit
-            });
-            // Add the uploaded image URL to the array
-            uploadedImages.push({
-              imageId: result.fileId,
-              file: result.url,
-              path: imageObj.path,
-            });
-          }
-
-          await store.updateOne({ images: uploadedImages });
-        }
-
-        user.pendingStoreData = undefined;
-        await user.save();
-
-        return res.render("verification", {
-          isError: false,
-          message: `Your account has been verified successfully!
-            
-          Please wait for our admin to approve your store data, you can check your store status in the account setting where you register your store. 
-            
-          Thank You for joining.`,
         });
       }
     }
@@ -507,7 +447,7 @@ export const updateUserImage = async (req: Request, res: Response) => {
 
       const user = await USERS.findOne({ _id: payload._id });
 
-      const { file, path } = <ImageRequestObj>req.body;
+      const { file } = <ImageRequestObj>req.body;
 
       const imagekit = new ImageKit({
         publicKey: IMAGEKIT_PUBLIC_KEY,
@@ -521,12 +461,16 @@ export const updateUserImage = async (req: Request, res: Response) => {
       //upload new user profile to imagekit
       const result = await imagekit.upload({
         file: file, // base64 encoded string
-        fileName: `${user?.id}_Profile`,
-        folder: path,
+        fileName: `ProfileImage`,
+        folder: `/Profiles/${user?.id}`,
       });
       //update user database with the newest profile
       await user?.updateOne({
-        image: { imageId: result.fileId, file: result.url, path: path },
+        image: {
+          imageId: result.fileId,
+          file: result.url,
+          path: `/Profiles/${user?.id}`,
+        },
       });
 
       const updatedUser = await USERS.findById(user?.id);

@@ -270,17 +270,6 @@ export const addStorePromotion = async (req: Request, res: Response) => {
 
       await store.save();
 
-      const result = await imagekit.upload({
-        file: image.file, // base64 encoded string
-        fileName: `${store.id}_Image_${name}`, // Unique filename for each image
-        folder: image.path, // Folder to upload to in ImageKit
-      });
-      console.log(result);
-
-      uploadedImage.imageId = result.fileId;
-      uploadedImage.file = result.url;
-      uploadedImage.path = image.path;
-
       const storePromotion = store.storePromotions.find(
         (storePromotion) => storePromotion.name === name
       );
@@ -291,6 +280,17 @@ export const addStorePromotion = async (req: Request, res: Response) => {
           message: "Store promotion not found",
         });
       }
+
+      const result = await imagekit.upload({
+        file: image.file, // base64 encoded string
+        fileName: `Image_${name}`, // Unique filename for each image
+        folder: `Stores/${store.id}/Promotions/${storePromotion._id}`, // Folder to upload to in ImageKit
+      });
+      console.log(result);
+
+      uploadedImage.imageId = result.fileId;
+      uploadedImage.file = result.url;
+      uploadedImage.path = `Stores/${store.id}/Promotions/${storePromotion._id}`;
 
       storePromotion.image = uploadedImage;
 
@@ -371,8 +371,12 @@ export const deleteStorePromotionById = async (req: Request, res: Response) => {
         urlEndpoint: IMAGEKIT_BASEURL,
       });
 
-      await imagekit.deleteFile(
-        storePromotion.image.imageId ? storePromotion.image.imageId : ""
+      // await imagekit.deleteFile(
+      //   storePromotion.image.imageId ? storePromotion.image.imageId : ""
+      // );
+
+      await imagekit.deleteFolder(
+        `Stores/${store.id}/Promotions/${storePromotion._id}`
       );
 
       store.storePromotions = store.storePromotions.filter(
@@ -501,14 +505,14 @@ export const updateStorePromotion = async (req: Request, res: Response) => {
 
         const result = await imagekit.upload({
           file: image.file, // base64 encoded string
-          fileName: `${store.id}_Image_${storePromotion.name}`, // Unique filename for each image
-          folder: image.path, // Folder to upload to in ImageKit
+          fileName: `Image_${storePromotion.name}`, // Unique filename for each image
+          folder: `Stores/${store.id}/Promotions/${storePromotion._id}`, // Folder to upload to in ImageKit
         });
         console.log(result);
 
         uploadedImage.imageId = result.fileId;
         uploadedImage.file = result.url;
-        uploadedImage.path = image.path;
+        uploadedImage.path = `Stores/${store.id}/Promotions/${storePromotion._id}`;
 
         storePromotion.image = uploadedImage;
 

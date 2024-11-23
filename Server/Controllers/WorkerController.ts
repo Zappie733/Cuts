@@ -184,17 +184,6 @@ export const registerWorker = async (req: Request, res: Response) => {
 
       await store.save();
 
-      const result = await imagekit.upload({
-        file: image.file, // base64 encoded string
-        fileName: `${store.id}_Image_${firstName + " " + lastName}`, // Unique filename for each image
-        folder: image.path, // Folder to upload to in ImageKit
-      });
-      console.log(result);
-
-      uploadedImage.imageId = result.fileId;
-      uploadedImage.file = result.url;
-      uploadedImage.path = image.path;
-
       const worker = store.workers.find(
         (worker) =>
           worker.firstName === firstName && worker.lastName === lastName
@@ -206,6 +195,17 @@ export const registerWorker = async (req: Request, res: Response) => {
           message: "Worker not found",
         });
       }
+
+      const result = await imagekit.upload({
+        file: image.file, // base64 encoded string
+        fileName: `Image_${firstName + " " + lastName}`, // Unique filename for each image
+        folder: `Stores/${store.id}/Workers/${worker._id}`, // Folder to upload to in ImageKit
+      });
+      console.log(result);
+
+      uploadedImage.imageId = result.fileId;
+      uploadedImage.file = result.url;
+      uploadedImage.path = `Stores/${store.id}/Workers/${worker._id}`;
 
       worker.image = uploadedImage;
 
@@ -287,7 +287,8 @@ export const deleteWorkerById = async (req: Request, res: Response) => {
         urlEndpoint: IMAGEKIT_BASEURL,
       });
 
-      await imagekit.deleteFile(worker.image.imageId ?? "");
+      //await imagekit.deleteFile(worker.image.imageId ?? "");
+      await imagekit.deleteFolder(`Stores/${store.id}/Workers/${worker._id}`);
 
       store.workers = store.workers.filter((workerData) => {
         if (worker._id && workerData._id)
@@ -419,14 +420,14 @@ export const updateWorker = async (req: Request, res: Response) => {
 
         const result = await imagekit.upload({
           file: image.file, // base64 encoded string
-          fileName: `${store.id}_Image_${firstName + " " + lastName}`, // Unique filename for each image
-          folder: image.path, // Folder to upload to in ImageKit
+          fileName: `Image_${firstName + " " + lastName}`, // Unique filename for each image
+          folder: `Stores/${store.id}/Workers/${worker._id}`, // Folder to upload to in ImageKit
         });
         console.log(result);
 
         uploadedImage.imageId = result.fileId;
         uploadedImage.file = result.url;
-        uploadedImage.path = image.path;
+        uploadedImage.path = `Stores/${store.id}/Workers/${worker._id}`;
 
         worker.image = uploadedImage;
 

@@ -12,10 +12,12 @@ export const UpdateStorePromotionValidate = (
     image: Joi.object({
       imageId: Joi.string().label("Image ID"),
       file: Joi.string()
-        .pattern(/^[A-Za-z0-9+/]+={0,2}$/) // Base64 validation pattern
+        .pattern(
+          /^(https?:\/\/[^\s]+|data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/]+={0,2}|[A-Za-z0-9+/]+={0,2})$/
+        ) // Base64 validation pattern
         .required()
         .label("File"),
-      path: Joi.string().required().label("Path"),
+      // path: Joi.string().required().label("Path"),
     }),
   });
 

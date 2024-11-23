@@ -12,7 +12,7 @@ export const AddSalesProductValidate = (data: AddSalesProductRequestObj) => {
             .pattern(/^[A-Za-z0-9+/]+={0,2}$/) // Base64 validation pattern
             .required()
             .label("File"),
-          path: Joi.string().required().label("Path"),
+          // path: Joi.string().required().label("Path"),
         })
       )
       .required()

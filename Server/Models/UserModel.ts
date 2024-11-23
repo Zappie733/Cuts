@@ -57,7 +57,6 @@ const UserSchema = new Schema(
             },
             path: {
               type: String,
-              required: true,
             },
           },
         ],
@@ -83,7 +82,6 @@ const UserSchema = new Schema(
             },
             path: {
               type: String,
-              required: true,
             },
           },
         ],
