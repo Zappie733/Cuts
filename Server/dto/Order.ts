@@ -3,6 +3,7 @@ export interface OrderObj {
   userId?: string;
   storeId: string;
   serviceIds: string[];
+  chosenServiceProductsIds?: string[];
   isManual: boolean;
   status?:
     | "Waiting for Confirmation"
@@ -22,6 +23,7 @@ export interface OrderObj {
 export interface AddOrderRequestObj {
   storeId?: string;
   serviceIds: string[];
+  chosenServiceProductsIds?: string[];
   isManual: boolean;
   totalPrice: number;
   totalDuration: number;

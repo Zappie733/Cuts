@@ -888,3 +888,167 @@ export const approveStore = async (req: Request, res: Response) => {
       .json(<ResponseObj>{ error: true, message: "Internal server error" });
   }
 };
+
+export const activeStore = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      if (payload.role !== "store") {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "Unauthorized, you are not a store",
+        });
+      }
+
+      const store = await STORES.findOne({
+        userId: payload._id,
+        status: "InActive",
+      });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found or not InActive",
+        });
+      }
+
+      await store.updateOne({
+        status: "Active",
+      });
+
+      const user = await USERS.findOne({ _id: store.userId });
+
+      if (user) {
+        await sendEmail(
+          "activeStore",
+          user.email,
+          `${store.name} is set to Active`,
+          "",
+          `owner of ${store.name}`
+        );
+
+        let userEmail = user.email;
+
+        return res.status(200).json(<ResponseObj>{
+          error: false,
+          message: `Store activated successfully, Email sent to ${userEmail}`,
+        });
+      }
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Store activated successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const inActiveStore = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      if (payload.role !== "store") {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "Unauthorized, you are not a store",
+        });
+      }
+
+      const store = await STORES.findOne({
+        userId: payload._id,
+        status: "Active",
+      });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found or not Active",
+        });
+      }
+
+      await store.updateOne({
+        status: "InActive",
+      });
+
+      const user = await USERS.findOne({ _id: store.userId });
+
+      if (user) {
+        await sendEmail(
+          "inActiveStore",
+          user.email,
+          `${store.name} is set to InActive`,
+          "",
+          `owner of ${store.name}`
+        );
+
+        let userEmail = user.email;
+
+        return res.status(200).json(<ResponseObj>{
+          error: false,
+          message: `Store inactived successfully, Email sent to ${userEmail}`,
+        });
+      }
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Store inactived successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};

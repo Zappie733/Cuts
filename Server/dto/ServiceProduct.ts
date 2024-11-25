@@ -9,6 +9,7 @@ export interface ServiceProductObj {
   isAnOption: boolean;
   addtionalPrice?: number;
   image: ImageRequestObj;
+  isAlerted?: boolean;
 }
 
 export interface AddServiceProductRequestObj {

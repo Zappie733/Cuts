@@ -14,7 +14,10 @@ export const sendEmail = async (
     | "rejectStore"
     | "holdStore"
     | "unHoldStore"
-    | "approveStore",
+    | "approveStore"
+    | "activeStore"
+    | "inActiveStore"
+    | "serviceProductQuantityAlert",
   email: string,
   subject: string,
   text: string,
@@ -103,6 +106,24 @@ export const sendEmail = async (
         <p>Hi ${name},</p>
         <p>Your store registration was approved by our admin.</p>
         <p>You can now check your store and make changes in the app.</p>
+        <p>Thank you!</p>
+        `
+          : type === "activeStore"
+          ? `
+        <p>Hi ${name},</p>
+        <p>Your store is now active in the app.</p>
+        <p>Thank you!</p>
+        `
+          : type === "inActiveStore"
+          ? `
+        <p>Hi ${name},</p>
+        <p>Your store is now inactive in the app.</p>
+        <p>Thank you!</p>
+        `
+          : type === "serviceProductQuantityAlert"
+          ? `
+        <p>Hi ${name},</p>
+        <p>${text}</p>
         <p>Thank you!</p>
         `
           : "",

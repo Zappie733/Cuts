@@ -410,6 +410,7 @@ export const updateServiceProduct = async (req: Request, res: Response) => {
       serviceProduct.description = description;
       serviceProduct.isAnOption = isAnOption;
       serviceProduct.addtionalPrice = addtionalPrice;
+      serviceProduct.isAlerted = false;
 
       await store.save();
 

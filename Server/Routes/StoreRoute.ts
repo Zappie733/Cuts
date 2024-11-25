@@ -1,10 +1,12 @@
 import express from "express";
 import {
+  activeStore,
   approveStore,
   deleteStore,
   getStoresByStatus,
   getStoresByUserId,
   holdStore,
+  inActiveStore,
   registerStore,
   rejectStore,
   unHoldStore,
@@ -68,8 +70,10 @@ StoreRoute.delete("/deleteStore", deleteStore);
 StoreRoute.get("/getStoresByStatus", getStoresByStatus);
 StoreRoute.post("/rejectStore", rejectStore);
 StoreRoute.post("/holdStore", holdStore);
-StoreRoute.get("/unHoldStore/:id", unHoldStore);
-StoreRoute.get("/approveStore/:id", approveStore);
+StoreRoute.patch("/unHoldStore/:id", unHoldStore);
+StoreRoute.patch("/approveStore/:id", approveStore);
+StoreRoute.patch("/activeStore", activeStore);
+StoreRoute.patch("/inActiveStore", inActiveStore);
 
 //Worker
 StoreRoute.get("/worker/getWorkersByStoreId/:id", getWorkersByStoreId);

@@ -154,6 +154,10 @@ export const ServiceProductSchema = new Schema(
         type: String,
       },
     },
+    isAlerted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: {

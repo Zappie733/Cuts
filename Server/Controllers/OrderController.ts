@@ -19,6 +19,7 @@ import {
   OrderSummary,
 } from "../Response/OrderResponse";
 import { RejectOrderValidate } from "../Validation/OrderValidation/RejectOrderValidate";
+import { sendEmail } from "../Utils/UserUtil";
 
 export const addOrder = async (req: Request, res: Response) => {
   try {
@@ -59,9 +60,10 @@ export const addOrder = async (req: Request, res: Response) => {
         totalDuration,
         workerId,
         date,
+        chosenServiceProductsIds,
       } = <AddOrderRequestObj>req.body;
 
-      //check store
+      //check storeId Validity
       if (!isManual && storeId) {
         if (!mongoose.Types.ObjectId.isValid(storeId ? storeId : "")) {
           return res.status(400).json(<ResponseObj>{
@@ -87,14 +89,17 @@ export const addOrder = async (req: Request, res: Response) => {
       const currentTime = new Date(Date.now() + 7 * 60 * 60 * 1000);
       let startTime = new Date(date);
       let endTime = new Date(startTime.getTime() + totalDuration * 60 * 1000);
-      // console.log(startTime);
-      // console.log(endTime);
-      //check order date, can must between opening and closing time
-      // console.log(startTime.getHours() * 60);
-      // console.log(store.openHour * 60);
-      // console.log(endTime.getHours() * 60);
-      // console.log(store.closeHour * 60);
+      // {
+      //   // console.log(startTime);
+      //   // console.log(endTime);
+      //   //check order date, can must between opening and closing time
+      //   // console.log(startTime.getHours() * 60);
+      //   // console.log(store.openHour * 60);
+      //   // console.log(endTime.getHours() * 60);
+      //   // console.log(store.closeHour * 60);
 
+      // }
+      //check whether the shop is still open
       if (
         startTime.getHours() * 60 + startTime.getMinutes() <
           store.openHour * 60 + store.openMinute ||
@@ -121,8 +126,32 @@ export const addOrder = async (req: Request, res: Response) => {
       let longestAvailableWorkerId: string | undefined = "";
       let longestAvailableTime: Date | undefined = undefined;
 
-      // Check if there are any conflicting orders
       if (workerId) {
+        if (!mongoose.Types.ObjectId.isValid(workerId)) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message: "Invalid Worker ID",
+          });
+        }
+
+        //check whether the store allows to choose worker or not
+        if (!store.canChooseWorker) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message: "Store cannot choose worker",
+          });
+        }
+
+        const worker = store.workers.find(
+          (worker) => worker._id?.toString() === workerId.toString()
+        );
+        if (!worker) {
+          return res
+            .status(404)
+            .json(<ResponseObj>{ error: true, message: "Worker not found" });
+        }
+
+        // Check if there are any conflicting orders
         const conflictingOrder = await ORDERS.findOne({
           storeId: store._id,
           workerId: workerId,
@@ -132,6 +161,7 @@ export const addOrder = async (req: Request, res: Response) => {
               "Waiting for Confirmation",
               "Waiting for Payment",
               "Paid",
+              "Completed",
             ],
           },
           $or: [
@@ -157,6 +187,7 @@ export const addOrder = async (req: Request, res: Response) => {
               "Waiting for Confirmation",
               "Waiting for Payment",
               "Paid",
+              "Completed",
             ],
           },
           $or: [
@@ -193,7 +224,7 @@ export const addOrder = async (req: Request, res: Response) => {
             storeId: store._id,
             workerId: availableWorkerId,
             status: {
-              $in: [undefined, "Completed"],
+              $in: [undefined, "Paid", "Completed"],
             },
           }).sort({ endTime: -1 });
           console.log(lastOrder);
@@ -217,53 +248,86 @@ export const addOrder = async (req: Request, res: Response) => {
         }
       }
 
+      //user store untuk send email alert quantity email
+      const user = await USERS.findOne({ _id: store.userId });
+
+      //check whether all the needed services are available
+      for (const serviceId of serviceIds) {
+        if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message: "Invalid Service ID " + serviceId,
+          });
+        }
+
+        const service = store.services.find(
+          (service) => service._id?.toString() === serviceId.toString()
+        );
+        if (!service) {
+          return res.status(404).json(<ResponseObj>{
+            error: true,
+            message: "Service not found " + serviceId,
+          });
+        }
+
+        if (service.serviceProduct) {
+          const allServiceProductIds = service.serviceProduct;
+          console.log("All Service Products Ids: " + allServiceProductIds);
+
+          for (const serviceProductId of allServiceProductIds) {
+            const serviceProduct = store.serviceProducts.find(
+              (serviceProduct) =>
+                serviceProduct._id?.toString() === serviceProductId.toString()
+            );
+
+            if (
+              serviceProduct &&
+              (serviceProduct.isAnOption === false ||
+                chosenServiceProductsIds?.includes(
+                  serviceProduct._id?.toString() ?? ""
+                ))
+            ) {
+              if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
+                return res.status(400).json(<ResponseObj>{
+                  error: true,
+                  message: "Invalid Service Product ID " + serviceProductId,
+                });
+              }
+
+              if (serviceProduct.quantity === 0) {
+                return res.status(400).json(<ResponseObj>{
+                  error: true,
+                  message: `Service Product (${serviceProduct.name}) is out of stock `,
+                });
+              } else if (serviceProduct.quantity > 0) {
+                serviceProduct.quantity -= 1;
+                console.log("decrese quantitiy for" + serviceProduct._id);
+                //alert for quantity send to user store email (for manual, for automatic order it will be notify when user have already confirmed payment)
+                if (
+                  !serviceProduct.isAlerted &&
+                  isManual &&
+                  serviceProduct.quantity <= serviceProduct.alertQuantity
+                ) {
+                  if (user) {
+                    await sendEmail(
+                      "serviceProductQuantityAlert",
+                      user.email,
+                      `${store.name}, Service Product Quantity Alert`,
+                      `Hey there, we just want to inform that your service product (${serviceProduct.name}) quantity is about to get out of stock.`,
+                      `owner of ${store.name}`
+                    );
+                    serviceProduct.isAlerted = true;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      await store.save();
+
       if (isManual) {
-        for (const serviceId of serviceIds) {
-          if (!mongoose.Types.ObjectId.isValid(serviceId)) {
-            return res.status(400).json(<ResponseObj>{
-              error: true,
-              message: "Invalid Service ID " + serviceId,
-            });
-          }
-        }
-
-        for (const serviceId of serviceIds) {
-          const service = store.services.find(
-            (service) => service._id?.toString() === serviceId.toString()
-          );
-          if (!service) {
-            return res.status(404).json(<ResponseObj>{
-              error: true,
-              message: "Service not found " + serviceId,
-            });
-          }
-        }
-
-        if (workerId) {
-          if (!mongoose.Types.ObjectId.isValid(workerId)) {
-            return res.status(400).json(<ResponseObj>{
-              error: true,
-              message: "Invalid Worker ID",
-            });
-          }
-
-          if (!store.canChooseWorker) {
-            return res.status(400).json(<ResponseObj>{
-              error: true,
-              message: "Store cannot choose worker",
-            });
-          }
-
-          const worker = store.workers.find(
-            (worker) => worker._id?.toString() === workerId.toString()
-          );
-          if (!worker) {
-            return res
-              .status(404)
-              .json(<ResponseObj>{ error: true, message: "Worker not found" });
-          }
-        }
-
         const newOrder = new ORDERS({
           storeId: store._id,
           serviceIds,
@@ -273,6 +337,7 @@ export const addOrder = async (req: Request, res: Response) => {
           date: startTime,
           endTime: endTime,
           workerId: workerId ? workerId : longestAvailableWorkerId,
+          chosenServiceProductsIds,
         });
 
         await newOrder.save();
@@ -289,52 +354,6 @@ export const addOrder = async (req: Request, res: Response) => {
             .json(<ResponseObj>{ error: true, message: "User not found" });
         }
 
-        for (const serviceId of serviceIds) {
-          if (!mongoose.Types.ObjectId.isValid(serviceId)) {
-            return res.status(400).json(<ResponseObj>{
-              error: true,
-              message: "Invalid Service ID " + serviceId,
-            });
-          }
-        }
-
-        for (const serviceId of serviceIds) {
-          const service = store.services.find(
-            (service) => service._id?.toString() === serviceId.toString()
-          );
-          if (!service) {
-            return res.status(404).json(<ResponseObj>{
-              error: true,
-              message: "Service not found " + serviceId,
-            });
-          }
-        }
-
-        if (workerId) {
-          if (!mongoose.Types.ObjectId.isValid(workerId)) {
-            return res.status(400).json(<ResponseObj>{
-              error: true,
-              message: "Invalid Worker ID",
-            });
-          }
-
-          if (!store.canChooseWorker) {
-            return res.status(400).json(<ResponseObj>{
-              error: true,
-              message: "Store cannot choose worker",
-            });
-          }
-
-          const worker = store.workers.find(
-            (worker) => worker._id?.toString() === workerId.toString()
-          );
-          if (!worker) {
-            return res
-              .status(404)
-              .json(<ResponseObj>{ error: true, message: "Worker not found" });
-          }
-        }
-
         const newOrder = new ORDERS({
           storeId,
           serviceIds,
@@ -347,6 +366,7 @@ export const addOrder = async (req: Request, res: Response) => {
           userId: payload._id,
           hasRating: false,
           workerId: workerId ? workerId : longestAvailableWorkerId,
+          chosenServiceProductsIds,
         });
 
         await newOrder.save();
@@ -845,6 +865,78 @@ export const payOrder = async (req: Request, res: Response) => {
 
       await order.save();
 
+      //alert service product quantity untuk automatic order
+      if (order.isManual === false) {
+        const store = await STORES.findOne({ _id: order.storeId });
+
+        if (!store) {
+          return res.status(404).json(<ResponseObj>{
+            error: true,
+            message: "Store not found",
+          });
+        }
+
+        const user = await USERS.findOne({ _id: store.userId });
+
+        for (const serviceId of order.serviceIds) {
+          const service = store.services.find(
+            (service) => service._id?.toString() === serviceId.toString()
+          );
+          if (!service) {
+            return res.status(404).json(<ResponseObj>{
+              error: true,
+              message: "Service not found " + serviceId,
+            });
+          }
+
+          if (service.serviceProduct) {
+            const allServiceProductIds = service.serviceProduct;
+            console.log("All Service Products Ids: " + allServiceProductIds);
+
+            for (const serviceProductId of allServiceProductIds) {
+              const serviceProduct = store.serviceProducts.find(
+                (serviceProduct) =>
+                  serviceProduct._id?.toString() === serviceProductId.toString()
+              );
+
+              if (
+                serviceProduct &&
+                (serviceProduct.isAnOption === false ||
+                  order.chosenServiceProductsIds?.includes(
+                    serviceProduct._id?.toString() ?? ""
+                  ))
+              ) {
+                if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
+                  return res.status(400).json(<ResponseObj>{
+                    error: true,
+                    message: "Invalid Service Product ID " + serviceProductId,
+                  });
+                }
+
+                if (
+                  !serviceProduct.isAlerted &&
+                  serviceProduct.quantity <= serviceProduct.alertQuantity
+                ) {
+                  if (user) {
+                    await sendEmail(
+                      "serviceProductQuantityAlert",
+                      user.email,
+                      `${store.name}, Service Product Quantity Alert`,
+                      `Hey there, we just want to inform that your service product (${serviceProduct.name}) quantity is about to get out of stock.`,
+                      `owner of ${store.name}`
+                    );
+
+                    serviceProduct.isAlerted = true;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        await store.save();
+      }
+
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: "Order has been paid successfully",
@@ -889,18 +981,28 @@ export const completeOrder = async (req: Request, res: Response) => {
         });
       }
 
+      const currentTime = new Date(Date.now() + 7 * 60 * 60 * 1000);
+
       const order = await ORDERS.findOne({
         _id: orderId,
-        status: "Paid",
+        status: {
+          $in: [undefined, "Paid"],
+        },
+        date: {
+          $lte: currentTime,
+        },
       });
+
       if (!order) {
         return res.status(404).json(<ResponseObj>{
           error: true,
-          message: "Order not found or is not in Paid Status",
+          message:
+            "Order not found or is neither in Paid Status or a Manual Order or have not started yet",
         });
       }
 
       order.status = "Completed";
+      order.endTime = currentTime;
 
       await order.save();
 
