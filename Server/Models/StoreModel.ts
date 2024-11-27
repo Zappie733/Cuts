@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { StoreObj } from "../dto/Store";
+
 //image done
 export const WorkerSchema = new Schema(
   {
@@ -416,6 +417,11 @@ const StoreSchema = new Schema(
     salesProducts: [SalesProductSchema],
     storePromotions: [StorePromotionSchema],
     gallery: [GallerySchema],
+    toleranceTime: {
+      type: Number,
+      required: true,
+      default: 10,
+    },
   },
   {
     toJSON: {

@@ -7,6 +7,7 @@ import {
   OrderRoute,
   RatingRoute,
 } from "../Routes";
+import { InitializeCronJobs } from "../Utils/CronJobs";
 
 export default async (app: Application) => {
   app.use(cors());
@@ -21,6 +22,8 @@ export default async (app: Application) => {
   app.use("/store", StoreRoute);
   app.use("/order", OrderRoute);
   app.use("/rating", RatingRoute);
+
+  InitializeCronJobs();
 
   return app;
 };

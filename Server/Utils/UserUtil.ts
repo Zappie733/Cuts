@@ -17,7 +17,12 @@ export const sendEmail = async (
     | "approveStore"
     | "activeStore"
     | "inActiveStore"
-    | "serviceProductQuantityAlert",
+    | "serviceProductQuantityAlert"
+    | "notifyRejectOrder"
+    | "cronReject"
+    | "notifyConfirmOrder"
+    | "notifyPayOrder"
+    | "notifyUpdateStore",
   email: string,
   subject: string,
   text: string,
@@ -120,12 +125,33 @@ export const sendEmail = async (
         <p>Your store is now inactive in the app.</p>
         <p>Thank you!</p>
         `
-          : type === "serviceProductQuantityAlert"
+          : type === "serviceProductQuantityAlert" ||
+            type === "cronReject" ||
+            type === "notifyUpdateStore"
           ? `
         <p>Hi ${name},</p>
         <p>${text}</p>
         <p>Thank you!</p>
         `
+          : type === "notifyRejectOrder"
+          ? `
+          <p>Hi ${name},</p>
+          <p>Sorry we just want to inform you that your order has been rejected because of the reason below: </p>
+          <p>${text}</p>
+          <p>Thank you!</p>
+          `
+          : type === "notifyConfirmOrder"
+          ? `
+          <p>Hi ${name},</p>
+          <p>${text}</p>  
+          <p>IMPORTANT NOTE: You only have 5 Minutes to complete the payment otherwise it will be invalid and your order will be canceled.</p>
+          <p>Thank you!</p>`
+          : type === "notifyPayOrder"
+          ? `
+          <p>Hi ${name},</p>
+          <p>${text}</p>  
+          <p>IMPORTANT NOTE: Remember to come on time. The store has the right to cancel your order if you are late more than their tolarance time.</p>
+          <p>Thank you!</p>`
           : "",
     });
     console.log("Email send successfully");

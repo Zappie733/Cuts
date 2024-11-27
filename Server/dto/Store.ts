@@ -47,6 +47,8 @@ export interface StoreObj {
   storePromotions: StorePromotionObj[];
 
   gallery: GalleryObj[];
+
+  toleranceTime: number;
 }
 
 export interface IDocumentProps {
@@ -90,4 +92,19 @@ export interface RejectStoreRequestObj {
 export interface OnHoldStoreRequestObj {
   storeId: string;
   onHoldReason: string;
+}
+
+//update store
+//store open close (is open)
+
+export interface UpdateStoreGeneralInformationRequestObj {
+  name: string;
+  images: ImageRequestObj[];
+  location: string;
+  openHour: number;
+  openMinute: number;
+  closeHour: number;
+  closeMinute: number;
+  canChooseWorker: boolean;
+  toleranceTime: number;
 }

@@ -104,7 +104,8 @@ export const addOrder = async (req: Request, res: Response) => {
         startTime.getHours() * 60 + startTime.getMinutes() <
           store.openHour * 60 + store.openMinute ||
         endTime.getHours() * 60 + endTime.getMinutes() >
-          store.closeHour * 60 + store.closeMinute
+          store.closeHour * 60 + store.closeMinute ||
+        store.isOpen === false
       ) {
         return res.status(400).json(<ResponseObj>{
           error: true,
@@ -313,7 +314,7 @@ export const addOrder = async (req: Request, res: Response) => {
                       "serviceProductQuantityAlert",
                       user.email,
                       `${store.name}, Service Product Quantity Alert`,
-                      `Hey there, we just want to inform that your service product (${serviceProduct.name}) quantity is about to get out of stock.`,
+                      `We just want to inform that your service product (${serviceProduct.name}) quantity is about to get out of stock.`,
                       `owner of ${store.name}`
                     );
                     serviceProduct.isAlerted = true;
@@ -709,6 +710,20 @@ export const confirmOrder = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
       const { id: orderId } = req.params;
 
       if (!mongoose.Types.ObjectId.isValid(orderId)) {
@@ -730,9 +745,30 @@ export const confirmOrder = async (req: Request, res: Response) => {
         });
       }
 
+      if (order.storeId.toString() !== store._id.toString()) {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "You are not authorized to confirm this order",
+        });
+      }
+
       order.status = "Waiting for Payment";
 
       await order.save();
+
+      //notify the user via email
+      const user = await USERS.findOne({ _id: order.userId });
+      // const store = await STORES.findOne({ _id: order.storeId });
+
+      if (user && store) {
+        await sendEmail(
+          "notifyConfirmOrder",
+          user.email,
+          `${user.firstName} your order has been confirmed by ${store.name}`,
+          `We just want to inform you that your ${order._id} has been confirmed and now is waiting for your payment.`,
+          `${user.firstName}`
+        );
+      }
 
       return res.status(200).json(<ResponseObj>{
         error: false,
@@ -769,6 +805,20 @@ export const rejectOrder = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
       const { error } = RejectOrderValidate(<RejectOrderRequestObj>req.body);
 
       if (error) {
@@ -799,10 +849,86 @@ export const rejectOrder = async (req: Request, res: Response) => {
         });
       }
 
+      if (order.storeId.toString() !== store._id.toString()) {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "You are not authorized to reject this order",
+        });
+      }
+
       order.status = "Rejected";
       order.rejectedReason = rejectedReason;
 
       await order.save();
+
+      //notify the user via email
+      const user = await USERS.findOne({ _id: order.userId });
+      //const store = await STORES.findOne({ _id: order.storeId });
+
+      if (user && store) {
+        await sendEmail(
+          "notifyRejectOrder",
+          user.email,
+          `${user.firstName} your order has been rejected by ${store.name}`,
+          `${rejectedReason}`,
+          `${user.firstName}`
+        );
+      }
+
+      //just for automatic order, increase the service products back
+      if (order.isManual === false) {
+        const store = await STORES.findOne({ _id: order.storeId });
+
+        if (!store) {
+          return res.status(404).json(<ResponseObj>{
+            error: true,
+            message: "Store not found",
+          });
+        }
+
+        for (const serviceId of order.serviceIds) {
+          const service = store.services.find(
+            (service) => service._id?.toString() === serviceId.toString()
+          );
+          if (!service) {
+            return res.status(404).json(<ResponseObj>{
+              error: true,
+              message: "Service not found " + serviceId,
+            });
+          }
+
+          if (service.serviceProduct) {
+            const allServiceProductIds = service.serviceProduct;
+            console.log("All Service Products Ids: " + allServiceProductIds);
+
+            for (const serviceProductId of allServiceProductIds) {
+              const serviceProduct = store.serviceProducts.find(
+                (serviceProduct) =>
+                  serviceProduct._id?.toString() === serviceProductId.toString()
+              );
+
+              if (
+                serviceProduct &&
+                (serviceProduct.isAnOption === false ||
+                  order.chosenServiceProductsIds?.includes(
+                    serviceProduct._id?.toString() ?? ""
+                  ))
+              ) {
+                if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
+                  return res.status(400).json(<ResponseObj>{
+                    error: true,
+                    message: "Invalid Service Product ID " + serviceProductId,
+                  });
+                }
+
+                serviceProduct.quantity += 1;
+              }
+            }
+          }
+        }
+
+        await store.save();
+      }
 
       return res.status(200).json(<ResponseObj>{
         error: false,
@@ -839,6 +965,20 @@ export const payOrder = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const user = await USERS.findOne({ _id: payload._id });
+
+      if (!user) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "User not found",
+        });
+      }
+
       const { id: orderId } = req.params;
 
       if (!mongoose.Types.ObjectId.isValid(orderId)) {
@@ -859,11 +999,32 @@ export const payOrder = async (req: Request, res: Response) => {
         });
       }
 
+      if (order.userId?.toString() !== user._id?.toString()) {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "You are not authorized to pay this order",
+        });
+      }
+
       //logic payment
 
       order.status = "Paid";
 
       await order.save();
+
+      //notify the user via email
+      // const user = await USERS.findOne({ _id: order.userId });
+      const store = await STORES.findOne({ _id: order.storeId });
+
+      if (user && store) {
+        await sendEmail(
+          "notifyPayOrder",
+          user.email,
+          `${user.firstName} your order for ${store.name} has been paid successfully`,
+          `We just want to inform you that your ${order._id} has been paid successfully.`,
+          `${user.firstName}`
+        );
+      }
 
       //alert service product quantity untuk automatic order
       if (order.isManual === false) {
@@ -922,7 +1083,7 @@ export const payOrder = async (req: Request, res: Response) => {
                       "serviceProductQuantityAlert",
                       user.email,
                       `${store.name}, Service Product Quantity Alert`,
-                      `Hey there, we just want to inform that your service product (${serviceProduct.name}) quantity is about to get out of stock.`,
+                      `We just want to inform that your service product (${serviceProduct.name}) quantity is about to get out of stock.`,
                       `owner of ${store.name}`
                     );
 
@@ -972,6 +1133,20 @@ export const completeOrder = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
       const { id: orderId } = req.params;
 
       if (!mongoose.Types.ObjectId.isValid(orderId)) {
@@ -998,6 +1173,13 @@ export const completeOrder = async (req: Request, res: Response) => {
           error: true,
           message:
             "Order not found or is neither in Paid Status or a Manual Order or have not started yet",
+        });
+      }
+
+      if (order.storeId.toString() !== store._id.toString()) {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "You are not authorized to complete this order",
         });
       }
 

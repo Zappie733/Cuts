@@ -66,8 +66,8 @@ const OrderSchema = new Schema(
     toJSON: {
       transform(doc, ret) {
         delete ret.__v;
-        delete ret.createdAt;
-        delete ret.updatedAt;
+        //delete ret.createdAt; //comment because need for cron job
+        //delete ret.updatedAt; //comment because need for cron job
       },
     },
     timestamps: true,

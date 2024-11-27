@@ -10,6 +10,8 @@ import {
   registerStore,
   rejectStore,
   unHoldStore,
+  updateStoreGeneralInformation,
+  updateStoreOpenCloseStatus,
   verifyStore,
 } from "../Controllers/StoreController";
 
@@ -74,6 +76,11 @@ StoreRoute.patch("/unHoldStore/:id", unHoldStore);
 StoreRoute.patch("/approveStore/:id", approveStore);
 StoreRoute.patch("/activeStore", activeStore);
 StoreRoute.patch("/inActiveStore", inActiveStore);
+StoreRoute.patch(
+  "/updateStoreGeneralInformation",
+  updateStoreGeneralInformation
+);
+StoreRoute.patch("/updateStoreOpenCloseStatus", updateStoreOpenCloseStatus);
 
 //Worker
 StoreRoute.get("/worker/getWorkersByStoreId/:id", getWorkersByStoreId);

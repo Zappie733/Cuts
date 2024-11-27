@@ -14,6 +14,7 @@ import {
   DeleteStoreRequestObj,
   StoreObj,
   UserObj,
+  UpdateStoreGeneralInformationRequestObj,
 } from "../dto";
 import bcrypt from "bcrypt";
 import {
@@ -42,6 +43,7 @@ import {
 } from "../Validation/StoreValidation";
 import mongoose from "mongoose";
 import { OnHoldStoreValidate } from "../Validation/StoreValidation/OnHoldStoreValidate";
+import { UpdateStoreGeneralInformationValidate } from "../Validation/StoreValidation/UpdateStoreGeneralInformationValidate";
 
 export const registerStore = async (req: Request, res: Response) => {
   try {
@@ -1039,6 +1041,254 @@ export const inActiveStore = async (req: Request, res: Response) => {
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: "Store inactived successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const updateStoreGeneralInformation = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res
+          .status(404)
+          .json(<ResponseObj>{ error: true, message: "Store not found" });
+      }
+
+      const { error } = UpdateStoreGeneralInformationValidate(
+        <UpdateStoreGeneralInformationRequestObj>req.body
+      );
+      // console.log(error);
+      if (error)
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: error.details[0].message,
+        });
+
+      const {
+        name,
+        images,
+        location,
+        openHour,
+        openMinute,
+        closeHour,
+        closeMinute,
+        canChooseWorker,
+        toleranceTime,
+      } = <UpdateStoreGeneralInformationRequestObj>req.body;
+
+      const storeNameExist = await STORES.findOne({ name: name });
+
+      if (
+        storeNameExist &&
+        storeNameExist._id.toString() !== store._id.toString()
+      ) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Store name already exist",
+        });
+      }
+
+      if (openHour >= closeHour) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Open hour must be less than close hour",
+        });
+      }
+
+      if (toleranceTime < 10) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Tolerance time must be greater than or equal to 10 minutes",
+        });
+      }
+
+      store.name = name;
+      store.location = location;
+      store.openHour = openHour;
+      store.openMinute = openMinute;
+      store.closeHour = closeHour;
+      store.closeMinute = closeMinute;
+      store.canChooseWorker = canChooseWorker;
+      store.toleranceTime = toleranceTime;
+
+      const imagekit = new ImageKit({
+        publicKey: IMAGEKIT_PUBLIC_KEY,
+        privateKey: IMAGEKIT_PRIVATE_KEY,
+        urlEndpoint: IMAGEKIT_BASEURL,
+      });
+
+      const imageIdsToKeep: any = [];
+
+      for (const imageObj of images) {
+        if (imageObj.imageId === undefined) {
+          console.log("skipping keeping filter because imageId is undefined");
+          continue;
+        }
+
+        const image = store.images.find(
+          (imageData) => imageData.imageId === imageObj.imageId
+        );
+
+        if (image) {
+          console.log("push imageId to imageIdsToKeep " + imageObj.imageId);
+          imageIdsToKeep.push(imageObj.imageId);
+        }
+      }
+
+      console.log(imageIdsToKeep);
+
+      //delete images in imagekit that is not in imageIdsToKeep
+      for (const imageObj of store.images) {
+        if (imageObj.imageId) {
+          if (!imageIdsToKeep.includes(imageObj.imageId)) {
+            console.log("deleting image " + imageObj.imageId);
+            await imagekit.deleteFile(imageObj.imageId);
+          }
+        }
+      }
+
+      //remove images from store that is not in imageIdsToKeep
+      store.images = store.images.filter((imageData) =>
+        imageIdsToKeep.includes(imageData.imageId)
+      );
+
+      console.log(store.images);
+      await store.save();
+
+      // Upload each new image
+      for (const [index, imageObj] of images.entries()) {
+        if (imageObj.imageId !== undefined) {
+          console.log(`skipping upload for ${imageObj.imageId}`);
+          continue;
+        }
+
+        const result = await imagekit.upload({
+          file: imageObj.file, // base64 encoded string
+          fileName: `Image_${index}`, // Unique filename for each image
+          folder: `Stores/${store.id}/Images`, // Folder to upload to in ImageKit
+        });
+        console.log(result);
+        // Add the uploaded image URL to the array
+        store.images.push({
+          imageId: result.fileId,
+          file: result.url,
+          path: `Stores/${store.id}/Images`,
+        });
+      }
+
+      await store.save();
+
+      //notify store via email
+      await sendEmail(
+        "notifyUpdateStore",
+        store.email,
+        `Update Store Success`,
+        `We just want to inform you that your store ${store.name} has been updated successfully.`,
+        `owner of ${store.name}`
+      );
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: `Store has been updated successfully`,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const updateStoreOpenCloseStatus = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+      const store = await STORES.findOne({ userId: payload._id });
+
+      if (!store) {
+        return res
+          .status(404)
+          .json(<ResponseObj>{ error: true, message: "Store not found" });
+      }
+
+      store.isOpen = !store.isOpen;
+
+      await store.save();
+
+      //notify store via email
+      await sendEmail(
+        "notifyUpdateStore",
+        store.email,
+        `Update Store Success`,
+        `We just want to inform you that you just set your store ${
+          store.name
+        } to ${store.isOpen ? "Open" : "Close"}`,
+        `owner of ${store.name}`
+      );
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: `Store has been updated successfully`,
       });
     }
 
