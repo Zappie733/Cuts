@@ -24,16 +24,17 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { Auth, User } from "../../Contexts";
 import { getAppSummary } from "../../Middlewares/AppMiddleware";
 import {
+  GetAdminRecentActivityResponse,
   GetAppSummaryResponse,
   IResponseProps,
-  StoreResponse,
 } from "../../Types/ResponseTypes";
-import { logoutUser } from "../../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../../Config/AsyncStorage";
-import { IAuthObj } from "../../Types/AuthContextTypes";
+import { IAuthObj } from "../../Types/ContextTypes/AuthContextTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
-import { getAdminRecentActivityQueryParams } from "../../Types/AdminHomeScreenTypes";
-import { getAdminRecentActivity } from "../../Middlewares/UserMiddleware";
+import {
+  getAdminRecentActivity,
+  logoutUser,
+} from "../../Middlewares/UserMiddleware";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -60,7 +61,7 @@ export const AdminHomeScreen = ({
   const [appData, setAppData] = useState(defaultAppData);
   // console.log(appData);
   const handleFetchAppSummary = async () => {
-    const response = await getAppSummary(auth, updateAccessToken);
+    const response = await getAppSummary({ auth, updateAccessToken });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -95,20 +96,21 @@ export const AdminHomeScreen = ({
   };
 
   const [adminRecentApprove, setAdminRecentApprove] =
-    useState<StoreResponse[]>();
-  const [adminRecentReject, setAdminRecentReject] = useState<StoreResponse[]>();
-  const [adminRecentHold, setAdminRecentHold] = useState<StoreResponse[]>();
-  const [adminRecentUnHold, setAdminRecentUnHold] = useState<StoreResponse[]>();
+    useState<GetAdminRecentActivityResponse>();
+  const [adminRecentReject, setAdminRecentReject] =
+    useState<GetAdminRecentActivityResponse>();
+  const [adminRecentHold, setAdminRecentHold] =
+    useState<GetAdminRecentActivityResponse>();
+  const [adminRecentUnHold, setAdminRecentUnHold] =
+    useState<GetAdminRecentActivityResponse>();
 
   const handleFetchAdminRecentApprove = async () => {
-    const data: getAdminRecentActivityQueryParams = {
-      activity: "Approve",
-    };
-    const response = await getAdminRecentActivity(
+    const data = "Approve";
+    const response = await getAdminRecentActivity({
       auth,
       updateAccessToken,
-      data
-    );
+      data,
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -143,14 +145,13 @@ export const AdminHomeScreen = ({
   };
 
   const handleFetchAdminRecentReject = async () => {
-    const data: getAdminRecentActivityQueryParams = {
-      activity: "Reject",
-    };
-    const response = await getAdminRecentActivity(
+    const data = "Reject";
+
+    const response = await getAdminRecentActivity({
       auth,
       updateAccessToken,
-      data
-    );
+      data,
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -185,14 +186,13 @@ export const AdminHomeScreen = ({
   };
 
   const handleFetchAdminRecentHold = async () => {
-    const data: getAdminRecentActivityQueryParams = {
-      activity: "Hold",
-    };
-    const response = await getAdminRecentActivity(
+    const data = "Hold";
+
+    const response = await getAdminRecentActivity({
       auth,
       updateAccessToken,
-      data
-    );
+      data,
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -227,14 +227,12 @@ export const AdminHomeScreen = ({
   };
 
   const handleFetchAdminRecentUnHold = async () => {
-    const data: getAdminRecentActivityQueryParams = {
-      activity: "UnHold",
-    };
-    const response = await getAdminRecentActivity(
+    const data = "UnHold";
+    const response = await getAdminRecentActivity({
       auth,
       updateAccessToken,
-      data
-    );
+      data,
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -441,9 +439,9 @@ export const AdminHomeScreen = ({
             </Text>
 
             {adminRecentApprove &&
-              adminRecentApprove.length > 0 &&
-              adminRecentApprove.map((item, index) => {
-                const approvedDate = new Date(item.store.approvedDate);
+              adminRecentApprove.activities.length > 0 &&
+              adminRecentApprove.activities.map((item, index) => {
+                const approvedDate = new Date(item.approvedDate);
                 approvedDate.setHours(approvedDate.getHours() - 7);
 
                 return (
@@ -458,7 +456,7 @@ export const AdminHomeScreen = ({
                           { color: activeColors.accent },
                         ]}
                       >
-                        {item.store.name}
+                        {item.name}
                       </Text>
                     </View>
 
@@ -504,9 +502,9 @@ export const AdminHomeScreen = ({
             </Text>
 
             {adminRecentReject &&
-              adminRecentReject.length > 0 &&
-              adminRecentReject.map((item, index) => {
-                const rejectedDate = new Date(item.store.rejectedDate);
+              adminRecentReject.activities.length > 0 &&
+              adminRecentReject.activities.map((item, index) => {
+                const rejectedDate = new Date(item.rejectedDate);
                 rejectedDate.setHours(rejectedDate.getHours() - 7);
 
                 return (
@@ -521,7 +519,7 @@ export const AdminHomeScreen = ({
                           { color: activeColors.accent },
                         ]}
                       >
-                        {item.store.name}
+                        {item.name}
                       </Text>
                     </View>
 
@@ -567,9 +565,9 @@ export const AdminHomeScreen = ({
             </Text>
 
             {adminRecentHold &&
-              adminRecentHold.length > 0 &&
-              adminRecentHold.map((item, index) => {
-                const holdDate = new Date(item.store.onHoldDate);
+              adminRecentHold.activities.length > 0 &&
+              adminRecentHold.activities.map((item, index) => {
+                const holdDate = new Date(item.onHoldDate);
                 holdDate.setHours(holdDate.getHours() - 7);
 
                 return (
@@ -584,7 +582,7 @@ export const AdminHomeScreen = ({
                           { color: activeColors.accent },
                         ]}
                       >
-                        {item.store.name}
+                        {item.name}
                       </Text>
                     </View>
 
@@ -630,9 +628,9 @@ export const AdminHomeScreen = ({
             </Text>
 
             {adminRecentUnHold &&
-              adminRecentUnHold.length > 0 &&
-              adminRecentUnHold.map((item, index) => {
-                const unHoldDate = new Date(item.store.unHoldDate);
+              adminRecentUnHold.activities.length > 0 &&
+              adminRecentUnHold.activities.map((item, index) => {
+                const unHoldDate = new Date(item.unHoldDate);
                 unHoldDate.setHours(unHoldDate.getHours() - 7);
 
                 return (
@@ -647,7 +645,7 @@ export const AdminHomeScreen = ({
                           { color: activeColors.accent },
                         ]}
                       >
-                        {item.store.name}
+                        {item.name}
                       </Text>
                     </View>
 

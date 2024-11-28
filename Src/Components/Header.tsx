@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useContext } from "react";
-import { IHeaderProps } from "../Types/HeaderTypes";
+import { IHeaderProps } from "../Types/ComponentTypes/HeaderTypes";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../Config/Theme";
 import { Theme } from "../Contexts/ThemeContext";

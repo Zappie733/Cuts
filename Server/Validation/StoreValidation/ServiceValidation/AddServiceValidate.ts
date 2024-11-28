@@ -18,6 +18,7 @@ export const AddServiceValidate = (data: AddServiceRequestObj) => {
           // path: Joi.string().required().label("Path"),
         })
       )
+      .min(1)
       .required()
       .label("Images"),
   });

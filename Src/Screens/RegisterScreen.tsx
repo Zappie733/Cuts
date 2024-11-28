@@ -19,12 +19,12 @@ import { Header } from "../Components/Header";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { colors } from "../Config/Theme";
 import { Input } from "../Components/Input";
-import { IRegistrationProps } from "../Types/RegisterScreenTypes";
 import { AntDesign } from "@expo/vector-icons";
 import { Theme } from "../Contexts/ThemeContext";
-import { registerUser } from "../Middlewares/AuthMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
 import { useFocusEffect } from "@react-navigation/native";
+import { RegistrationData } from "../Types/UserTypes";
+import { registerUser } from "../Middlewares/UserMiddleware";
 
 export const RegisterScreen = ({
   navigation,
@@ -46,7 +46,7 @@ export const RegisterScreen = ({
     setModalVisible(true);
   };
 
-  const defaultUserRegisterFormData: IRegistrationProps = {
+  const defaultUserRegisterFormData: RegistrationData = {
     firstName: "",
     lastName: "",
     email: "",
@@ -56,7 +56,7 @@ export const RegisterScreen = ({
     role: "user",
   };
   const [userRegisterFormData, setUserRegisterFormData] =
-    useState<IRegistrationProps>(defaultUserRegisterFormData);
+    useState<RegistrationData>(defaultUserRegisterFormData);
   const handleRegisterTextChange = (text: string, fieldname: string) => {
     setUserRegisterFormData({ ...userRegisterFormData, [fieldname]: text });
   };
@@ -364,6 +364,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "500",
     marginTop: 20,
+    marginBottom: 10,
   },
   loginButton: {
     marginTop: 20,

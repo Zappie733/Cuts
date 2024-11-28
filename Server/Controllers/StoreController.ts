@@ -32,8 +32,8 @@ import {
 import { sendEmail } from "../Utils/UserUtil";
 import ImageKit from "imagekit";
 import {
-  GetStoreResponse,
   GetStoresByStatusResponse,
+  GetStoresByUserIdResponse,
 } from "../Response/StoreResponse";
 import { USERTOKENS } from "../Models/UserTokenModel";
 import {
@@ -63,6 +63,7 @@ export const registerStore = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
+      console.log(req.body);
       //Validate Inputs
       const { error } = RegisterStoreValidate(
         <RegisterStoreRequestObj>req.body
@@ -304,7 +305,9 @@ export const getStoresByUserId = async (req: Request, res: Response) => {
       // console.log(users);
 
       if (users) {
-        const responseData: GetStoreResponse[] = [];
+        const responseData: GetStoresByUserIdResponse = {
+          stores: [],
+        };
 
         for (const user of users) {
           const store = await STORES.findOne({ userId: user.id }).select(
@@ -312,15 +315,13 @@ export const getStoresByUserId = async (req: Request, res: Response) => {
           );
 
           if (store) {
-            responseData.push({
-              store: store,
-            });
+            responseData.stores.push(store);
           }
         }
         // console.log(responseData);
         if (responseData) {
           // console.log(responseData);
-          return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
+          return res.status(200).json(<ResponseObj<GetStoresByUserIdResponse>>{
             error: false,
             data: responseData,
             message: "Stores retrieved successfully",

@@ -2,7 +2,7 @@ import { Animated, Image, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useRef } from "react";
 import { colors } from "../Config/Theme";
 import { Entypo } from "@expo/vector-icons";
-import { ILogoProps } from "../Types/LogoTypes";
+import { ILogoProps } from "../Types/ComponentTypes/LogoTypes";
 
 export const Logo = ({ size, iconSize, numIcons }: ILogoProps) => {
   let activeColors = colors.dark;

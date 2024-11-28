@@ -10,7 +10,7 @@ import { Entypo, Fontisto } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
-import { DropdownPickerProps } from "../Types/DropdownPickerTypes";
+import { DropdownPickerProps } from "../Types/ComponentTypes/DropdownPickerTypes";
 
 export const DropdownPicker = ({
   options,

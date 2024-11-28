@@ -23,11 +23,10 @@ import { Header } from "../Components/Header";
 import { AntDesign, FontAwesome6 } from "@expo/vector-icons";
 import { Input } from "../Components/Input";
 import { SelectDocuments } from "../Components/Documents";
-import { IRegistrationStoreProps } from "../Types/RegisterStoreScreenTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import { SelectImages } from "../Components/Image";
-import { IImageProps } from "../Types/ImageTypes";
-import { IDocumentProps } from "../Types/DocumentTypes";
+import { IImageProps } from "../Types/ComponentTypes/ImageTypes";
+import { IDocumentProps } from "../Types/ComponentTypes/DocumentTypes";
 import {
   approveStore,
   deleteStore,
@@ -37,12 +36,12 @@ import {
   unHoldStore,
 } from "../Middlewares/StoreMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
-import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
-import { IAuthObj } from "../Types/AuthContextTypes";
+import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import ImageViewing from "react-native-image-viewing";
 import { DropdownPicker } from "../Components/DropdownPicker";
-import { DeleteStoreParams } from "../Types/StoreTypes";
+import { DeleteStoreData, RegistrationStoreData } from "../Types/StoreTypes";
+import { logoutUser } from "../Middlewares/UserMiddleware";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -63,7 +62,7 @@ export const RegisterStoreScreen = ({
   };
 
   //Data
-  const defaultStoreRegisterFormData: IRegistrationStoreProps = {
+  const defaultStoreRegisterFormData: RegistrationStoreData = {
     userId: user?._id || "",
     email: "",
     password: "",
@@ -76,7 +75,7 @@ export const RegisterStoreScreen = ({
     storeDocuments: [],
   };
   const [storeRegisterFormData, setStoreRegisterFormData] =
-    useState<IRegistrationStoreProps>(defaultStoreRegisterFormData);
+    useState<RegistrationStoreData>(defaultStoreRegisterFormData);
   console.log(storeRegisterFormData);
   const [reason, setReason] = useState("");
 
@@ -91,7 +90,7 @@ export const RegisterStoreScreen = ({
   const [hideCPassword, setHideCPassword] = useState(true);
   const handleRegisterStoreTextChange = (
     text: string,
-    field: keyof IRegistrationStoreProps
+    field: keyof RegistrationStoreData
   ) => {
     setStoreRegisterFormData({
       ...storeRegisterFormData,
@@ -116,11 +115,11 @@ export const RegisterStoreScreen = ({
   };
   const handleRegisterStore = async () => {
     console.log("Register Store On Process");
-    const response = await registerStore(
+    const response = await registerStore({
       auth,
       updateAccessToken,
-      storeRegisterFormData
-    );
+      data: storeRegisterFormData,
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -178,23 +177,23 @@ export const RegisterStoreScreen = ({
   //Finish Review (user)
   const [isModalDeleteVisible, setIsModalDeleteVisible] = useState(false);
   const [hideDeletePassword, setHideDeletePassword] = useState(true);
-  const defaultDeleteStoreFormData: DeleteStoreParams = {
-    email: storeRegisterFormData.email,
+  const defaultDeleteStoreFormData: DeleteStoreData = {
+    email: "",
     password: "",
   };
   const [deleteStoreFormData, setDeleteStoreFormData] =
-    useState<DeleteStoreParams>(defaultDeleteStoreFormData);
+    useState<DeleteStoreData>(defaultDeleteStoreFormData);
   // console.log("deleteFormData", deleteStoreFormData);
   const handleDeleteStoreTextChange = (text: string, fieldname: string) => {
     setDeleteStoreFormData({ ...deleteStoreFormData, [fieldname]: text });
   };
   const handleFinishedReviewing = async () => {
     console.log("Done Review Process");
-    const response = await deleteStore(
+    const response = await deleteStore({
       auth,
       updateAccessToken,
-      deleteStoreFormData
-    );
+      data: deleteStoreFormData,
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -233,7 +232,11 @@ export const RegisterStoreScreen = ({
   //Approve Store (admin)
   const handleApproveStore = async () => {
     console.log("Approve Store");
-    const response = await approveStore(auth, updateAccessToken, { storeId });
+    const response = await approveStore({
+      auth,
+      updateAccessToken,
+      params: { storeId },
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -294,9 +297,13 @@ export const RegisterStoreScreen = ({
   };
   const handleRejectStore = async () => {
     console.log("Reject Store");
-    const response = await rejectStore(auth, updateAccessToken, {
-      storeId,
-      rejectedReason: reason,
+    const response = await rejectStore({
+      auth,
+      updateAccessToken,
+      data: {
+        storeId,
+        rejectedReason: reason,
+      },
     });
 
     if (response.status === 402) {
@@ -346,9 +353,13 @@ export const RegisterStoreScreen = ({
   const [isHold, setIsHold] = useState(false);
   const handleHoldStore = async () => {
     console.log("Hold Store");
-    const response = await holdStore(auth, updateAccessToken, {
-      storeId,
-      onHoldReason: reason,
+    const response = await holdStore({
+      auth,
+      updateAccessToken,
+      data: {
+        storeId,
+        onHoldReason: reason,
+      },
     });
 
     if (response.status === 402) {
@@ -397,7 +408,11 @@ export const RegisterStoreScreen = ({
   //Unhold Store (admin)
   const handleUnHoldStore = async () => {
     console.log("Unhold Store");
-    const response = await unHoldStore(auth, updateAccessToken, { storeId });
+    const response = await unHoldStore({
+      auth,
+      updateAccessToken,
+      params: { storeId },
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -445,6 +460,7 @@ export const RegisterStoreScreen = ({
   useEffect(() => {
     if (route.params && route.params.data) {
       setStoreRegisterFormData(route.params.data);
+      handleDeleteStoreTextChange(route.params.data.email, "email");
       setIsReviewRegisterStore(true);
       setIsModalVisible(false);
       if (route.params.reason) setReason(route.params.reason);
@@ -1532,7 +1548,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 20,
     alignSelf: "center",
-    marginBottom: 5,
+    marginBottom: 10,
   },
   inputContainer: {
     flex: 1,

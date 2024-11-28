@@ -56,7 +56,7 @@ export const verifyRefreshToken = async (
     if (!userToken) {
       return {
         error: true,
-        message: "Invalid Refresh Token",
+        message: "Invalid Refresh Token or has already Expired",
       };
     }
 
@@ -76,7 +76,7 @@ export const verifyRefreshToken = async (
     console.log(error);
     return {
       error: true,
-      message: "Invalid Refresh Token",
+      message: "Invalid Refresh Token or has already Expired",
     };
   }
 };
@@ -127,7 +127,7 @@ export const verifyVerifyToken = async (
     if (!verifiedToken) {
       return {
         error: true,
-        message: "Invalid Verification Token",
+        message: "Invalid Verification Token or has already Expired",
       };
     }
 
@@ -142,6 +142,7 @@ export const verifyVerifyToken = async (
 
     console.log(tokenDetails);
     // If token is verified, return success message with token details
+
     return {
       error: false,
       message: "Token is valid",
@@ -151,7 +152,7 @@ export const verifyVerifyToken = async (
     console.log(error);
     return {
       error: true,
-      message: "Invalid Verification Token",
+      message: "Invalid Verification Token or has already Expired",
     };
   }
 };
@@ -176,7 +177,7 @@ export const verifyAccessToken = async (
     console.log(error);
     return {
       error: true,
-      message: "Invalid Access Token",
+      message: "Invalid Access Token or has already Expired",
     };
   }
 };

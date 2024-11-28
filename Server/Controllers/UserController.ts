@@ -27,8 +27,8 @@ import {
 } from "../Config";
 import jwt from "jsonwebtoken";
 import {
+  GetAdminRecentActivityResponse,
   GetNewAccessTokenResponse,
-  GetStoreResponse,
   LoginDataResponse,
   ResponseObj,
   UpdateUserImageResponse,
@@ -172,6 +172,7 @@ export const loginUser = async (req: Request, res: Response) => {
       });
     }
 
+    const store = await STORES.findOne({ userId: user._id });
     //verify account
     if (!user.verified) {
       //check token expired
@@ -180,14 +181,43 @@ export const loginUser = async (req: Request, res: Response) => {
         verified: true,
       });
 
-      const url = `${BASE_URL}/user/${user._id}/verifyUser/${verifiedToken}`;
-      await sendEmail("account", user.email, "Verify Email", url);
+      if (user.role === "user") {
+        const url = `${BASE_URL}/user/${user._id}/verifyUser/${verifiedToken}`;
+        await sendEmail("account", user.email, "Verify Email", url);
+      } else if (user.role === "store") {
+        const url = `${BASE_URL}/store/${user._id}/verifyStore/${verifiedToken}`;
+        await sendEmail(
+          "account",
+          user.email,
+          "Verify Email",
+          url,
+          `owner of ${store?.name}`
+        );
+      }
 
       return res.status(400).json(<ResponseObj>{
         error: true,
         message: "You have not verified your account, please check your email",
       });
     }
+
+    //check if user is a store, store can only login if they are in active or in active or hold state
+    if (user.role === "store") {
+      if (store?.status === "Waiting for Approval") {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message:
+            "You are not allowed to login, you store is still in validate state. Please wait for approval",
+        });
+      } else if (store?.status === "Rejected") {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message:
+            "You are not allowed to login, your store has been rejected. Please review your registration and try again",
+        });
+      }
+    }
+
     //Generate Access Token And Refresh Token
     //const token = user.generateAuthToken();
     const { accessToken, refreshToken } = await generateTokens({
@@ -399,7 +429,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
       return res.status(200).json(<ResponseObj<UserProfileResponse>>{
         error: false,
         data: user,
-        message: "User profile retrieved successfully",
+        message: `Profile retrieved successfully (${payload.role})`,
       });
     }
 
@@ -436,9 +466,9 @@ export const updateUserImage = async (req: Request, res: Response) => {
         _id: response.data?._id,
         role: response.data?.role,
       };
+
       //Validate Inputs
       const { error } = UpdateUserImageValidate(<ImageRequestObj>req.body);
-
       if (error)
         return res.status(400).json(<ResponseObj>{
           error: true,
@@ -464,6 +494,7 @@ export const updateUserImage = async (req: Request, res: Response) => {
         fileName: `ProfileImage`,
         folder: `/Profiles/${user?.id}`,
       });
+
       //update user database with the newest profile
       await user?.updateOne({
         image: {
@@ -482,7 +513,7 @@ export const updateUserImage = async (req: Request, res: Response) => {
         message: "Photo profile updated successfully",
       });
     }
-
+    console.log("berhasil");
     return res
       .status(401)
       .json(<ResponseObj>{ error: true, message: response.message });
@@ -682,15 +713,15 @@ export const getAdminRecentActivity = async (req: Request, res: Response) => {
         .sort(sort)
         .limit(3);
 
-      const responseData: GetStoreResponse[] = [];
+      const responseData: GetAdminRecentActivityResponse = {
+        activities: [],
+      };
 
       for (const recentActivity of recentActivities) {
-        responseData.push({
-          store: recentActivity,
-        });
+        responseData.activities.push(recentActivity);
       }
 
-      return res.status(200).json(<ResponseObj<GetStoreResponse[]>>{
+      return res.status(200).json(<ResponseObj<GetAdminRecentActivityResponse>>{
         error: false,
         data: responseData,
         message: `Admin recent ${activity} activities retrieved successfully`,

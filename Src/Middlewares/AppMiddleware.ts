@@ -1,21 +1,30 @@
-import { IAuthObj } from "../Types/AuthContextTypes";
+import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
+import {
+  ApiCallWithTokenProps,
+  ApiOptions,
+  ApiRequestProps,
+} from "../Types/MiddleWareTypes";
 import { GetAppSummaryResponse, IResponseProps } from "../Types/ResponseTypes";
-import { apiCallWithToken } from "./AuthMiddleware";
+import { apiCallWithToken } from "./IndexMiddleware";
 
-export const getAppSummary = async (
-  auth: IAuthObj,
-  updateAccessToken: (accessToken: string) => void
-): Promise<IResponseProps<GetAppSummaryResponse>> => {
-  console.log("get App Summary Process");
-  const apiOptions = {
+export const getAppSummary = async ({
+  auth,
+  updateAccessToken,
+}: ApiRequestProps): Promise<IResponseProps<GetAppSummaryResponse>> => {
+  // console.log("get App Summary Process");
+  const apiOptions: ApiOptions = {
     method: "GET",
   };
 
-  const result = await apiCallWithToken<GetAppSummaryResponse>(
-    "/app/getAppSummary",
-    apiOptions,
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: "/app/getAppSummary",
+    options: apiOptions,
     auth,
-    updateAccessToken
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<GetAppSummaryResponse>(
+    apiCallWithTokenProps
   );
   // console.log(JSON.stringify(result, null, 2));
 

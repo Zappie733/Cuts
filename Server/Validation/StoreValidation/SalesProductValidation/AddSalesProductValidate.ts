@@ -15,6 +15,7 @@ export const AddSalesProductValidate = (data: AddSalesProductRequestObj) => {
           // path: Joi.string().required().label("Path"),
         })
       )
+      .min(1)
       .required()
       .label("Images"),
     links: Joi.array().items(Joi.string()).required().label("Links"),

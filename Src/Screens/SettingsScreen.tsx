@@ -16,14 +16,9 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { colors } from "../Config/Theme";
 import { Theme, Auth, User } from "../Contexts";
-import { logoutUser } from "../Middlewares/AuthMiddleware";
-import {
-  IResponseProps,
-  StoreResponse,
-  UserProfileResponse,
-} from "../Types/ResponseTypes";
+import { IResponseProps } from "../Types/ResponseTypes";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
-import { IAuthObj } from "../Types/AuthContextTypes";
+import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import {
   EvilIcons,
@@ -34,7 +29,9 @@ import {
 import { Header } from "../Components/Header";
 import { Switch } from "../Components/Switch";
 import { Store } from "../Components/Store";
-import { fetchUserStores } from "../Middlewares/UserMiddleware";
+import { logoutUser } from "../Middlewares/UserMiddleware";
+import { GetStoresByUserIdResponse } from "../Types/ResponseTypes/StoreResponse";
+import { getStoresByUserId } from "../Middlewares/StoreMiddleware";
 
 export const SettingsScreen = ({
   navigation,
@@ -82,12 +79,13 @@ export const SettingsScreen = ({
     navigation.navigate("RegisterStoreScreen");
   };
 
-  const [getUserStores, setGetUserStores] = useState<StoreResponse[]>([]);
+  const [getUserStores, setGetUserStores] =
+    useState<GetStoresByUserIdResponse>();
   //console.log(JSON.stringify(getUserStores, null, 2));
 
   const handleFetchUserStores = async () => {
     if (auth._id !== "") {
-      const response = await fetchUserStores(auth, updateAccessToken);
+      const response = await getStoresByUserId({ auth, updateAccessToken });
 
       if (response.status === 402) {
         Alert.alert("Session Expired", response.message);
@@ -264,13 +262,13 @@ export const SettingsScreen = ({
           ]}
         ></View>
         {user.role === "user" && (
-          <>
+          <ScrollView showsVerticalScrollIndicator={false}>
             {/* Stores */}
             <View style={styles.storeContainer}>
               <Text style={[styles.title, { color: activeColors.accent }]}>
                 My Stores
               </Text>
-              {getUserStores.map((item, index) => (
+              {getUserStores?.stores.map((item, index) => (
                 <Store
                   key={index}
                   data={item}
@@ -293,7 +291,7 @@ export const SettingsScreen = ({
                 </Text>
               </Pressable>
             </View>
-          </>
+          </ScrollView>
         )}
       </ScrollView>
     </SafeAreaView>

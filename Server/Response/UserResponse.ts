@@ -1,4 +1,4 @@
-import { ImageRequestObj } from "../dto";
+import { ImageRequestObj, StoreObj } from "../dto";
 
 export interface LoginDataResponse {
   _id: string;
@@ -23,4 +23,8 @@ export interface GetNewAccessTokenResponse {
 
 export interface UpdateUserImageResponse {
   image: ImageRequestObj;
+}
+
+export interface GetAdminRecentActivityResponse {
+  activities: StoreObj[];
 }

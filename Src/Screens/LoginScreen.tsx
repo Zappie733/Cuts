@@ -21,15 +21,14 @@ import { Header } from "../Components/Header";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { colors } from "../Config/Theme";
 import { Input } from "../Components/Input";
-import { ILoginProps } from "../Types/LoginScreenTypes";
 import { Logo } from "../Components/Logo";
 import { Theme } from "../Contexts/ThemeContext";
-import { changeUserPassword, loginUser } from "../Middlewares/AuthMiddleware";
 import { Auth } from "../Contexts/AuthContext";
-import { IResponseProps } from "../Types/ResponseTypes";
-import { LoginDataResponse } from "../Types/ResponseTypes/AuthResponse";
+import { IResponseProps, LoginResponse } from "../Types/ResponseTypes";
 import { useFocusEffect } from "@react-navigation/native";
 import { AntDesign } from "@expo/vector-icons";
+import { LoginData } from "../Types/UserTypes";
+import { changeUserPassword, loginUser } from "../Middlewares/UserMiddleware";
 
 export const LoginScreen = ({
   navigation,
@@ -45,11 +44,11 @@ export const LoginScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
-  const defaultUserLoginFormData: ILoginProps = {
+  const defaultUserLoginFormData: LoginData = {
     email: "",
     password: "",
   };
-  const [userLoginFormData, setUserLoginFormData] = useState<ILoginProps>(
+  const [userLoginFormData, setUserLoginFormData] = useState<LoginData>(
     defaultUserLoginFormData
   );
   const handleLoginTextChange = (text: string, fieldname: string) => {
@@ -62,7 +61,7 @@ export const LoginScreen = ({
 
   const handleLogin = async () => {
     console.log("Login Process");
-    const result: IResponseProps<LoginDataResponse> = await loginUser(
+    const result: IResponseProps<LoginResponse> = await loginUser(
       userLoginFormData
     );
     console.log(JSON.stringify(result, null, 2));
@@ -84,12 +83,12 @@ export const LoginScreen = ({
 
   const [isModalVisible, setModalVisible] = useState(false);
 
-  const defaultChangePasswordFormData: ILoginProps = {
+  const defaultChangePasswordFormData: LoginData = {
     email: "",
     password: "",
   };
   const [changePasswordFormData, setChangePasswordFormData] =
-    useState<ILoginProps>(defaultChangePasswordFormData);
+    useState<LoginData>(defaultChangePasswordFormData);
 
   const handleChangePasswordTextChange = (text: string, fieldname: string) => {
     setChangePasswordFormData({ ...changePasswordFormData, [fieldname]: text });

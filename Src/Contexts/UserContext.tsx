@@ -10,16 +10,16 @@ import {
 } from "react";
 
 import * as SplashScreen from "expo-splash-screen";
-import { IUserContext, IUserObj } from "../Types/UserContextTypes";
-import { getUserProfile } from "../Middlewares/UserMiddleware";
+import { IUserContext } from "../Types/ContextTypes/UserContextTypes";
+import { getUserProfile, logoutUser } from "../Middlewares/UserMiddleware";
 import { Auth } from "./AuthContext";
 import { Alert } from "react-native";
 import { IResponseProps } from "../Types/ResponseTypes";
-import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
-import { IAuthObj } from "../Types/AuthContextTypes";
+import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { CommonActions, useNavigation } from "@react-navigation/native";
-import { IImageProps } from "../Types/ImageTypes";
+import { IImageProps } from "../Types/ComponentTypes/ImageTypes";
+import { IUserObj } from "../Types/UserTypes";
 
 //munculin splashscreen selama masih load theme dari AsyncStorage
 SplashScreen.preventAutoHideAsync();
@@ -38,6 +38,7 @@ const defaultContext: IUserContext = {
       file: "",
       path: "",
     },
+    userId: "",
   },
   setUser: () => {},
   updateUserImage: (image: IImageProps) => {},
@@ -60,6 +61,7 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
       file: "",
       path: "",
     },
+    userId: "",
   };
   const [user, setUser] = useState<IUserObj>(defaultUser);
 
@@ -67,7 +69,7 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
 
   const fetchUserProfile = async () => {
     if (auth._id !== "") {
-      const response = await getUserProfile(auth, updateAccessToken);
+      const response = await getUserProfile({ auth, updateAccessToken });
 
       if (response.status === 402) {
         Alert.alert("Session Expired", response.message);
@@ -118,7 +120,7 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
   }, [auth]);
 
   const updateUserImage = (image: IImageProps) => {
-    console.log("Updating user image:", image);
+    console.log("Updating user context image:", image);
     setUser((prevUser) => ({
       ...prevUser,
       image,

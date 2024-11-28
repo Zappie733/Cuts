@@ -20,16 +20,17 @@ import {
   IImageProps,
   SelectImageProps,
   SelectImagesProps,
-} from "../Types/ImageTypes";
+} from "../Types/ComponentTypes/ImageTypes";
 import * as FileSystem from "expo-file-system";
 import { IResponseProps } from "../Types/ResponseTypes";
-import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { CommonActions, useNavigation } from "@react-navigation/native";
-import { IAuthObj } from "../Types/AuthContextTypes";
-import { IUserObj } from "../Types/UserContextTypes";
+import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import ImageViewing from "react-native-image-viewing";
-import { updateUserProfileImage } from "../Middlewares/UserMiddleware";
+import {
+  logoutUser,
+  updateUserProfileImage,
+} from "../Middlewares/UserMiddleware";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -39,7 +40,7 @@ export const SelectImage = ({ userImage }: SelectImageProps) => {
 
   const [image, setImage] = useState("");
   const [imageOptionForUpload, setImageOptionForUpload] = useState<IImageProps>(
-    { file: "", path: "" }
+    { file: "" }
   );
 
   const [requestStatus, setRequestStatus] = useState(false);
@@ -90,7 +91,7 @@ export const SelectImage = ({ userImage }: SelectImageProps) => {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      await setImageOptionForUpload({ file: base64Image, path: "Profile" });
+      await setImageOptionForUpload({ file: base64Image });
     }
   };
 
@@ -109,7 +110,7 @@ export const SelectImage = ({ userImage }: SelectImageProps) => {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      await setImageOptionForUpload({ file: base64Image, path: "Profile" });
+      await setImageOptionForUpload({ file: base64Image });
     }
   };
 
@@ -129,11 +130,11 @@ export const SelectImage = ({ userImage }: SelectImageProps) => {
   };
 
   const handleUploadImage = async () => {
-    const response = await updateUserProfileImage(
+    const response = await updateUserProfileImage({
       auth,
       updateAccessToken,
-      imageOptionForUpload
-    );
+      data: imageOptionForUpload,
+    });
     // console.log("Full response object:", response);
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -276,7 +277,6 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
 
       const newImagesOptionForUpload = base64Images.map((file) => ({
         file,
-        path: `StoreImages`,
       }));
 
       setImagesOptionForUpload([
@@ -303,7 +303,7 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
 
       setImagesOptionForUpload([
         ...imagesOptionForUpload,
-        { file: base64Image, path: "StoreImages" },
+        { file: base64Image },
       ]);
     }
   };

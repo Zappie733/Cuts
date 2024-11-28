@@ -13,6 +13,7 @@ export const AddGalleryValidate = (data: AddGalleryRequestObj) => {
           // path: Joi.string().required().label("Path"),
         })
       )
+      .min(1)
       .required()
       .label("Images"),
     caption: Joi.string().required().label("Caption"),

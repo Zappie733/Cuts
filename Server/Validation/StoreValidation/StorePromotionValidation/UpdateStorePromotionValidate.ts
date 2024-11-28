@@ -18,7 +18,9 @@ export const UpdateStorePromotionValidate = (
         .required()
         .label("File"),
       // path: Joi.string().required().label("Path"),
-    }),
+    })
+      .required()
+      .label("Image"),
   });
 
   return schema.validate(data);

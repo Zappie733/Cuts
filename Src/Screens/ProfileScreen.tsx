@@ -17,13 +17,12 @@ import { colors } from "../Config/Theme";
 import { Header } from "../Components/Header";
 import { SelectImage } from "../Components/Image";
 import { Input } from "../Components/Input";
-import { IProfileProps } from "../Types/ProfileScreenTypes";
-import { updateUserProfile } from "../Middlewares/UserMiddleware";
+import { logoutUser, updateUserProfile } from "../Middlewares/UserMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
-import { logoutUser } from "../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
-import { IAuthObj } from "../Types/AuthContextTypes";
+import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { CommonActions } from "@react-navigation/native";
+import { ProfileData } from "../Types/UserTypes";
 
 export const ProfileScreen = ({
   navigation,
@@ -41,14 +40,14 @@ export const ProfileScreen = ({
     navigation.goBack();
   };
 
-  const defaultUserFormData: IProfileProps = {
+  const defaultUserFormData: ProfileData = {
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
     phone: user.phone,
   };
   const [userFormData, setUserFormData] =
-    useState<IProfileProps>(defaultUserFormData);
+    useState<ProfileData>(defaultUserFormData);
 
   const handleTextChange = (text: string, fieldname: string) => {
     setUserFormData({ ...userFormData, [fieldname]: text });
@@ -76,11 +75,11 @@ export const ProfileScreen = ({
 
   const handleUpdateUser = async () => {
     if (isChanges) {
-      const response = await updateUserProfile(
+      const response = await updateUserProfile({
         auth,
         updateAccessToken,
-        userFormData
-      );
+        data: userFormData,
+      });
 
       if (response.status === 402) {
         Alert.alert("Session Expired", response.message);
@@ -116,7 +115,7 @@ export const ProfileScreen = ({
           navigation.navigate("TabsStack", { screen: "Settings" });
         });
       } else {
-        console.error(response.status, response.message);
+        Alert.alert("Update Failed", response.message);
       }
     }
   };
@@ -140,15 +139,16 @@ export const ProfileScreen = ({
               color: activeColors.accent,
               fontSize: 30,
               textAlign: "center",
+              marginBottom: 20,
             }}
           >
-            Profile Screen
+            Your Profile
           </Text>
 
-          <SelectImage userImage={user.image.file} />
+          <SelectImage userImage={user.image?.file ?? ""} />
 
           {/* Inputs */}
-          <View>
+          <View style={{ marginTop: 20 }}>
             {/* FirstName Input */}
             <Input
               key="firstName"

@@ -9,11 +9,11 @@ import { TabsNavigator, TabsStackParamsObj } from "./TabNavigator";
 import { LoginScreen } from "../Screens/LoginScreen";
 import { WelcomeScreen } from "../Screens/WelcomeScreen";
 import { RegisterScreen } from "../Screens/RegisterScreen";
-import { Auth, User, UserContext } from "../Contexts";
+import { Auth, User } from "../Contexts";
 import { ProfileScreen } from "../Screens/ProfileScreen";
 import { RegisterStoreScreen } from "../Screens/RegisterStoreScreen";
 import { DocumentDetailsScreen } from "../Screens/DocumentDetailsScreen";
-import { IRegistrationStoreProps } from "../Types/RegisterStoreScreenTypes";
+import { RegistrationStoreData } from "../Types/StoreTypes";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;
@@ -23,7 +23,7 @@ export type RootStackParamsObj = {
   Profile: undefined;
   RegisterStoreScreen:
     | {
-        data: IRegistrationStoreProps | undefined;
+        data: RegistrationStoreData | undefined;
         reason: string | undefined;
         status:
           | "Waiting for Approval"

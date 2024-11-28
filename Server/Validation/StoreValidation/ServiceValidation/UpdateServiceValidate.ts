@@ -23,6 +23,7 @@ export const UpdateServiceValidate = (data: UpdateServiceRequestObj) => {
           // path: Joi.string().required().label("Path"),
         })
       )
+      .min(1)
       .required()
       .label("Images"),
   });

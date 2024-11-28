@@ -16,7 +16,10 @@ import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
-import { IDocumentProps, ISelectDocumentProps } from "../Types/DocumentTypes";
+import {
+  IDocumentProps,
+  ISelectDocumentProps,
+} from "../Types/ComponentTypes/DocumentTypes";
 import * as FileSystem from "expo-file-system";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
@@ -65,7 +68,6 @@ export const SelectDocuments = ({
           return {
             name: doc.name,
             file: base64Document,
-            path: "StoreDocuments",
           };
         })
       );
@@ -93,6 +95,7 @@ export const SelectDocuments = ({
   useEffect(() => {
     handleSetDocument(documentOptionForUpload);
   }, [documentOptionForUpload]);
+
   return (
     <View style={styles.container}>
       <View style={styles.documentContainer}>

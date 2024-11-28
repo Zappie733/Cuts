@@ -21,23 +21,20 @@ import React, {
 import { colors } from "../../Config/Theme";
 import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
 import { Theme } from "../../Contexts/ThemeContext";
-import {
-  IResponseProps,
-  StoreResponse,
-  StoresByStatusResponse,
-} from "../../Types/ResponseTypes";
+import { IResponseProps } from "../../Types/ResponseTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import { Auth } from "../../Contexts";
 import { getStoresByStatus } from "../../Middlewares/StoreMiddleware";
-import { logoutUser } from "../../Middlewares/AuthMiddleware";
 import { removeDataFromAsyncStorage } from "../../Config/AsyncStorage";
-import { IAuthObj } from "../../Types/AuthContextTypes";
+import { IAuthObj } from "../../Types/ContextTypes/AuthContextTypes";
 import { Header } from "../../Components/Header";
 import { DropdownPicker } from "../../Components/DropdownPicker";
 import { set } from "mongoose";
 import { Store } from "../../Components/Store";
 import { SearchBar } from "../../Components/SearchBar";
-import { GetStoresByStatusQueryParams } from "../../Types/AdminStoreManagementScreenTypes";
+import { StoresByStatusResponse } from "../../Types/ResponseTypes/StoreResponse";
+import { GetStoresByStatusParam } from "../../Types/StoreTypes";
+import { logoutUser } from "../../Middlewares/UserMiddleware";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -65,7 +62,7 @@ export const AdminStoreManagementScreen = ({
   // console.log(search);
 
   const handleFetchStores = async () => {
-    const data: GetStoresByStatusQueryParams = {
+    const params: GetStoresByStatusParam = {
       limit,
       offset: offset,
       status: selectedStatus as
@@ -77,7 +74,11 @@ export const AdminStoreManagementScreen = ({
       search,
     };
     // console.log(data);
-    const response = await getStoresByStatus(auth, updateAccessToken, data);
+    const response = await getStoresByStatus({
+      auth,
+      updateAccessToken,
+      params,
+    });
 
     if (response.status === 402) {
       Alert.alert("Session Expired", response.message);
@@ -293,7 +294,7 @@ export const AdminStoreManagementScreen = ({
           {data.stores.map((item, index) => (
             <Store
               key={index}
-              data={{ store: item }}
+              data={item}
               changeIsFromReviewRef={handleIsFromReviewRef}
             />
           ))}

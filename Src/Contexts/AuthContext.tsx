@@ -3,7 +3,7 @@ import {
   IAuthObj,
   IAuthContext,
   refreshTokenPayloadObj,
-} from "../Types/AuthContextTypes";
+} from "../Types/ContextTypes/AuthContextTypes";
 import {
   storeDataToAsyncStorage,
   getDataFromAsyncStorage,
@@ -34,7 +34,7 @@ export const AuthContext = ({ children }: { children: ReactNode }) => {
   const [auth, setAuth] = useState<IAuthObj>(defaultAuth);
 
   const isFirstRender = useRef(true);
-  console.log("isFirstRender:" + isFirstRender.current);
+  // console.log("isFirstRender:" + isFirstRender.current);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -74,7 +74,7 @@ export const AuthContext = ({ children }: { children: ReactNode }) => {
 
   const getRefreshTokenPayload = () => {
     if (!auth.refreshToken) {
-      //console.log("No refresh token available");
+      console.log("No refresh token available");
       return null;
     }
 

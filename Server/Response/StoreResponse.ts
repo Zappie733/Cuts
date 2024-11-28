@@ -5,8 +5,9 @@ import { ServiceProductObj } from "../dto/ServiceProduct";
 import { StorePromotionObj } from "../dto/StorePromotion";
 import { WorkerObj } from "../dto/Worker";
 
-export interface GetStoreResponse {
-  store: StoreObj;
+export interface GetStoresByUserIdResponse {
+  stores: StoreObj[];
+  // total: number;
 }
 
 export interface GetStoresByStatusResponse {

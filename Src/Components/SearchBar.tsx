@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import React, { useContext } from "react";
-import { ISearchBarProps } from "../Types/SearchBarTypes";
+import { ISearchBarProps } from "../Types/ComponentTypes/SearchBarTypes";
 import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { EvilIcons } from "@expo/vector-icons";

@@ -1,5 +1,8 @@
 import { createContext, ReactNode, useEffect, useRef, useState } from "react";
-import { IColorProps, IThemeContext } from "../Types/ThemeContextTypes";
+import {
+  IColorProps,
+  IThemeContext,
+} from "../Types/ContextTypes/ThemeContextTypes";
 import {
   storeDataToAsyncStorage,
   getDataFromAsyncStorage,
@@ -29,25 +32,24 @@ export const ThemeContext = ({ children }: { children: ReactNode }) => {
     setTheme({ mode: newTheme as "dark" | "light" });
   };
 
-  const isFirstRender = useRef(true); // Flag untuk melacak render pertama
-  console.log("isFirstRender:" + isFirstRender.current);
+  const isFirstRender = useRef(true);
+  // console.log("isFirstRender:" + isFirstRender.current);
 
   // Setiap kali state berubah, simpan ke AsyncStorage kecuali pada first render
   useEffect(() => {
     if (isFirstRender.current) {
-      isFirstRender.current = false; // Update flag setelah render pertama
-      return; // Skip efek pada render pertama
+      isFirstRender.current = false;
+      return;
     }
 
     if (theme !== null) {
-      console.log(theme);
-      storeDataToAsyncStorage("theme", theme); //store theme to AsyncStorage
+      storeDataToAsyncStorage("theme", theme);
     }
   }, [theme]);
 
   const loadThemeFromStorage = async () => {
     try {
-      const theme = await getDataFromAsyncStorage("theme"); //get theme from AsyncStorage
+      const theme = await getDataFromAsyncStorage("theme");
       if (theme !== null) {
         setTheme(theme);
       } else {

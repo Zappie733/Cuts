@@ -8,9 +8,9 @@ import { STORES } from "../Models/StoreModel";
 export const InitializeCronJobs = () => {
   //auto reject Waiting for Confirmation order that has been in the same state for 5 minutes
   cron.schedule("* * * * *", async () => {
-    console.log(
-      "This task runs every minutes to do auto reject for `Waiting for Confirmation` order that has been in the same state for 5 minutes and notify the users"
-    );
+    // console.log(
+    //   "This task runs every minutes to do auto reject for `Waiting for Confirmation` order that has been in the same state for 5 minutes and notify the users"
+    // );
 
     try {
       const currentTimeW5MBehind = new Date(Date.now() - 5 * 60 * 1000);
@@ -122,9 +122,9 @@ export const InitializeCronJobs = () => {
   });
 
   cron.schedule("* * * * *", async () => {
-    console.log(
-      "This task runs every minutes to do auto reject for `Waiting for Payment` order that has been in the same state for 5 minutes and notify the users"
-    );
+    // console.log(
+    //   "This task runs every minutes to do auto reject for `Waiting for Payment` order that has been in the same state for 5 minutes and notify the users"
+    // );
 
     try {
       const currentTimeW5MBehind = new Date(Date.now() - 5 * 60 * 1000);

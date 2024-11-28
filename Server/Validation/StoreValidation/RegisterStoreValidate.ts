@@ -40,6 +40,7 @@ export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
           // path: Joi.string().required().label("Path"),
         })
       )
+      .min(1)
       .required()
       .label("Store Image"),
     storeType: Joi.string()
@@ -63,6 +64,7 @@ export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
           // path: Joi.string().required().label("Path"),
         })
       )
+      .min(1)
       .required()
       .label("Store Document"),
   });

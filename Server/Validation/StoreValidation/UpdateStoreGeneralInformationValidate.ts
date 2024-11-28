@@ -19,6 +19,7 @@ export const UpdateStoreGeneralInformationValidate = (
           // path: Joi.string().required().label("Path"),
         })
       )
+      .min(1)
       .required()
       .label("Images"),
     location: Joi.string().required().label("Location"),

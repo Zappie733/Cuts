@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import React, { useContext, useRef, useState } from "react";
 import { colors } from "../Config/Theme";
-import { IInputProps } from "../Types/InputTypes";
+import { IInputProps } from "../Types/ComponentTypes/InputTypes";
 import {
   EvilIcons,
   Feather,
