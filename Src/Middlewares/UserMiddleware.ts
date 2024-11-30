@@ -220,16 +220,16 @@ export const updateUserProfile = async ({
 export const getAdminRecentActivity = async ({
   auth,
   updateAccessToken,
-  data,
-}: ApiRequestProps<string>): Promise<
+  params,
+}: ApiRequestProps): Promise<
   IResponseProps<GetAdminRecentActivityResponse>
 > => {
   //console.log(`getAdminRecentActivity ${data} Process`);
 
   const apiOptions: ApiOptions = {
     method: "GET",
-    params: {
-      activity: data,
+    queryParams: {
+      activity: params?.activity,
     },
   };
 

@@ -1,77 +1,17 @@
-import { IDocumentProps } from "./ComponentTypes/DocumentTypes";
-import { IImageProps } from "./ComponentTypes/ImageTypes";
+import { IDocumentProps } from "../ComponentTypes/DocumentTypes";
+import { IImageProps } from "../ComponentTypes/ImageTypes";
+import { GalleryObj } from "./GalleryTypes";
+import { SalesProductObj } from "./SalesProductTypes";
+import { ServiceProductObj } from "./ServiceProductTypes";
+import { ServiceObj } from "./ServiceTypes";
+import { StorePromotionObj } from "./StorePromotionTypes";
+import { WorkerObj } from "./WorkerTypes";
 
 export interface IStoreComponentProps {
   // data: StoreResponse;
   data: StoreObj;
   refetchData?: () => void;
   changeIsFromReviewRef?: () => void;
-}
-
-export interface HistoryObj {
-  date: Date;
-  clockIn?: Date;
-  clockOut?: Date;
-  isAbsence?: boolean;
-  reason?: string;
-}
-export interface WorkerObj {
-  _id?: string;
-  firstName: string;
-  lastName: string;
-  age: number;
-  role: "admin" | "worker"; //admin adalah org yang diperaya di barber tersebut untuk mengelola bisnis seperti menerima atau menolak pesanan dan melakukan absensi pekerja
-  isOnDuty?: boolean;
-  history?: HistoryObj[];
-  image: IImageProps;
-}
-
-export interface ServiceObj {
-  _id?: string;
-  name: string;
-  price: number;
-  duration: number;
-  description?: string;
-  serviceProduct?: string[];
-  discount?: number;
-  images: IImageProps[];
-}
-
-export interface ServiceProductObj {
-  _id?: string;
-  name: string;
-  quantity: number;
-  alertQuantity: number;
-  description?: string;
-  isAnOption: boolean;
-  addtionalPrice?: number;
-  image: IImageProps;
-  isAlerted?: boolean;
-}
-
-export interface SalesProductObj {
-  _id?: string;
-  name: string;
-  description?: string;
-  images: IImageProps[];
-  price: number;
-  links: string[];
-}
-
-export interface StorePromotionObj {
-  _id?: string;
-  name: string;
-  image: IImageProps;
-  startDate: Date;
-  endDate: Date;
-}
-
-export interface GalleryObj {
-  _id?: string;
-  images: IImageProps[];
-  caption: string;
-  likes?: number;
-  date: Date;
 }
 
 export interface StoreObj {
@@ -155,10 +95,14 @@ export interface HoldStoreData {
   onHoldReason: string;
 }
 
-export interface UnHoldStoreParam {
-  storeId: string;
-}
-
-export interface ApproveStoreParam {
-  storeId: string;
+export interface UpdateStoreGeneralInformationData {
+  name: string;
+  images: IImageProps[];
+  location: string;
+  openHour: number;
+  openMinute: number;
+  closeHour: number;
+  closeMinute: number;
+  canChooseWorker: boolean;
+  toleranceTime: number;
 }

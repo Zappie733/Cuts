@@ -13,7 +13,7 @@ import { Auth, User } from "../Contexts";
 import { ProfileScreen } from "../Screens/ProfileScreen";
 import { RegisterStoreScreen } from "../Screens/RegisterStoreScreen";
 import { DocumentDetailsScreen } from "../Screens/DocumentDetailsScreen";
-import { RegistrationStoreData } from "../Types/StoreTypes";
+import { RegistrationStoreData } from "../Types/StoreTypes/StoreTypes";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;

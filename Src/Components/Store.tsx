@@ -16,9 +16,9 @@ import {
   DeleteStoreData,
   IStoreComponentProps,
   RegistrationStoreData,
-} from "../Types/StoreTypes";
+} from "../Types/StoreTypes/StoreTypes";
 import { AntDesign, Fontisto } from "@expo/vector-icons";
-import { deleteStore } from "../Middlewares/StoreMiddleware";
+import { deleteStore } from "../Middlewares/StoreMiddleware/StoreMiddleware";
 import { IResponseProps, LoginResponse } from "../Types/ResponseTypes";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";

@@ -14,7 +14,7 @@ export const OrderRoute = express.Router();
 OrderRoute.post("/addOrder", addOrder);
 OrderRoute.get("/getOrdersByStatus", getOrdersByStatus);
 OrderRoute.get("/getStoreOrderHistory", getStoreOrderHistory);
-OrderRoute.get("/getOrderforSchedule", getOrderforSchedule);
+OrderRoute.get("/getOrderforSchedule/:id", getOrderforSchedule);
 OrderRoute.patch("/confirmOrder/:id", confirmOrder);
 OrderRoute.patch("/payOrder/:id", payOrder);
 OrderRoute.patch("/completeOrder/:id", completeOrder);

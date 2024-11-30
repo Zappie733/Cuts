@@ -105,11 +105,12 @@ export const AdminHomeScreen = ({
     useState<GetAdminRecentActivityResponse>();
 
   const handleFetchAdminRecentApprove = async () => {
-    const data = "Approve";
     const response = await getAdminRecentActivity({
       auth,
       updateAccessToken,
-      data,
+      params: {
+        activity: "Approve",
+      },
     });
 
     if (response.status === 402) {
@@ -145,12 +146,12 @@ export const AdminHomeScreen = ({
   };
 
   const handleFetchAdminRecentReject = async () => {
-    const data = "Reject";
-
     const response = await getAdminRecentActivity({
       auth,
       updateAccessToken,
-      data,
+      params: {
+        activity: "Reject",
+      },
     });
 
     if (response.status === 402) {
@@ -186,12 +187,12 @@ export const AdminHomeScreen = ({
   };
 
   const handleFetchAdminRecentHold = async () => {
-    const data = "Hold";
-
     const response = await getAdminRecentActivity({
       auth,
       updateAccessToken,
-      data,
+      params: {
+        activity: "Hold",
+      },
     });
 
     if (response.status === 402) {
@@ -227,11 +228,12 @@ export const AdminHomeScreen = ({
   };
 
   const handleFetchAdminRecentUnHold = async () => {
-    const data = "UnHold";
     const response = await getAdminRecentActivity({
       auth,
       updateAccessToken,
-      data,
+      params: {
+        activity: "UnHold",
+      },
     });
 
     if (response.status === 402) {

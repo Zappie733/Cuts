@@ -14,6 +14,7 @@ export interface AddGalleryRequestObj {
 }
 
 export interface UpdateGalleryRequestObj {
+  galleryId: string;
   caption: string;
 }
 

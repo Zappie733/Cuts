@@ -31,7 +31,7 @@ import { Switch } from "../Components/Switch";
 import { Store } from "../Components/Store";
 import { logoutUser } from "../Middlewares/UserMiddleware";
 import { GetStoresByUserIdResponse } from "../Types/ResponseTypes/StoreResponse";
-import { getStoresByUserId } from "../Middlewares/StoreMiddleware";
+import { getStoresByUserId } from "../Middlewares/StoreMiddleware/StoreMiddleware";
 
 export const SettingsScreen = ({
   navigation,

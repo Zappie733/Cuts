@@ -384,7 +384,7 @@ export const deleteGalleryById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateGalleryById = async (req: Request, res: Response) => {
+export const updateGallery = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -416,15 +416,6 @@ export const updateGalleryById = async (req: Request, res: Response) => {
         });
       }
 
-      const { id: galleryIdParam } = req.params;
-
-      if (!mongoose.Types.ObjectId.isValid(galleryIdParam)) {
-        return res.status(400).json(<ResponseObj>{
-          error: true,
-          message: "Invalid gallery id",
-        });
-      }
-
       const { error } = UpdateGalleryValidate(req.body);
 
       if (error) {
@@ -434,10 +425,17 @@ export const updateGalleryById = async (req: Request, res: Response) => {
         });
       }
 
-      const { caption }: UpdateGalleryRequestObj = req.body;
+      const { galleryId, caption }: UpdateGalleryRequestObj = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(galleryId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid gallery id",
+        });
+      }
 
       const gallery = store.gallery.find((gallery) => {
-        return gallery._id?.toString() === galleryIdParam.toString();
+        return gallery._id?.toString() === galleryId.toString();
       });
 
       if (!gallery) {

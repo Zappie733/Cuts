@@ -60,7 +60,7 @@ import {
   getGalleryByStoreId,
   getMostLikesGalleryByStoreId,
   likeGalleryById,
-  updateGalleryById,
+  updateGallery,
 } from "../Controllers/GalleryController";
 
 export const StoreRoute = express.Router();
@@ -70,8 +70,8 @@ StoreRoute.get("/:id/verifyStore/:token", verifyStore);
 StoreRoute.get("/getStoresByUserId", getStoresByUserId);
 StoreRoute.delete("/deleteStore", deleteStore);
 StoreRoute.get("/getStoresByStatus", getStoresByStatus);
-StoreRoute.post("/rejectStore", rejectStore);
-StoreRoute.post("/holdStore", holdStore);
+StoreRoute.patch("/rejectStore", rejectStore);
+StoreRoute.patch("/holdStore", holdStore);
 StoreRoute.patch("/unHoldStore/:id", unHoldStore);
 StoreRoute.patch("/approveStore/:id", approveStore);
 StoreRoute.patch("/activeStore", activeStore);
@@ -89,7 +89,7 @@ StoreRoute.delete("/worker/deleteWorkerById/:id", deleteWorkerById);
 StoreRoute.put("/worker/updateWorker", updateWorker);
 StoreRoute.patch("/worker/clockIn/:id", clockIn);
 StoreRoute.patch("/worker/clockOut/:id", clockOut);
-StoreRoute.post("/worker/absence", absence);
+StoreRoute.patch("/worker/absence", absence);
 
 //Service
 StoreRoute.get("/service/getServicesByStoreId/:id", getServicesByStoreId);
@@ -145,5 +145,5 @@ StoreRoute.get(
 );
 StoreRoute.post("/gallery/addGallery", addGallery);
 StoreRoute.delete("/gallery/deleteGalleryById/:id", deleteGalleryById);
-StoreRoute.put("/gallery/updateGalleryById/:id", updateGalleryById);
+StoreRoute.put("/gallery/updateGallery", updateGallery);
 StoreRoute.patch("/gallery/likeGalleryById/:id", likeGalleryById);

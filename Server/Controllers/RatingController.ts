@@ -385,9 +385,11 @@ export const getRatingByOrderId = async (req: Request, res: Response) => {
       }
       const rating = await RATINGS.findOne({ orderId: orderIdParam });
       if (!rating) {
-        return res
-          .status(404)
-          .json(<ResponseObj>{ error: true, message: "Rating not found" });
+        return res.status(200).json(<ResponseObj>{
+          error: false,
+          message: "Order selected has no rating",
+          data: { rating },
+        });
       }
 
       return res.status(200).json(<ResponseObj<GetRatingByOrderIdResponse>>{

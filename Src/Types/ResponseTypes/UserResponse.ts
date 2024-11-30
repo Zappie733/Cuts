@@ -1,6 +1,6 @@
 import { IDocumentProps } from "../ComponentTypes/DocumentTypes";
 import { IImageProps } from "../ComponentTypes/ImageTypes";
-import { StoreObj } from "../StoreTypes";
+import { StoreObj } from "../StoreTypes/StoreTypes";
 
 export interface LoginResponse {
   _id: string;

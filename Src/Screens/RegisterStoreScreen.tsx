@@ -34,13 +34,16 @@ import {
   registerStore,
   rejectStore,
   unHoldStore,
-} from "../Middlewares/StoreMiddleware";
+} from "../Middlewares/StoreMiddleware/StoreMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import ImageViewing from "react-native-image-viewing";
 import { DropdownPicker } from "../Components/DropdownPicker";
-import { DeleteStoreData, RegistrationStoreData } from "../Types/StoreTypes";
+import {
+  DeleteStoreData,
+  RegistrationStoreData,
+} from "../Types/StoreTypes/StoreTypes";
 import { logoutUser } from "../Middlewares/UserMiddleware";
 
 const screenWidth = Dimensions.get("screen").width;

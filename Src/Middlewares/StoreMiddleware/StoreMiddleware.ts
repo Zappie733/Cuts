@@ -1,24 +1,23 @@
-import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
-import { IResponseProps } from "../Types/ResponseTypes";
+import { IAuthObj } from "../../Types/ContextTypes/AuthContextTypes";
+import { IResponseProps } from "../../Types/ResponseTypes";
 import {
-  ApproveStoreParam,
   DeleteStoreData,
   GetStoresByStatusParam,
   HoldStoreData,
   RegistrationStoreData,
   RejectStoreData,
-  UnHoldStoreParam,
-} from "../Types/StoreTypes";
-import { apiCallWithToken } from "./IndexMiddleware";
+  UpdateStoreGeneralInformationData,
+} from "../../Types/StoreTypes/StoreTypes";
+import { apiCallWithToken } from "../IndexMiddleware";
 import {
   ApiCallWithTokenProps,
   ApiOptions,
   ApiRequestProps,
-} from "../Types/MiddleWareTypes";
+} from "../../Types/MiddleWareTypes";
 import {
   GetStoresByUserIdResponse,
   StoresByStatusResponse,
-} from "../Types/ResponseTypes/StoreResponse";
+} from "../../Types/ResponseTypes/StoreResponse";
 
 export const registerStore = async ({
   auth,
@@ -120,15 +119,14 @@ export const getStoresByStatus = async ({
   IResponseProps<StoresByStatusResponse>
 > => {
   // console.log("get Stores By Status Process");
-  if (!params) return { status: 400, message: "No params provided" };
 
   const apiOptions: ApiOptions = {
     method: "GET",
-    params: {
-      limit: params.limit,
-      offset: params.offset,
-      status: params.status,
-      search: params.search,
+    queryParams: {
+      limit: params?.limit,
+      offset: params?.offset,
+      status: params?.status,
+      search: params?.search,
     },
   };
 
@@ -158,7 +156,7 @@ export const rejectStore = async ({
 }: ApiRequestProps<RejectStoreData>): Promise<IResponseProps> => {
   // console.log("rejectStore Process");
   const apiOptions: ApiOptions = {
-    method: "POST",
+    method: "PATCH",
     data,
   };
 
@@ -185,7 +183,7 @@ export const holdStore = async ({
 }: ApiRequestProps<HoldStoreData>): Promise<IResponseProps> => {
   // console.log("onHoldStore Process");
   const apiOptions: ApiOptions = {
-    method: "POST",
+    method: "PATCH",
     data,
   };
 
@@ -209,7 +207,7 @@ export const unHoldStore = async ({
   auth,
   updateAccessToken,
   params,
-}: ApiRequestProps<UnHoldStoreParam>): Promise<IResponseProps> => {
+}: ApiRequestProps): Promise<IResponseProps> => {
   // console.log("unHoldStore Process");
   const apiOptions: ApiOptions = {
     method: "PATCH",
@@ -235,7 +233,7 @@ export const approveStore = async ({
   auth,
   updateAccessToken,
   params,
-}: ApiRequestProps<ApproveStoreParam>): Promise<IResponseProps> => {
+}: ApiRequestProps): Promise<IResponseProps> => {
   // console.log("approveStore Process");
   const apiOptions: ApiOptions = {
     method: "PATCH",
@@ -243,6 +241,108 @@ export const approveStore = async ({
 
   const apiCallWithTokenProps: ApiCallWithTokenProps = {
     endpoint: `/store/approveStore/${params?.storeId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken(apiCallWithTokenProps);
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    message: result.message,
+  };
+};
+
+export const activeStore = async ({
+  auth,
+  updateAccessToken,
+}: ApiRequestProps): Promise<IResponseProps> => {
+  // console.log("activeStore Process");
+  const apiOptions: ApiOptions = {
+    method: "PATCH",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: "/store/activeStore",
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken(apiCallWithTokenProps);
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    message: result.message,
+  };
+};
+
+export const inActiceStore = async ({
+  auth,
+  updateAccessToken,
+}: ApiRequestProps): Promise<IResponseProps> => {
+  // console.log("inActiceStore Process");
+  const apiOptions: ApiOptions = {
+    method: "PATCH",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: "/store/inActiceStore",
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken(apiCallWithTokenProps);
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    message: result.message,
+  };
+};
+
+export const updateStoreGeneralInformation = async ({
+  auth,
+  updateAccessToken,
+  data,
+}: ApiRequestProps<UpdateStoreGeneralInformationData>): Promise<IResponseProps> => {
+  // console.log("updateStoreGeneralInformation Process");
+  const apiOptions: ApiOptions = {
+    method: "PATCH",
+    data,
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: "/store/updateStoreGeneralInformation",
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken(apiCallWithTokenProps);
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    message: result.message,
+  };
+};
+
+export const updateStoreOpenCloseStatus = async ({
+  auth,
+  updateAccessToken,
+}: ApiRequestProps): Promise<IResponseProps> => {
+  // console.log("updateStoreOpenCloseStatus Process");
+  const apiOptions: ApiOptions = {
+    method: "PATCH",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: "/store/updateStoreOpenCloseStatus",
     options: apiOptions,
     auth,
     updateAccessToken,

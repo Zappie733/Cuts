@@ -56,8 +56,8 @@ export const apiCallWithToken = async <T>({
   let accessToken = auth.accessToken;
 
   const queryParams = new URLSearchParams();
-  if (options.params) {
-    Object.entries(options.params).forEach(([key, value]) => {
+  if (options.queryParams) {
+    Object.entries(options.queryParams).forEach(([key, value]) => {
       if (value !== undefined) queryParams.append(key, value.toString());
     });
   }

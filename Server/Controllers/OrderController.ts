@@ -637,12 +637,21 @@ export const getOrderforSchedule = async (req: Request, res: Response) => {
         },
       };
 
-      const payload = <PayloadObj>{
-        _id: response.data?._id,
-        role: response.data?.role,
-      };
+      // const payload = <PayloadObj>{
+      //   _id: response.data?._id,
+      //   role: response.data?.role,
+      // };
 
-      const store = await STORES.findOne({ userId: payload._id });
+      const { id: storeId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res
+          .status(400)
+          .json(<ResponseObj>{ error: true, message: "Invalid store id" });
+      }
+
+      // const store = await STORES.findOne({ userId: payload._id });
+      const store = await STORES.findOne({ _id: storeId });
       if (!store) {
         return res.status(404).json(<ResponseObj>{
           error: true,

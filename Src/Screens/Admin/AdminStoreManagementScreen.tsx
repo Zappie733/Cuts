@@ -24,7 +24,7 @@ import { Theme } from "../../Contexts/ThemeContext";
 import { IResponseProps } from "../../Types/ResponseTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import { Auth } from "../../Contexts";
-import { getStoresByStatus } from "../../Middlewares/StoreMiddleware";
+import { getStoresByStatus } from "../../Middlewares/StoreMiddleware/StoreMiddleware";
 import { removeDataFromAsyncStorage } from "../../Config/AsyncStorage";
 import { IAuthObj } from "../../Types/ContextTypes/AuthContextTypes";
 import { Header } from "../../Components/Header";
@@ -33,7 +33,7 @@ import { set } from "mongoose";
 import { Store } from "../../Components/Store";
 import { SearchBar } from "../../Components/SearchBar";
 import { StoresByStatusResponse } from "../../Types/ResponseTypes/StoreResponse";
-import { GetStoresByStatusParam } from "../../Types/StoreTypes";
+import { GetStoresByStatusParam } from "../../Types/StoreTypes/StoreTypes";
 import { logoutUser } from "../../Middlewares/UserMiddleware";
 
 const screenWidth = Dimensions.get("screen").width;
