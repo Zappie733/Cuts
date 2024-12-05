@@ -4,6 +4,7 @@ import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { apiCallWithToken, handleAxiosError } from "./IndexMiddleware";
 import {
   GetAdminRecentActivityResponse,
+  GetUserInfoForOrderByIdResponse,
   GetUserProfileResponse,
   IResponseProps,
   LoginResponse,
@@ -241,6 +242,38 @@ export const getAdminRecentActivity = async ({
   };
 
   const result = await apiCallWithToken<GetAdminRecentActivityResponse>(
+    apiCallWithTokenProps
+  );
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    data: result.data,
+    message: result.message,
+  };
+};
+
+export const getUserInfoForOrderById = async ({
+  auth,
+  updateAccessToken,
+  params, //userId
+}: ApiRequestProps): Promise<
+  IResponseProps<GetUserInfoForOrderByIdResponse>
+> => {
+  //console.log(`getUserInfoForOrderById Process`);
+
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/user/getUserInfoForOrderById/${params?.userId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<GetUserInfoForOrderByIdResponse>(
     apiCallWithTokenProps
   );
   // console.log(JSON.stringify(result, null, 2));

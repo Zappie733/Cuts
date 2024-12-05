@@ -641,7 +641,7 @@ export const RegisterStoreScreen = ({
                   backgroundColor: activeColors.secondary,
                 },
               ]}
-              placeholder="Enter reasons, make a new for every reason."
+              placeholder="Enter reasons, make a new line for every reason."
               placeholderTextColor={activeColors.primary}
               multiline={true}
               numberOfLines={5}

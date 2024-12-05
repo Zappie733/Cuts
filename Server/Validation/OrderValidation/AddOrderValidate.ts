@@ -13,6 +13,7 @@ export const AddOrderValidate = (data: AddOrderRequestObj) => {
     totalDuration: Joi.number().required().label("Total Duration"),
     workerId: Joi.string().label("Worker ID"),
     date: Joi.date().required().label("Date"),
+    userName: Joi.string().label("User Name"),
   });
 
   return schema.validate(data);

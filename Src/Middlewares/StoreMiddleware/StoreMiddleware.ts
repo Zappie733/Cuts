@@ -6,6 +6,7 @@ import {
   HoldStoreData,
   RegistrationStoreData,
   RejectStoreData,
+  StoreObj,
   UpdateStoreGeneralInformationData,
 } from "../../Types/StoreTypes/StoreTypes";
 import { apiCallWithToken } from "../IndexMiddleware";
@@ -353,6 +354,31 @@ export const updateStoreOpenCloseStatus = async ({
 
   return {
     status: result.status,
+    message: result.message,
+  };
+};
+
+export const getStoreByUserId = async ({
+  auth,
+  updateAccessToken,
+}: ApiRequestProps): Promise<IResponseProps<StoreObj>> => {
+  console.log("getStoreByUserId Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: "/store/getStoreByUserId",
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<StoreObj>(apiCallWithTokenProps);
+
+  return {
+    status: result.status,
+    data: result.data,
     message: result.message,
   };
 };

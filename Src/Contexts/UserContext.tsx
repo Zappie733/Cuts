@@ -9,7 +9,6 @@ import {
   useState,
 } from "react";
 
-import * as SplashScreen from "expo-splash-screen";
 import { IUserContext } from "../Types/ContextTypes/UserContextTypes";
 import { getUserProfile, logoutUser } from "../Middlewares/UserMiddleware";
 import { Auth } from "./AuthContext";
@@ -20,9 +19,6 @@ import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { IImageProps } from "../Types/ComponentTypes/ImageTypes";
 import { IUserObj } from "../Types/UserTypes";
-
-//munculin splashscreen selama masih load theme dari AsyncStorage
-SplashScreen.preventAutoHideAsync();
 
 const defaultContext: IUserContext = {
   user: {

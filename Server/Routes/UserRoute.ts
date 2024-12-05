@@ -3,6 +3,7 @@ import {
   changeUserPassword,
   getAccessTokenByRefreshToken,
   getAdminRecentActivity,
+  getUserInfoForOrderById,
   getUserProfile,
   loginUser,
   logoutUser,
@@ -27,3 +28,4 @@ UserRoute.post("/updateUserImage", updateUserImage);
 UserRoute.post("/updateUserProfile", updateUserProfile);
 UserRoute.get("/:id/verifyUpdateUser/:token", verifyUpdateUser);
 UserRoute.get("/getAdminRecentActivity", getAdminRecentActivity);
+UserRoute.get("/getUserInfoForOrderById/:id", getUserInfoForOrderById);

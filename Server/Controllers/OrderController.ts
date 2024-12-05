@@ -61,6 +61,7 @@ export const addOrder = async (req: Request, res: Response) => {
         workerId,
         date,
         chosenServiceProductsIds,
+        userName,
       } = <AddOrderRequestObj>req.body;
 
       //check storeId Validity
@@ -124,6 +125,14 @@ export const addOrder = async (req: Request, res: Response) => {
         });
       }
 
+      //check order date, can only order for the next 7 days
+      if (startTime > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Cannot add order for more than 7 days",
+        });
+      }
+
       let longestAvailableWorkerId: string | undefined = "";
       let longestAvailableTime: Date | undefined = undefined;
 
@@ -144,7 +153,9 @@ export const addOrder = async (req: Request, res: Response) => {
         }
 
         const worker = store.workers.find(
-          (worker) => worker._id?.toString() === workerId.toString()
+          (worker) =>
+            worker._id?.toString() === workerId.toString() &&
+            worker.role === "worker"
         );
         if (!worker) {
           return res
@@ -198,7 +209,10 @@ export const addOrder = async (req: Request, res: Response) => {
           ],
         });
 
-        const workersId = store.workers.map((worker) => worker._id?.toString());
+        //store workers
+        const workersId = store.workers
+          .filter((worker) => worker.role === "worker")
+          .map((worker) => worker._id?.toString());
 
         // Collect the IDs of workers who have a conflicting order
         const busyWorkers = new Set(
@@ -339,6 +353,7 @@ export const addOrder = async (req: Request, res: Response) => {
           endTime: endTime,
           workerId: workerId ? workerId : longestAvailableWorkerId,
           chosenServiceProductsIds,
+          userName,
         });
 
         await newOrder.save();
@@ -417,7 +432,8 @@ export const getOrdersByStatus = async (req: Request, res: Response) => {
           status !== "Waiting for Confirmation" &&
           status !== "Waiting for Payment" &&
           status !== "Paid" &&
-          status !== "Completed"
+          status !== "Completed" &&
+          status !== "Rejected"
         ) {
           return res.status(400).json(<ResponseObj>{
             error: true,
@@ -448,6 +464,7 @@ export const getOrdersByStatus = async (req: Request, res: Response) => {
       }
 
       const orders = await ORDERS.find(query)
+        .sort({ date: 1 }) //asc
         .limit(Number(limit))
         .skip(Number(offset));
 
@@ -536,9 +553,10 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
 
       query.storeId = store._id;
 
-      query.status = { $in: ["Completed", undefined] };
+      query.status = { $in: ["Completed", "Rejected"] };
 
       const orders = await ORDERS.find(query)
+        .sort({ date: 1 }) //asc
         .limit(Number(limit))
         .skip(Number(offset));
 
@@ -672,6 +690,7 @@ export const getOrderforSchedule = async (req: Request, res: Response) => {
       };
 
       const orders = await ORDERS.find(query)
+        .sort({ date: 1 }) //asc
         .limit(Number(limit))
         .skip(Number(offset));
 

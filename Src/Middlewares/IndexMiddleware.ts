@@ -4,8 +4,7 @@ import {
   IResponseProps,
 } from "../Types/ResponseTypes";
 import { API_HOST, API_PORT } from "../Config/Api";
-import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
-import { ApiCallWithTokenProps, ApiOptions } from "../Types/MiddleWareTypes";
+import { ApiCallWithTokenProps } from "../Types/MiddleWareTypes";
 
 export const handleAxiosError = (error: any): IResponseProps<any> => {
   if (axios.isAxiosError(error)) {

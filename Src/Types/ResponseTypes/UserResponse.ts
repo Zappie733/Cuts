@@ -30,3 +30,10 @@ export interface UpdateUserProfileImageResponse {
 export interface GetAdminRecentActivityResponse {
   activities: StoreObj[];
 }
+
+export interface GetUserInfoForOrderByIdResponse {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+}

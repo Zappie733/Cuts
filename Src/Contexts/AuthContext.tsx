@@ -43,7 +43,7 @@ export const AuthContext = ({ children }: { children: ReactNode }) => {
     }
 
     if (auth !== null) {
-      console.log(auth);
+      // console.log(auth);
       storeDataToAsyncStorage("auth", auth);
     }
   }, [auth]);

@@ -83,6 +83,7 @@ export const RootNavigator = () => {
         <>
           {console.log("root nav store")}
           <RootStack.Screen name="TabsStack" component={TabsNavigator} />
+          <RootStack.Screen name="Profile" component={ProfileScreen} />
         </>
       ) : (
         <>

@@ -3,6 +3,7 @@ import {
   activeStore,
   approveStore,
   deleteStore,
+  getStoreByUserId,
   getStoresByStatus,
   getStoresByUserId,
   holdStore,
@@ -81,6 +82,7 @@ StoreRoute.patch(
   updateStoreGeneralInformation
 );
 StoreRoute.patch("/updateStoreOpenCloseStatus", updateStoreOpenCloseStatus);
+StoreRoute.get("/getStoreByUserId", getStoreByUserId);
 
 //Worker
 StoreRoute.get("/worker/getWorkersByStoreId/:id", getWorkersByStoreId);

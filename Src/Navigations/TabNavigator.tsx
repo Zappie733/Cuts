@@ -14,6 +14,7 @@ import { SettingsScreen } from "../Screens/SettingsScreen";
 import { Theme, Auth } from "../Contexts/";
 import { AdminHomeScreen } from "../Screens/Admin/AdminHomeScreen";
 import { AdminStoreManagementScreen } from "../Screens/Admin/AdminStoreManagementScreen";
+import { StoreHomeScreen } from "../Screens/Store/StoreHomeScreen";
 
 export type TabsStackParamsObj = {
   Home: undefined;
@@ -139,7 +140,7 @@ export const TabsNavigator = () => {
       {role === "store" && (
         <>
           {console.log("bottom tab store")}
-          <TabsStack.Screen name="Home" component={HomeScreen} />
+          <TabsStack.Screen name="Home" component={StoreHomeScreen} />
           <TabsStack.Screen name="Settings" component={SettingsScreen} />
         </>
       )}

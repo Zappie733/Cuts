@@ -29,6 +29,7 @@ import jwt from "jsonwebtoken";
 import {
   GetAdminRecentActivityResponse,
   GetNewAccessTokenResponse,
+  GetUserInfoForOrderByIdResponse,
   LoginDataResponse,
   ResponseObj,
   UpdateUserImageResponse,
@@ -45,6 +46,7 @@ import { LoginValidate } from "../Validation/UserValidation/LoginValidate";
 import { RefreshTokenValidate } from "../Validation/UserValidation/RefreshTokenValidate";
 import { UpdateUserImageValidate } from "../Validation/UserValidation/UploadImageValidate";
 import { UpdateUserValidate } from "../Validation/UserValidation/UpdateUserValidate";
+import mongoose from "mongoose";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -725,6 +727,64 @@ export const getAdminRecentActivity = async (req: Request, res: Response) => {
         error: false,
         data: responseData,
         message: `Admin recent ${activity} activities retrieved successfully`,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    return res.status(500).json(<ResponseObj>{
+      error: true,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const getUserInfoForOrderById = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: userId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid User ID",
+        });
+      }
+
+      const user = await USERS.findById(userId).select(
+        "firstName lastName phone"
+      );
+
+      if (!user) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "User not found",
+        });
+      }
+
+      return res.status(200).json(<
+        ResponseObj<GetUserInfoForOrderByIdResponse>
+      >{
+        error: false,
+        data: user,
+        message: `User Info retrieved successfully`,
       });
     }
 

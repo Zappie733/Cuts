@@ -18,6 +18,7 @@ export interface OrderObj {
   hasRating?: boolean;
   workerId?: string;
   rejectedReason?: string;
+  userName?: string; //untuk manual
 }
 
 export interface AddOrderRequestObj {
@@ -29,6 +30,7 @@ export interface AddOrderRequestObj {
   totalDuration: number;
   date: Date;
   workerId?: string;
+  userName?: string;
 }
 
 export interface RejectOrderRequestObj {
