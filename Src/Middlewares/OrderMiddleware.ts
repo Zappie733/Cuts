@@ -17,6 +17,8 @@ export const addOrder = async ({
   updateAccessToken,
   data,
 }: ApiRequestProps<AddOrderData>): Promise<IResponseProps> => {
+  console.log(JSON.stringify(data, null, 2));
+
   // console.log("addOrder Process");
   const apiOptions: ApiOptions = {
     method: "POST",

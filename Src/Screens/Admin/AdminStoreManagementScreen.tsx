@@ -41,7 +41,7 @@ const screenWidth = Dimensions.get("screen").width;
 export const AdminStoreManagementScreen = ({
   navigation,
   route,
-}: TabsStackScreenProps<"StoreManagement">) => {
+}: TabsStackScreenProps<"AdminStoreManagement">) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
   const { auth, setAuth, updateAccessToken } = useContext(Auth);

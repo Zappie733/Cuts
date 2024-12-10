@@ -88,23 +88,19 @@ export const addOrder = async (req: Request, res: Response) => {
       }
 
       const currentTime = new Date(Date.now() + 7 * 60 * 60 * 1000);
-      let startTime = new Date(date);
+      let startTime = new Date(date || Date.now() + 7 * 60 * 60 * 1000); //date itu dari frontend yang sudah di + 7, || itu untuk yang manual yang langsung (tidak untuk masa depan)
       let endTime = new Date(startTime.getTime() + totalDuration * 60 * 1000);
-      // {
-      //   // console.log(startTime);
-      //   // console.log(endTime);
-      //   //check order date, can must between opening and closing time
-      //   // console.log(startTime.getHours() * 60);
-      //   // console.log(store.openHour * 60);
-      //   // console.log(endTime.getHours() * 60);
-      //   // console.log(store.closeHour * 60);
+      console.log("currentTime: ", currentTime);
+      console.log("startTime: ", startTime);
+      console.log("endTime: ", endTime);
+      console.log("startTime.getHours(): ", startTime.getHours());
+      console.log("startTime.getUTCHours(): ", startTime.getUTCHours());
 
-      // }
       //check whether the shop is still open
       if (
-        startTime.getHours() * 60 + startTime.getMinutes() <
+        startTime.getUTCHours() * 60 + startTime.getUTCMinutes() <
           store.openHour * 60 + store.openMinute ||
-        endTime.getHours() * 60 + endTime.getMinutes() >
+        endTime.getUTCHours() * 60 + endTime.getUTCMinutes() >
           store.closeHour * 60 + store.closeMinute ||
         store.isOpen === false
       ) {
@@ -114,8 +110,6 @@ export const addOrder = async (req: Request, res: Response) => {
         });
       }
 
-      startTime.setHours(startTime.getHours() + 7);
-      endTime = new Date(startTime.getTime() + totalDuration * 60 * 1000);
       //check order date, can not be less than current time
       if (startTime < currentTime) {
         return res.status(400).json(<ResponseObj>{
@@ -136,7 +130,8 @@ export const addOrder = async (req: Request, res: Response) => {
       let longestAvailableWorkerId: string | undefined = "";
       let longestAvailableTime: Date | undefined = undefined;
 
-      if (workerId) {
+      if (workerId && workerId !== "") {
+        console.log(workerId);
         if (!mongoose.Types.ObjectId.isValid(workerId)) {
           return res.status(400).json(<ResponseObj>{
             error: true,
@@ -158,9 +153,18 @@ export const addOrder = async (req: Request, res: Response) => {
             worker.role === "worker"
         );
         if (!worker) {
-          return res
-            .status(404)
-            .json(<ResponseObj>{ error: true, message: "Worker not found" });
+          return res.status(404).json(<ResponseObj>{
+            error: true,
+            message: "Worker not found",
+          });
+        }
+
+        // check if worker is on duty
+        if (!worker.isOnDuty) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message: "Worker is not on duty",
+          });
         }
 
         // Check if there are any conflicting orders
@@ -182,7 +186,7 @@ export const addOrder = async (req: Request, res: Response) => {
             { date: { $gte: startTime, $lte: endTime } },
           ],
         });
-        console.log(conflictingOrder);
+        console.log("conflictingOrder: " + conflictingOrder);
         if (conflictingOrder) {
           return res.status(400).json(<ResponseObj>{
             error: true,
@@ -211,7 +215,9 @@ export const addOrder = async (req: Request, res: Response) => {
 
         //store workers
         const workersId = store.workers
-          .filter((worker) => worker.role === "worker")
+          .filter(
+            (worker) => worker.role === "worker" && worker.isOnDuty === true
+          )
           .map((worker) => worker._id?.toString());
 
         // Collect the IDs of workers who have a conflicting order
@@ -230,7 +236,7 @@ export const addOrder = async (req: Request, res: Response) => {
 
         //get available workers
         const availableWorkers = workersId.filter((id) => !busyWorkers.has(id));
-        console.log(availableWorkers);
+        console.log("availableWorkers: " + availableWorkers);
 
         //get the longest available worker
         for (const availableWorkerId of availableWorkers) {
@@ -241,8 +247,8 @@ export const addOrder = async (req: Request, res: Response) => {
             status: {
               $in: [undefined, "Paid", "Completed"],
             },
-          }).sort({ endTime: -1 });
-          console.log(lastOrder);
+          }).sort({ createdAt: -1 });
+          console.log("lastOrder: " + lastOrder);
 
           if (!lastOrder) {
             console.log("worker first order");
@@ -298,9 +304,13 @@ export const addOrder = async (req: Request, res: Response) => {
             if (
               serviceProduct &&
               (serviceProduct.isAnOption === false ||
-                chosenServiceProductsIds?.includes(
-                  serviceProduct._id?.toString() ?? ""
-                ))
+                chosenServiceProductsIds
+                  ?.find(
+                    (obj) => obj.serviceId.toString() === serviceId.toString()
+                  )
+                  ?.serviceProductIds.includes(
+                    serviceProduct._id?.toString() ?? ""
+                  ))
             ) {
               if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
                 return res.status(400).json(<ResponseObj>{
@@ -553,7 +563,7 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
 
       query.storeId = store._id;
 
-      query.status = { $in: ["Completed", "Rejected"] };
+      query.status = { $in: ["Paid", undefined, "Completed", "Rejected"] };
 
       const orders = await ORDERS.find(query)
         .sort({ date: 1 }) //asc
@@ -639,14 +649,14 @@ export const getOrderforSchedule = async (req: Request, res: Response) => {
 
       const today = new Date();
       today.setUTCHours(0, 0, 0, 0); // Set to start of today in UTC
-      console.log(today);
-      console.log(today.toISOString()); // For logging in ISO format
+      // console.log(today);
+      // console.log(today.toISOString()); // For logging in ISO format
 
       const nextSixDays = new Date();
       nextSixDays.setDate(today.getDate() + 6);
       nextSixDays.setUTCHours(23, 59, 59, 999); // Set to end of next week in UTC
-      console.log(nextSixDays);
-      console.log(nextSixDays.toISOString()); // For logging in ISO format
+      // console.log(nextSixDays);
+      // console.log(nextSixDays.toISOString()); // For logging in ISO format
 
       let query: any = {
         date: {
@@ -934,13 +944,16 @@ export const rejectOrder = async (req: Request, res: Response) => {
                 (serviceProduct) =>
                   serviceProduct._id?.toString() === serviceProductId.toString()
               );
-
               if (
                 serviceProduct &&
                 (serviceProduct.isAnOption === false ||
-                  order.chosenServiceProductsIds?.includes(
-                    serviceProduct._id?.toString() ?? ""
-                  ))
+                  order.chosenServiceProductsIds
+                    ?.find(
+                      (obj) => obj.serviceId.toString() === serviceId.toString()
+                    )
+                    ?.serviceProductIds.includes(
+                      serviceProduct._id?.toString() ?? ""
+                    ))
               ) {
                 if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
                   return res.status(400).json(<ResponseObj>{
@@ -948,7 +961,7 @@ export const rejectOrder = async (req: Request, res: Response) => {
                     message: "Invalid Service Product ID " + serviceProductId,
                   });
                 }
-
+                console.log("increase quantity of " + serviceProductId);
                 serviceProduct.quantity += 1;
               }
             }
@@ -1091,9 +1104,13 @@ export const payOrder = async (req: Request, res: Response) => {
               if (
                 serviceProduct &&
                 (serviceProduct.isAnOption === false ||
-                  order.chosenServiceProductsIds?.includes(
-                    serviceProduct._id?.toString() ?? ""
-                  ))
+                  order.chosenServiceProductsIds
+                    ?.find(
+                      (obj) => obj.serviceId.toString() === serviceId.toString()
+                    )
+                    ?.serviceProductIds.includes(
+                      serviceProduct._id?.toString() ?? ""
+                    ))
               ) {
                 if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
                   return res.status(400).json(<ResponseObj>{

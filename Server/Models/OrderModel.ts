@@ -57,10 +57,18 @@ const OrderSchema = new Schema(
     rejectedReason: {
       type: String,
     },
-    chosenServiceProductsIds: {
-      type: [Schema.Types.ObjectId],
-      ref: "ServiceProducts",
-    },
+    chosenServiceProductsIds: [
+      {
+        serviceId: {
+          type: Schema.Types.ObjectId,
+          ref: "Services",
+        },
+        serviceProductIds: {
+          type: [Schema.Types.ObjectId],
+          ref: "ServiceProducts",
+        },
+      },
+    ],
     userName: {
       type: String,
     },

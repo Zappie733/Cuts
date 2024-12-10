@@ -54,6 +54,7 @@ const defaultContext: IStoreContext = {
     toleranceTime: 0,
   },
   setStore: () => {}, // Placeholder function
+  refetchData: () => {},
 };
 
 export const Store = createContext(defaultContext);
@@ -102,6 +103,7 @@ export const StoreContext = ({ children }: { children: ReactNode }) => {
     useContext(Auth);
 
   const fetchStore = async () => {
+    console.log("set store");
     const refreshTokenPayload = getRefreshTokenPayload();
 
     if (auth._id !== "" && refreshTokenPayload?.role === "store") {
@@ -140,6 +142,9 @@ export const StoreContext = ({ children }: { children: ReactNode }) => {
       }
     }
   };
+  const test = () => {
+    console.log("test");
+  };
 
   useEffect(() => {
     fetchStore();
@@ -156,6 +161,8 @@ export const StoreContext = ({ children }: { children: ReactNode }) => {
   }, [auth]);
 
   return (
-    <Store.Provider value={{ store, setStore }}>{children}</Store.Provider>
+    <Store.Provider value={{ store, setStore, refetchData: fetchStore }}>
+      {children}
+    </Store.Provider>
   );
 };

@@ -1,9 +1,13 @@
+export interface chosenServiceProductObj {
+  serviceId: string;
+  serviceProductIds: string[];
+}
 export interface OrderObj {
   _id?: string;
   userId?: string;
   storeId: string;
   serviceIds: string[];
-  chosenServiceProductsIds?: string[];
+  chosenServiceProductsIds?: chosenServiceProductObj[];
   isManual: boolean;
   status?:
     | "Waiting for Confirmation"
@@ -24,11 +28,11 @@ export interface OrderObj {
 export interface AddOrderRequestObj {
   storeId?: string;
   serviceIds: string[];
-  chosenServiceProductsIds?: string[];
+  chosenServiceProductsIds?: chosenServiceProductObj[];
   isManual: boolean;
   totalPrice: number;
   totalDuration: number;
-  date: Date;
+  date?: Date;
   workerId?: string;
   userName?: string;
 }

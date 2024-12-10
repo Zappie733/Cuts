@@ -6,7 +6,7 @@ import {
 } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { RootStackScreenProps } from "./RootNavigator";
-import { Ionicons, Fontisto } from "@expo/vector-icons";
+import { Ionicons, Fontisto, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { HomeScreen } from "../Screens/HomeScreen";
 import { colors } from "../Config/Theme";
@@ -15,12 +15,15 @@ import { Theme, Auth } from "../Contexts/";
 import { AdminHomeScreen } from "../Screens/Admin/AdminHomeScreen";
 import { AdminStoreManagementScreen } from "../Screens/Admin/AdminStoreManagementScreen";
 import { StoreHomeScreen } from "../Screens/Store/StoreHomeScreen";
+import { StoreScheduleScreen } from "../Screens/Store/StoreScheduleScreen";
 
 export type TabsStackParamsObj = {
   Home: undefined;
   Settings: undefined;
 
-  StoreManagement: undefined;
+  AdminStoreManagement: undefined;
+
+  StoreSchedule: undefined;
 };
 
 const TabsStack = createBottomTabNavigator<TabsStackParamsObj>();
@@ -47,7 +50,8 @@ export const TabsNavigator = () => {
         tabBarIcon: ({ focused }) => {
           let iconName:
             | keyof typeof Ionicons.glyphMap
-            | keyof typeof Fontisto.glyphMap;
+            | keyof typeof Fontisto.glyphMap
+            | keyof typeof MaterialCommunityIcons.glyphMap;
           const iconSize = 24;
           let iconColor = focused ? activeColors.accent : activeColors.tertiary;
 
@@ -65,14 +69,22 @@ export const TabsNavigator = () => {
           }
 
           // Use Fontisto for StoreManagement
-          else if (route.name === "StoreManagement") {
+          else if (route.name === "AdminStoreManagement") {
             iconName = "shopping-store"; // Fontisto doesn't have focused/unfocused variants
             //iconName = focused ? "storefront" : "storefront-outline";
             return (
               <Fontisto name={iconName} size={iconSize} color={iconColor} />
             );
+          } else if (route.name === "StoreSchedule") {
+            iconName = focused ? "clipboard-list" : "clipboard-list-outline";
+            return (
+              <MaterialCommunityIcons
+                name={iconName}
+                size={iconSize}
+                color={iconColor}
+              />
+            );
           }
-
           // Default fallback icon
           return <Ionicons name="help" size={iconSize} color={iconColor} />;
         },
@@ -116,7 +128,7 @@ export const TabsNavigator = () => {
           {console.log("bottom tab admin")}
           <TabsStack.Screen name="Home" component={AdminHomeScreen} />
           <TabsStack.Screen
-            name="StoreManagement"
+            name="AdminStoreManagement"
             component={AdminStoreManagementScreen}
             options={{
               tabBarLabel: ({ focused }) => (
@@ -141,6 +153,25 @@ export const TabsNavigator = () => {
         <>
           {console.log("bottom tab store")}
           <TabsStack.Screen name="Home" component={StoreHomeScreen} />
+          <TabsStack.Screen
+            name="StoreSchedule"
+            component={StoreScheduleScreen}
+            options={{
+              tabBarLabel: ({ focused }) => (
+                <Text
+                  style={{
+                    fontSize: 10,
+                    color: focused
+                      ? activeColors.accent
+                      : activeColors.tertiary,
+                    fontWeight: focused ? "bold" : "normal",
+                  }}
+                >
+                  Schedule
+                </Text>
+              ),
+            }}
+          />
           <TabsStack.Screen name="Settings" component={SettingsScreen} />
         </>
       )}

@@ -96,9 +96,14 @@ export const InitializeCronJobs = () => {
                   if (
                     serviceProduct &&
                     (serviceProduct.isAnOption === false ||
-                      order.chosenServiceProductsIds?.includes(
-                        serviceProduct._id?.toString() ?? ""
-                      ))
+                      order.chosenServiceProductsIds
+                        ?.find(
+                          (obj) =>
+                            obj.serviceId.toString() === serviceId.toString()
+                        )
+                        ?.serviceProductIds.includes(
+                          serviceProduct._id?.toString() ?? ""
+                        ))
                   ) {
                     console.log(
                       `increase service product ${serviceProduct._id}`
@@ -120,7 +125,7 @@ export const InitializeCronJobs = () => {
       );
     }
   });
-
+  //auto reject Waiting for Payment order that has been in the same state for 5 minutes
   cron.schedule("* * * * *", async () => {
     // console.log(
     //   "This task runs every minutes to do auto reject for `Waiting for Payment` order that has been in the same state for 5 minutes and notify the users"
@@ -210,9 +215,14 @@ export const InitializeCronJobs = () => {
                   if (
                     serviceProduct &&
                     (serviceProduct.isAnOption === false ||
-                      order.chosenServiceProductsIds?.includes(
-                        serviceProduct._id?.toString() ?? ""
-                      ))
+                      order.chosenServiceProductsIds
+                        ?.find(
+                          (obj) =>
+                            obj.serviceId.toString() === serviceId.toString()
+                        )
+                        ?.serviceProductIds.includes(
+                          serviceProduct._id?.toString() ?? ""
+                        ))
                   ) {
                     console.log(
                       `increase service product ${serviceProduct._id}`
@@ -230,6 +240,30 @@ export const InitializeCronJobs = () => {
     } catch (error) {
       console.error(
         "Error during cron job execution (auto reject for `Waiting for Payment`):",
+        error
+      );
+    }
+  });
+
+  //set all worker isOnDuty property into false every midnight
+  cron.schedule("0 0 * * *", async () => {
+    try {
+      console.log(
+        "Starting cron job to set all workers' isOnDuty property to false."
+      );
+
+      // Use MongoDB's updateMany to update all workers in all stores
+      const result = await STORES.updateMany(
+        { "workers.isOnDuty": true }, // Only update if isOnDuty is true (optional, for optimization)
+        { $set: { "workers.$[].isOnDuty": false } } // $[] updates all elements in the array
+      );
+
+      console.log(
+        `Cron job completed. Matched documents: ${result.matchedCount}, Modified documents: ${result.modifiedCount}`
+      );
+    } catch (error) {
+      console.error(
+        "Error during cron job execution (set all worker isOnDuty property into false every midnight):",
         error
       );
     }

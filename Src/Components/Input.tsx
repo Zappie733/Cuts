@@ -169,7 +169,7 @@ export const Input = ({
           <TextInput
             style={[
               styles.textInput,
-              { color: activeColors.accent, paddingHorizontal: 10 },
+              { color: activeColors.accent, paddingHorizontal: 30 },
             ]}
             placeholder={placeholder}
             placeholderTextColor={activeColors.accent}

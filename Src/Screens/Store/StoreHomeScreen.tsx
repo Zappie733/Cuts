@@ -1,6 +1,7 @@
 import {
   Alert,
   Dimensions,
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -17,22 +18,26 @@ import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
 import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import {
-  confirmOrder,
-  getOrderforSchedule,
-  rejectOrder,
-} from "../../Middlewares/OrderMiddleware";
 import { Store } from "../../Contexts/StoreContext";
-import { GetOrderforScheduleResponse } from "../../Types/ResponseTypes/OrderResponse";
+import { WorkerObj } from "../../Types/StoreTypes/WorkerTypes";
 import { apiCallHandler } from "../../Middlewares/util";
-import { OrderObj } from "../../Types/OrderTypes";
-import { ServiceObj } from "../../Types/StoreTypes/ServiceTypes";
-import { ServiceProductObj } from "../../Types/StoreTypes/ServiceProductTypes";
-import { getUserInfoForOrderById } from "../../Middlewares/UserMiddleware";
-import { GetUserInfoForOrderByIdResponse } from "../../Types/ResponseTypes";
+import {
+  absence,
+  clockIn,
+  clockOut,
+} from "../../Middlewares/StoreMiddleware/WorkerMiddleware";
 import { AntDesign } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
 import { set } from "mongoose";
+import { DropdownPicker } from "../../Components/DropdownPicker";
+import { Option } from "../../Types/ComponentTypes/DropdownPickerTypes";
+import { AddOrderData } from "../../Types/OrderTypes";
+import { MultiSelectDropdownPicker } from "../../Components/MultiSelectDropdownPicker";
+import { Input } from "../../Components/Input";
+import { addOrder } from "../../Middlewares/OrderMiddleware";
+import { useFocusEffect } from "@react-navigation/native";
+import { chosenServiceProductObj } from "../../Types/OrderTypes";
+import { DateTimePickerComponent } from "../../Components/DateTimePicker";
+import { CheckBox } from "../../Components/CheckBox";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -43,149 +48,62 @@ export const StoreHomeScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
-  const { store } = useContext(Store);
+  const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
-  const [orderSchedule, setOrderSchedule] =
-    useState<GetOrderforScheduleResponse>();
-  const [dates, setDates] = useState<number[]>([]);
-  const [groupedOrders, setGroupedOrders] = useState<
-    Record<number, OrderObj[]>
-  >({});
-
-  const [selectedDate, setSelectedDate] = useState<number>();
-  const [workersRecord, setWorkersRecord] = useState<Record<string, string>>(
+  const [workersRecord, setWorkersRecord] = useState<Record<string, WorkerObj>>(
     {}
   );
-  const [selectedWorker, setSelectedWorker] = useState<string>();
-  const [servicesRecord, setServicesRecord] = useState<
-    Record<string, ServiceObj>
-  >({});
-  const [serviceProductsRecord, setServiceProductsRecord] = useState<
-    Record<string, ServiceProductObj>
-  >({});
-  const [userInfoRecord, setUserInfoRecord] = useState<
-    Record<string, GetUserInfoForOrderByIdResponse>
-  >({});
-  const [viewOrderDetail, setViewOrderDetail] =
-    useState<Map<string, boolean>>();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [rejectOrderId, setRejectOrderId] = useState("");
-  const [reason, setReason] = useState("");
+  const [absenceWorkerId, setAbsenceWorkerId] = useState("");
+  const [absenceReason, setAbsenceReason] = useState<string>("");
+  // console.log("absenceWorkerId: " + absenceWorkerId);
+  // console.log("absenceReason: " + absenceReason);
 
   const getStoreWorkers = () => {
-    const workersRecordTemp: Record<string, string> = {};
+    const workersRecordTemp: Record<string, WorkerObj> = {};
     store.workers.forEach((worker) => {
-      if (worker.role === "admin") return;
-
-      workersRecordTemp[worker._id ?? ""] =
-        worker.firstName + " " + worker.lastName;
+      workersRecordTemp[worker._id ?? ""] = worker;
     });
 
-    setSelectedWorker(Object.keys(workersRecordTemp)[0]);
     setWorkersRecord(workersRecordTemp);
   };
 
-  const getStoreServices = () => {
-    const servicesRecordTemp: Record<string, ServiceObj> = {};
+  const currentTime = new Date(Date.now());
+  const storeOpenHour = Number(store.openHour);
+  const storeOpenMinute = Number(store.openMinute);
+  const storeCloseHour = Number(store.closeHour);
+  const storeCloseMinute = Number(store.closeMinute);
+  // console.log(currentTime);
+  // console.log(currentTime.getHours());
+  // console.log(currentTime.getMinutes());
+  //get hours dan minute ini entah bagaimana sudah di + 7 jadi meski current timenya gmt tapi dengan menggunakan getHours / getMinutes sudah otomatis + 7
 
-    store.services.forEach((service) => {
-      servicesRecordTemp[service._id ?? ""] = service;
-    });
-    setServicesRecord(servicesRecordTemp);
+  const isStoreOpen = () => {
+    return (
+      currentTime.getHours() * 60 + currentTime.getMinutes() >=
+        storeOpenHour * 60 + storeOpenMinute &&
+      currentTime.getHours() * 60 + currentTime.getMinutes() <=
+        storeCloseHour * 60 + storeCloseMinute
+    );
   };
 
-  const getStoreServiceProducts = () => {
-    const serviceProductsRecordTemp: Record<string, ServiceProductObj> = {};
+  //7 jam sebelumnya dari hari ini
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to midnight
 
-    store.serviceProducts.forEach((serviceProduct) => {
-      serviceProductsRecordTemp[serviceProduct._id ?? ""] = serviceProduct;
-    });
-    setServiceProductsRecord(serviceProductsRecordTemp);
-  };
+  //hari ini 00:00:00
+  const adjustedToday = new Date(today.getTime() + 7 * 60 * 60 * 1000);
 
-  const handleFetchOrderSchedule = async () => {
+  const handleClockIn = async (workerId: string) => {
     const response = await apiCallHandler({
       apiCall: () =>
-        getOrderforSchedule({
+        clockIn({
           auth,
           updateAccessToken,
           params: {
-            storeId: store._id,
-          },
-        }),
-      auth,
-      setAuth,
-      navigation,
-    });
-
-    if (
-      response &&
-      response.status >= 200 &&
-      response.status < 400 &&
-      response.data
-    ) {
-      setOrderSchedule(response.data);
-    } else if (response) {
-      console.log(response.status, response.message);
-    }
-  };
-
-  const year = new Date().getFullYear();
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  const month = months[new Date().getMonth()];
-
-  const getDates = () => {
-    const today = new Date();
-    const newDates: number[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today.getTime() + 7 * 60 * 60 * 1000);
-      date.setDate(today.getDate() + i);
-      newDates.push(date.getDate());
-    }
-    setDates(newDates);
-    setSelectedDate(newDates[0]);
-  };
-
-  const groupOrdersByDate = () => {
-    if (!orderSchedule) return;
-
-    const grouped: Record<number, OrderObj[]> = {};
-    const orders = orderSchedule.orders;
-
-    dates.forEach((day) => {
-      const matchingOrders = orders.filter((order) => {
-        const orderDate = new Date().getDate();
-        return orderDate === day;
-      });
-      grouped[day] = matchingOrders;
-    });
-
-    setGroupedOrders(grouped);
-  };
-
-  const handleConfirmOrder = async (orderId: string) => {
-    const response = await apiCallHandler({
-      apiCall: () =>
-        confirmOrder({
-          auth,
-          updateAccessToken,
-          params: {
-            orderId,
+            workerId,
           },
         }),
       auth,
@@ -194,22 +112,45 @@ export const StoreHomeScreen = ({
     });
 
     if (response && response.status >= 200 && response.status < 400) {
+      await refetchData();
       Alert.alert("Success", response.message);
-      handleFetchOrderSchedule();
     } else if (response) {
       console.log(response.status, response.message);
     }
   };
 
-  const handleRejectOrder = async (orderId: string) => {
+  const handleClockOut = async (workerId: string) => {
     const response = await apiCallHandler({
       apiCall: () =>
-        rejectOrder({
+        clockOut({
+          auth,
+          updateAccessToken,
+          params: {
+            workerId,
+          },
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
+
+    if (response && response.status >= 200 && response.status < 400) {
+      await refetchData();
+      Alert.alert("Success", response.message);
+    } else if (response) {
+      console.log(response.status, response.message);
+    }
+  };
+
+  const handleAbsence = async (workerId: string) => {
+    const response = await apiCallHandler({
+      apiCall: () =>
+        absence({
           auth,
           updateAccessToken,
           data: {
-            orderId,
-            rejectedReason: reason,
+            id: workerId,
+            reason: absenceReason,
           },
         }),
       auth,
@@ -219,62 +160,13 @@ export const StoreHomeScreen = ({
 
     if (response && response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
-      handleFetchOrderSchedule();
-      setRejectOrderId("");
-      setReason("");
+      await refetchData();
       setIsModalVisible(false);
+      setAbsenceWorkerId("");
+      setAbsenceReason("");
     } else if (response) {
       console.log(response.status, response.message);
     }
-  };
-
-  const fetchUserInfoForOrderById = async (userId: string) => {
-    const response = await apiCallHandler({
-      apiCall: () =>
-        getUserInfoForOrderById({
-          auth,
-          updateAccessToken,
-          params: {
-            userId,
-          },
-        }),
-      auth,
-      setAuth,
-      navigation,
-    });
-
-    if (
-      response &&
-      response.status >= 200 &&
-      response.status < 400 &&
-      response.data
-    ) {
-      return response.data;
-    } else if (response) {
-      console.log(response.status, response.message);
-    }
-  };
-
-  const getUserInfoRecord = async () => {
-    const userInfoRecordTemp: Record<string, GetUserInfoForOrderByIdResponse> =
-      {};
-
-    const promises = orderSchedule?.orders.map(async (order) => {
-      if (order.isManual) return;
-      const userInfo = await fetchUserInfoForOrderById(order.userId ?? "");
-      userInfoRecordTemp[order.userId ?? ""] = userInfo;
-    });
-
-    await Promise.all(promises ?? []);
-    setUserInfoRecord(userInfoRecordTemp);
-  };
-
-  const toggleOrderDetail = (orderId: string) => {
-    setViewOrderDetail((prev) => {
-      const newMap = new Map(prev);
-      newMap.set(orderId, !newMap.get(orderId)); // Toggle visibility
-      return newMap;
-    });
   };
 
   const handleReasonTextChange = (text: string) => {
@@ -284,42 +176,149 @@ export const StoreHomeScreen = ({
       .map((line) => (line.startsWith("- ") ? line : `- ${line}`)) // Add the "- " prefix if not already present
       .join("\n"); // Join the lines back into a single string
 
-    setReason(formattedText); // Set the updated text
+    setAbsenceReason(formattedText); // Set the updated text
   };
 
-  useEffect(() => {
-    getDates();
-  }, []);
+  const services = store.services;
+
+  const servicesOptions: Option[] = services.map((service) => ({
+    label: service.name ?? "",
+    value: service._id ?? "",
+  }));
+
+  const defaultOrderData: AddOrderData = {
+    serviceIds: [],
+    chosenServiceProductsIds: [],
+    isManual: true,
+    totalPrice: 0,
+    totalDuration: 0,
+    userName: "",
+  };
+  const [orderFormData, setOrderFormData] =
+    useState<AddOrderData>(defaultOrderData);
+  console.log(orderFormData);
+  // console.log(JSON.stringify(orderFormData, null, 2));
+  const handleOrderTextChange = <T extends keyof AddOrderData>(
+    value: AddOrderData[T],
+    field: T
+  ) => {
+    if (field === "serviceIds" || field === "chosenServiceProductsIds") {
+      let totalPrice = 0;
+      let totalDuration = 0;
+      console.log("value:", value);
+      // Use updated value for recalculation
+      const updatedServiceIds =
+        field === "serviceIds" ? (value as string[]) : orderFormData.serviceIds;
+      const updatedServiceProductsIds =
+        field === "chosenServiceProductsIds"
+          ? (value as chosenServiceProductObj[])
+          : orderFormData.chosenServiceProductsIds;
+
+      // Calculate totals for selected services
+      const selectedServices = services.filter((service) =>
+        updatedServiceIds.includes(service._id ?? "")
+      );
+
+      selectedServices.forEach((service) => {
+        totalPrice += service.price || 0;
+        totalDuration += service.duration || 0;
+      });
+
+      // Calculate totals for selected service products
+      let selectedServiceProducts: string[] = [];
+
+      updatedServiceProductsIds?.map((obj) => {
+        selectedServiceProducts.push(...obj.serviceProductIds);
+      });
+
+      selectedServiceProducts?.forEach((productId) => {
+        totalPrice +=
+          store.serviceProducts.find((p) => p._id === productId)
+            ?.addtionalPrice || 0;
+      });
+
+      // Update state with recalculated values`
+      if (updatedServiceIds.length === 0) {
+        setOrderFormData((prevData) => ({
+          ...prevData,
+          totalPrice,
+          totalDuration,
+          [field]: value,
+          chosenServiceProductsIds: [],
+        }));
+      } else {
+        setOrderFormData((prevData) => ({
+          ...prevData,
+          totalPrice,
+          totalDuration,
+          [field]: value,
+        }));
+      }
+    } else {
+      // For other fields, just update the state
+      setOrderFormData((prevData) => ({
+        ...prevData,
+        [field]: value,
+      }));
+    }
+  };
+
+  const handleCreateOrder = async () => {
+    const response = await apiCallHandler({
+      apiCall: () =>
+        addOrder({
+          auth,
+          updateAccessToken,
+          data:
+            selectedDateTime !== undefined
+              ? {
+                  ...orderFormData,
+                  date: new Date(
+                    selectedDateTime.getTime() + 7 * 60 * 60 * 1000
+                  ),
+                }
+              : orderFormData,
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
+
+    if (response && response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+      setOrderFormData(defaultOrderData);
+    } else if (response) {
+      Alert.alert("Validation Error", response.message);
+    }
+  };
+
+  const workersOptions: Option[] = store.workers
+    .filter((worker) => worker.isOnDuty && worker.role === "worker")
+    .map((worker) => ({
+      label: worker.firstName + " " + worker.lastName,
+      value: worker._id || "",
+    }));
+  // console.log("workersOptions:", workersOptions);
+
+  const [showDateTimePicker, setShowDateTimePicker] = useState(false);
+  const [selectedDateTime, setSelectedDateTime] = useState<Date>();
 
   useEffect(() => {
     if (store._id) {
+      console.log("get workers");
       getStoreWorkers();
-      getStoreServices();
-      getStoreServiceProducts();
     }
   }, [store]);
-  //dipisah agar auto refetching hanya terjadi ketika focus pada page ini
+
   useFocusEffect(
     useCallback(() => {
-      if (store._id) {
-        handleFetchOrderSchedule();
-
-        const interval = setInterval(() => {
-          console.log("refetching order schedule");
-          handleFetchOrderSchedule();
-        }, 20000); // 20000 ms = 20 seconds
-
-        // Cleanup interval on unmount
-        return () => clearInterval(interval);
-      }
-    }, [store])
+      refetchData();
+    }, [])
   );
 
   useEffect(() => {
-    if (!orderSchedule) return;
-    groupOrdersByDate();
-    getUserInfoRecord();
-  }, [orderSchedule]);
+    setSelectedDateTime(undefined);
+  }, [showDateTimePicker]);
 
   return (
     <SafeAreaView
@@ -335,429 +334,399 @@ export const StoreHomeScreen = ({
       />
 
       <Text style={[styles.title, { color: activeColors.accent }]}>
-        {month} - {year}
-      </Text>
-      <Text style={[styles.title, { color: activeColors.accent }]}>
-        Schedule
+        {store.name}
       </Text>
 
-      {/* dates */}
-      <View style={styles.datesContainer}>
-        {dates.map((date, index) => (
-          <Pressable
-            key={index}
-            style={[
-              styles.dateButton,
-              {
-                backgroundColor:
-                  selectedDate === date
-                    ? activeColors.tertiary
-                    : activeColors.secondary,
-                borderColor:
-                  selectedDate === date
-                    ? activeColors.tertiary
-                    : activeColors.secondary,
-              },
-            ]}
-            onPress={() => setSelectedDate(date)}
-          >
-            <Text
-              style={{
-                color:
-                  selectedDate === date
-                    ? activeColors.primary
-                    : activeColors.accent,
-                fontWeight: selectedDate === date ? "600" : "normal",
-              }}
-            >
-              {date.toString()}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
-      {/* workers tab */}
-      <View>
-        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-          {Object.keys(workersRecord).map((workerId, index) => (
-            <Pressable
-              key={index}
-              style={[
-                styles.workerButton,
-                {
-                  backgroundColor:
-                    selectedWorker === workerId
-                      ? activeColors.tertiary
-                      : activeColors.secondary,
-                  borderColor:
-                    selectedWorker === workerId
-                      ? activeColors.tertiary
-                      : activeColors.secondary,
-                },
-              ]}
-              onPress={() => setSelectedWorker(workerId)}
-            >
-              <Text
-                style={{
-                  color:
-                    selectedWorker === workerId
-                      ? activeColors.primary
-                      : activeColors.accent,
-                  fontWeight: selectedWorker === workerId ? "600" : "normal",
-                }}
-              >
-                {workersRecord[workerId]}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* orders */}
-      <View
-        style={[
-          styles.orderContainer,
-          { backgroundColor: activeColors.secondary },
-        ]}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ marginBottom: 100 }}
+        nestedScrollEnabled={true}
       >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {selectedDate !== undefined && groupedOrders[selectedDate]?.length ? (
-            groupedOrders[selectedDate].filter(
-              (order) => order.workerId === selectedWorker
-            ).length ? (
-              groupedOrders[selectedDate]
-                .filter((order) => order.workerId === selectedWorker)
-                .map((order) => (
+        {/* form bikin order */}
+        <View
+          style={[styles.formContainer, { borderColor: activeColors.tertiary }]}
+        >
+          <View>
+            <Text style={[styles.formTitle, { color: activeColors.accent }]}>
+              Order Form
+            </Text>
+          </View>
+
+          <View>
+            {/* username */}
+            <Input
+              key="userNameOrder"
+              context="Customer Name"
+              placeholder="Enter Customer Name"
+              value={orderFormData.userName || ""}
+              updateValue={(text: string) =>
+                handleOrderTextChange(text, "userName")
+              }
+            />
+            {/* services */}
+            <View style={[styles.serviceInputContainer]}>
+              <MultiSelectDropdownPicker
+                key="serviceIdsOrder"
+                options={servicesOptions}
+                selectedValues={orderFormData.serviceIds}
+                onValuesChange={(newValues) =>
+                  handleOrderTextChange(newValues, "serviceIds")
+                }
+                placeHolder="Select Services..."
+                isInput={true}
+                context="Services"
+              />
+            </View>
+
+            {/* service products */}
+            {orderFormData.serviceIds.map((serviceId) => {
+              const service = services.find((s) => s._id === serviceId);
+
+              const serviceProducts = service?.serviceProduct
+                ?.map((productId) => {
+                  const serviceProduct = store.serviceProducts.find(
+                    (sp) => sp._id === productId
+                  );
+                  return serviceProduct?.isAnOption ? serviceProduct : null;
+                })
+                .filter(Boolean); // Remove any null or undefined value
+
+              if (serviceProducts?.length === 0) {
+                return null;
+              }
+
+              if (serviceProducts) {
+                const serviceProductsOptions = serviceProducts?.map(
+                  (serviceProduct) => ({
+                    label: serviceProduct?.name ?? "",
+                    value: serviceProduct?._id ?? "",
+                  })
+                );
+
+                return (
                   <View
-                    key={order._id}
-                    style={[
-                      styles.order,
-                      {
-                        backgroundColor: activeColors.primary,
-                        borderColor: activeColors.tertiary,
-                      },
-                    ]}
+                    key={serviceId}
+                    style={[styles.serviceProductInputContainer]}
                   >
-                    {/* status */}
-                    <View
-                      style={[
-                        styles.statusContainer,
-                        {
-                          backgroundColor:
-                            order.status === "Waiting for Confirmation"
-                              ? "#FFDD57"
-                              : order.status === "Waiting for Payment"
-                              ? "#FFA07A"
-                              : order.status === "Rejected"
-                              ? "#FF6F61"
-                              : order.status === "Paid"
-                              ? "#98FB98"
-                              : order.status === "Completed"
-                              ? "#37A937"
-                              : activeColors.accent,
-                        },
-                      ]}
-                    >
+                    <MultiSelectDropdownPicker
+                      key={"serviceProductsIdsOrder" + serviceId}
+                      options={serviceProductsOptions}
+                      selectedValues={
+                        orderFormData.chosenServiceProductsIds?.find(
+                          (id) =>
+                            id.serviceId.toString() === serviceId.toString()
+                        )?.serviceProductIds ?? []
+                      }
+                      onValuesChange={(newValues) => {
+                        const existingItem =
+                          orderFormData.chosenServiceProductsIds?.find(
+                            (id) =>
+                              id.serviceId.toString() === serviceId.toString()
+                          );
+
+                        const newChosenServiceProductsIds = existingItem
+                          ? // Update the existing item with new values
+                            orderFormData.chosenServiceProductsIds?.map(
+                              (item) =>
+                                item.serviceId.toString() ===
+                                serviceId.toString()
+                                  ? { ...item, serviceProductIds: newValues }
+                                  : item
+                            )
+                          : // Add a new item if no match is found
+                            [
+                              ...(orderFormData.chosenServiceProductsIds || []),
+                              {
+                                serviceId: serviceId, // Ensure serviceId is explicitly defined
+                                serviceProductIds: newValues,
+                              },
+                            ];
+
+                        handleOrderTextChange(
+                          newChosenServiceProductsIds,
+                          "chosenServiceProductsIds"
+                        );
+                      }}
+                      placeHolder={`Select ${service?.name} products...`}
+                      isInput={true}
+                      context={`${service?.name.replace(/\b\w/g, (char) =>
+                        char.toUpperCase()
+                      )} Product`}
+                    />
+                  </View>
+                );
+              }
+
+              return null;
+            })}
+
+            {/* worker */}
+            {store.canChooseWorker && workersOptions.length > 0 && (
+              <View style={styles.workerInputContainer}>
+                <DropdownPicker
+                  key="workerIdsOrder"
+                  options={workersOptions}
+                  selectedValue={orderFormData.workerId ?? ""}
+                  onValueChange={(text: string) =>
+                    handleOrderTextChange(text, "workerId")
+                  }
+                  placeHolder="Select Worker..."
+                  isInput={true}
+                  context="Worker"
+                />
+              </View>
+            )}
+
+            {/* onsite booking */}
+            <View style={styles.checkBoxContainer}>
+              <CheckBox
+                label="Onsite Future Booking?"
+                onPress={(value: boolean) => setShowDateTimePicker(value)}
+              />
+            </View>
+
+            {/* date time picker */}
+            {showDateTimePicker && (
+              <>
+                <View style={styles.dateTimePickerContainer}>
+                  {selectedDateTime ? (
+                    <View style={{ width: "100%" }}>
                       <Text
                         style={[
-                          styles.status,
-                          { color: activeColors.primary, textAlign: "center" },
+                          styles.dateTimeText,
+                          { color: activeColors.accent },
                         ]}
                       >
-                        {order.status === undefined ? "Manual" : order.status}
+                        Date & Time
+                      </Text>
+                      <Text
+                        style={[
+                          styles.dateTimeText,
+                          { color: activeColors.accent },
+                        ]}
+                      >
+                        {selectedDateTime.toString().split("GMT")[0]}
                       </Text>
                     </View>
+                  ) : (
+                    <DateTimePickerComponent
+                      onPress={(value: Date) => setSelectedDateTime(value)}
+                    />
+                  )}
+                </View>
 
-                    {/* Info */}
-                    <View style={styles.infoContainer}>
-                      {/* duration */}
-                      <View style={styles.durationContainer}>
+                <Text style={[styles.noteText, { color: "yellow" }]}>
+                  IMPORTANT NOTES:{"\n"}- Date & Time only for onsite future
+                  booking. {"\n"}- Customer must pay before creating the onsite
+                  future booking
+                </Text>
+              </>
+            )}
+
+            {/* create order */}
+            <Pressable
+              style={[
+                styles.createOrderButton,
+                { backgroundColor: activeColors.accent },
+              ]}
+              onPress={handleCreateOrder}
+            >
+              <Text>Create Order</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* absensi hari ini */}
+        <View
+          style={[
+            styles.workerContainer,
+            {
+              borderColor: activeColors.tertiary,
+            },
+          ]}
+        >
+          <Text style={[styles.workerTitle, { color: activeColors.accent }]}>
+            Worker's Attendance Today
+          </Text>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
+            {Object.keys(workersRecord).map((workerId) => {
+              const worker = workersRecord[workerId];
+              const todayHistory = worker.history?.find((history) => {
+                const historyDate = new Date(history.date); // Convert to Date object from string (i think backend always return data in string no matter what)
+                return (
+                  historyDate.toDateString() === adjustedToday.toDateString()
+                );
+              });
+
+              return (
+                <View
+                  key={workerId}
+                  style={[
+                    styles.worker,
+                    {
+                      borderColor: activeColors.tertiary,
+                      backgroundColor: activeColors.secondary,
+                    },
+                  ]}
+                >
+                  {/* Image */}
+                  <View style={{ marginRight: 15 }}>
+                    <Image
+                      source={{ uri: worker.image.file }}
+                      style={{ width: 50, height: 50 }}
+                    />
+                  </View>
+
+                  {/* info & action container */}
+                  <View style={styles.InfoActionContainer}>
+                    {/* info */}
+                    <View style={{ flex: 1 }}>
+                      {/* name */}
+                      <View>
                         <Text
                           style={[
-                            styles.durationText,
+                            styles.workerText,
                             { color: activeColors.accent },
                           ]}
                         >
-                          {new Date(order.date).toUTCString().split(" ")[4]} -{" "}
-                          {new Date(order.endTime).toUTCString().split(" ")[4]}
+                          {worker.firstName + " " + worker.lastName}
                         </Text>
                       </View>
 
-                      {/* User Info */}
-                      <View style={styles.userInfoContainer}>
-                        {order.userName ? (
-                          <Text
-                            style={[
-                              styles.userInfoText,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            {order.userName}
+                      <View>
+                        {todayHistory && todayHistory.clockIn && (
+                          <Text style={{ color: activeColors.accent }}>
+                            Clock In:{" "}
+                            {
+                              todayHistory.clockIn
+                                .toString()
+                                .split(".")[0]
+                                .split("T")[1]
+                            }
                           </Text>
-                        ) : (
-                          <View>
-                            <Text
-                              style={[
-                                styles.userInfoText,
-                                { color: activeColors.accent },
-                              ]}
-                            >
-                              {userInfoRecord[order.userId ?? ""]
-                                ? userInfoRecord[order.userId ?? ""]
-                                    ?.firstName +
-                                  " " +
-                                  userInfoRecord[order.userId ?? ""]?.lastName
-                                : ""}
-                            </Text>
-                            <Text
-                              style={[
-                                styles.userInfoText,
-                                { color: activeColors.accent },
-                              ]}
-                            >
-                              {userInfoRecord[order.userId ?? ""]?.phone}
-                            </Text>
-                          </View>
+                        )}
+
+                        {todayHistory && todayHistory.clockOut && (
+                          <Text style={{ color: activeColors.accent }}>
+                            Clock Out:{" "}
+                            {
+                              todayHistory.clockOut
+                                .toString()
+                                .split(".")[0]
+                                .split("T")[1]
+                            }
+                          </Text>
+                        )}
+
+                        {todayHistory && todayHistory.isAbsence && (
+                          <Text style={{ color: activeColors.accent }}>
+                            {todayHistory.reason}
+                          </Text>
                         )}
                       </View>
-
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                        }}
-                      >
-                        <View
-                          style={{
-                            flex: 1,
-                            height: 3,
-                            marginRight: 5,
-                            backgroundColor: activeColors.tertiary,
-                          }}
-                        />
-                        {/* Toggle Icon */}
-
-                        <Pressable
-                          onPress={() => toggleOrderDetail(order._id ?? "")}
-                        >
-                          <Text style={{ color: activeColors.secondary }}>
-                            {viewOrderDetail?.get(order._id ?? "") ? (
-                              <AntDesign
-                                name="caretdown"
-                                size={20}
-                                color={activeColors.secondary}
-                              />
-                            ) : (
-                              <AntDesign
-                                name="caretright"
-                                size={20}
-                                color={activeColors.secondary}
-                              />
-                            )}
-                          </Text>
-                        </Pressable>
-                      </View>
-
-                      {viewOrderDetail?.get(order._id ?? "") && (
-                        <>
-                          {/* services & service products */}
-                          <View>
-                            {order.serviceIds.map((serviceId, index) => (
-                              <View key={index}>
-                                {/* service */}
-                                <View
-                                  style={{
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    marginVertical: 5,
-                                  }}
-                                >
-                                  <Text
-                                    style={{
-                                      color: activeColors.accent,
-                                    }}
-                                  >
-                                    {servicesRecord[serviceId].name}
-                                  </Text>
-                                  <Text
-                                    style={{
-                                      color: activeColors.accent,
-                                    }}
-                                  >
-                                    {servicesRecord[serviceId].duration} min
-                                  </Text>
-                                  <Text
-                                    style={{
-                                      color: activeColors.accent,
-                                    }}
-                                  >
-                                    Rp.{servicesRecord[serviceId].price}
-                                  </Text>
-                                </View>
-
-                                <View
-                                  style={{
-                                    flex: 1,
-                                    padding: 1,
-                                    backgroundColor: activeColors.tertiary,
-                                    marginLeft: 30,
-                                    marginVertical: 1,
-                                  }}
-                                />
-                                {/* service products */}
-                                <View
-                                  style={{
-                                    flexDirection: "column",
-                                    marginVertical: 2,
-                                    marginLeft: 30,
-                                  }}
-                                >
-                                  {servicesRecord[
-                                    serviceId
-                                  ].serviceProduct?.map((productId, index) => (
-                                    <View
-                                      key={index}
-                                      style={{
-                                        flexDirection: "row",
-                                        justifyContent: "space-between",
-                                        marginVertical: 3,
-                                      }}
-                                    >
-                                      <Text
-                                        style={{
-                                          color: activeColors.accent,
-                                        }}
-                                      >
-                                        {serviceProductsRecord[productId].name}
-                                      </Text>
-                                      <Text
-                                        style={{
-                                          color: activeColors.accent,
-                                        }}
-                                      >
-                                        Rp.
-                                        {serviceProductsRecord[productId]
-                                          .addtionalPrice ?? 0}
-                                      </Text>
-                                    </View>
-                                  ))}
-                                </View>
-
-                                <View
-                                  style={{
-                                    flex: 1,
-                                    padding: 1,
-                                    backgroundColor: activeColors.tertiary,
-                                  }}
-                                />
-                              </View>
-                            ))}
-                          </View>
-
-                          {/* Estimate Time &Total price */}
-                          <View style={styles.estimateNTotalContainer}>
-                            <View>
-                              <Text
-                                style={[
-                                  styles.estimateNTotalText,
-                                  { color: activeColors.accent },
-                                ]}
-                              >
-                                Estimated Time: {order.totalDuration} min
-                              </Text>
-                            </View>
-                            <View>
-                              <Text
-                                style={[
-                                  styles.estimateNTotalText,
-                                  { color: activeColors.accent },
-                                ]}
-                              >
-                                Total: Rp.{order.totalPrice}
-                              </Text>
-                            </View>
-                          </View>
-                        </>
-                      )}
                     </View>
 
-                    {/* actions */}
-                    {order.status === "Waiting for Confirmation" && (
-                      <View style={styles.actionsContainer}>
-                        <Pressable
-                          style={[
-                            styles.actionButton,
-                            {
-                              backgroundColor: activeColors.accent,
-                              borderColor: "green",
-                            },
-                          ]}
-                          onPress={() =>
-                            Alert.alert(
-                              "Confirm Order",
-                              "Are you sure to confirm this order?",
-                              [
-                                {
-                                  text: "OK",
-                                  onPress: () =>
-                                    handleConfirmOrder(order._id ?? ""),
-                                },
-                                {
-                                  text: "Cancel",
-                                  style: "cancel",
-                                  onPress: () => console.log("Cancel Pressed"),
-                                },
-                              ]
-                            )
-                          }
-                        >
-                          <Text
+                    {/* Action */}
+                    <View>
+                      {!todayHistory ? (
+                        // Case: No history
+                        <View style={{ gap: 10 }}>
+                          {/* Clock In */}
+                          <Pressable
+                            onPress={() => handleClockIn(workerId)}
+                            disabled={!isStoreOpen()}
                             style={[
-                              styles.actionButtonText,
-                              { color: activeColors.secondary },
+                              styles.workerButton,
+                              {
+                                backgroundColor: isStoreOpen()
+                                  ? activeColors.tertiary
+                                  : activeColors.disabledColor,
+                              },
                             ]}
                           >
-                            Confirm
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          style={[
-                            styles.actionButton,
-                            {
-                              backgroundColor: activeColors.accent,
-                              borderColor: "red",
-                            },
-                          ]}
-                          onPress={() => {
-                            setIsModalVisible(true),
-                              setRejectOrderId(order._id ?? "");
-                          }}
-                        >
-                          <Text
+                            <Text style={{ color: activeColors.accent }}>
+                              Clock In
+                            </Text>
+                          </Pressable>
+
+                          {/* Absence */}
+                          <Pressable
                             style={[
-                              styles.actionButtonText,
-                              { color: activeColors.secondary },
+                              styles.workerButton,
+                              { backgroundColor: activeColors.tertiary },
+                            ]}
+                            onPress={() => {
+                              setIsModalVisible(true);
+                              setAbsenceWorkerId(workerId);
+                            }}
+                          >
+                            <Text style={{ color: activeColors.accent }}>
+                              Absence
+                            </Text>
+                          </Pressable>
+                        </View>
+                      ) : todayHistory.clockIn ? (
+                        // Case: User has clocked in
+                        <View style={{ gap: 10 }}>
+                          {/* Clock Out */}
+                          <Pressable
+                            onPress={() => handleClockOut(workerId)}
+                            style={[
+                              styles.workerButton,
+                              { backgroundColor: activeColors.tertiary },
                             ]}
                           >
-                            Reject
+                            <Text style={{ color: activeColors.accent }}>
+                              Clock Out
+                            </Text>
+                          </Pressable>
+
+                          {/* Absence */}
+                          <Pressable
+                            style={[
+                              styles.workerButton,
+                              { backgroundColor: activeColors.tertiary },
+                            ]}
+                            onPress={() => {
+                              setIsModalVisible(true);
+                              setAbsenceWorkerId(workerId);
+                            }}
+                          >
+                            <Text style={{ color: activeColors.accent }}>
+                              Absence
+                            </Text>
+                          </Pressable>
+                        </View>
+                      ) : todayHistory.isAbsence ? (
+                        // Case: User is absent
+                        <Pressable
+                          onPress={() => handleClockIn(workerId)}
+                          disabled={!isStoreOpen()}
+                          style={[
+                            styles.workerButton,
+                            {
+                              backgroundColor: isStoreOpen()
+                                ? activeColors.tertiary
+                                : activeColors.disabledColor,
+                            },
+                          ]}
+                        >
+                          <Text style={{ color: activeColors.accent }}>
+                            Clock In
                           </Text>
                         </Pressable>
-                      </View>
-                    )}
+                      ) : null}
+                    </View>
                   </View>
-                ))
-            ) : (
-              <Text style={{ textAlign: "center", color: activeColors.accent }}>
-                No orders for {workersRecord[selectedWorker ?? ""]}.
-              </Text>
-            )
-          ) : (
-            <Text style={{ textAlign: "center", color: activeColors.accent }}>
-              No orders for this date.
-            </Text>
-          )}
-        </ScrollView>
-      </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </ScrollView>
 
       <Modal
         animationType="fade"
@@ -786,7 +755,7 @@ export const StoreHomeScreen = ({
                 },
               ]}
             >
-              Reject Order
+              Absence Form
             </Text>
 
             {/* Text Input */}
@@ -804,7 +773,7 @@ export const StoreHomeScreen = ({
               multiline={true}
               numberOfLines={5}
               onChangeText={(text) => handleReasonTextChange(text)}
-              value={reason}
+              value={absenceReason}
             />
 
             {/* Submit Button */}
@@ -816,21 +785,17 @@ export const StoreHomeScreen = ({
                 },
               ]}
               onPress={() =>
-                Alert.alert(
-                  "Reject Order",
-                  "Are you sure to reject this order?",
-                  [
-                    {
-                      text: "OK",
-                      onPress: () => handleRejectOrder(rejectOrderId ?? ""),
-                    },
-                    {
-                      text: "Cancel",
-                      style: "cancel",
-                      onPress: () => console.log("Cancel Pressed"),
-                    },
-                  ]
-                )
+                Alert.alert("Absence Form", "Are you ready to submit?", [
+                  {
+                    text: "OK",
+                    onPress: () => handleAbsence(absenceWorkerId),
+                  },
+                  {
+                    text: "Cancel",
+                    style: "cancel",
+                    onPress: () => console.log("Cancel Pressed"),
+                  },
+                ])
               }
             >
               <Text
@@ -847,8 +812,8 @@ export const StoreHomeScreen = ({
             <Pressable
               onPress={() => {
                 setIsModalVisible(false);
-                setRejectOrderId("");
-                setReason("");
+                setAbsenceWorkerId("");
+                setAbsenceReason("");
               }}
               style={styles.modalCloseButton}
             >
@@ -871,100 +836,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
+    marginTop: 10,
+    marginBottom: 20,
     fontSize: 25,
     textAlign: "center",
   },
-  datesContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingHorizontal: 20,
+  workerContainer: {
+    marginVertical: 20,
+    padding: 20,
+    borderRadius: 20,
+    maxHeight: 320,
+    borderWidth: 2,
   },
-  dateButton: {
-    margin: 10,
-    height: 40,
-    width: 40,
+  workerTitle: {
+    fontSize: 22,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  worker: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 50,
+    padding: 15,
     borderWidth: 1,
+    borderRadius: 10,
+    margin: 5,
+  },
+  workerText: {
+    fontSize: 17,
+  },
+  InfoActionContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   workerButton: {
-    margin: 10,
-    height: 40,
-    width: 150,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  orderContainer: {
-    flex: 1,
-    marginTop: 10,
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 100,
-  },
-  order: {
-    marginBottom: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  statusContainer: {
-    borderRadius: 5,
-    padding: 2,
-    marginBottom: 10,
-  },
-  status: {
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    fontWeight: "bold",
-    fontSize: 15,
-  },
-  actionsContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-  },
-  actionButton: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 10,
-    borderWidth: 2,
-    marginLeft: 10,
-  },
-  actionButtonText: {
-    fontWeight: "bold",
-  },
-  infoContainer: {
-    marginBottom: 10,
-  },
-  durationContainer: {
-    marginBottom: 3,
-  },
-  durationText: {
-    fontWeight: "bold",
-    fontSize: 20,
-    textAlign: "center",
-  },
-  userInfoContainer: {
-    marginBottom: 5,
-  },
-  userInfoText: {
-    fontWeight: "bold",
-    fontSize: 17,
-    textAlign: "center",
-  },
-  estimateNTotalContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 5,
     alignItems: "center",
-  },
-  estimateNTotalText: {
-    textAlign: "right",
-    fontWeight: "bold",
-    fontSize: 14,
   },
 
   modalOverlay: {
@@ -1011,5 +921,61 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+
+  formContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    padding: 25,
+    borderRadius: 20,
+    borderWidth: 2,
+    zIndex: 1,
+  },
+  formTitle: {
+    fontSize: 22,
+    // fontWeight: "500",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  serviceInputContainer: {
+    width: (screenWidth * 2) / 3 + 50,
+    zIndex: 100,
+    marginVertical: 10,
+  },
+  serviceProductInputContainer: {
+    width: (screenWidth * 2) / 3 + 50,
+    zIndex: 99,
+    marginVertical: 10,
+  },
+  createOrderButton: {
+    width: (screenWidth * 2) / 3 + 50,
+    marginTop: 10,
+    paddingVertical: 10,
+    borderRadius: 50,
+    alignItems: "center",
+  },
+  workerInputContainer: {
+    width: (screenWidth * 2) / 3 + 50,
+    zIndex: 98,
+    marginVertical: 10,
+  },
+
+  checkBoxContainer: {
+    padding: 10,
+  },
+  dateTimePickerContainer: {
+    width: (screenWidth * 2) / 3 + 50,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  dateTimeText: {
+    fontSize: 17,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  noteText: {
+    padding: 10,
+    fontSize: 13,
+    textAlign: "left",
   },
 });

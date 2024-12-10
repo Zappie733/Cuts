@@ -1,31 +1,33 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Pressable,
 } from "react-native";
 import { Entypo, Fontisto } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
-import { DropdownPickerProps } from "../Types/ComponentTypes/DropdownPickerTypes";
+import { MultiSelectDropdownPickerProps } from "../Types/ComponentTypes/MultiSelectDropdownPickerTypes";
 
-export const DropdownPicker = ({
+export const MultiSelectDropdownPicker = ({
   options,
-  selectedValue,
-  onValueChange,
+  selectedValues,
+  onValuesChange,
   placeHolder,
   iconName,
   iconSource,
   isInput,
   context,
-}: DropdownPickerProps) => {
+}: MultiSelectDropdownPickerProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   useFocusEffect(
     useCallback(() => {
       setIsDropdownOpen(false);
@@ -33,19 +35,26 @@ export const DropdownPicker = ({
   );
 
   const handleSelect = (value: string) => {
-    onValueChange(value === selectedValue ? "" : value);
+    const updatedValues = selectedValues.includes(value)
+      ? selectedValues.filter((v) => v !== value) // Deselect if already selected
+      : [...selectedValues, value]; // Add to selected values if not selected
+
+    onValuesChange(updatedValues);
     setIsDropdownOpen(false);
   };
 
-  const selectedLabel =
-    options.find((option) => option.value === selectedValue)?.label ||
-    placeHolder;
+  const selectedLabels = options
+    .filter((option) => selectedValues.includes(option.value))
+    .map((option) => option.label);
+
+  const displayedLabel =
+    selectedLabels.length > 0 ? selectedLabels.join(", ") : placeHolder;
 
   return (
     <View style={styles.container}>
       {isInput === true &&
         context !== undefined &&
-        selectedLabel !== placeHolder && (
+        displayedLabel !== placeHolder && (
           <Text
             style={{
               color: activeColors.tertiary,
@@ -64,7 +73,7 @@ export const DropdownPicker = ({
           isInput === true ? styles.dropdownButtonInput : styles.dropdownButton,
           isInput === true &&
           context !== undefined &&
-          selectedLabel !== placeHolder
+          displayedLabel !== placeHolder
             ? {
                 backgroundColor: activeColors.secondary,
                 borderWidth: 1,
@@ -75,7 +84,9 @@ export const DropdownPicker = ({
                 height: "auto",
               },
         ]}
-        onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+        onPress={() => {
+          setIsDropdownOpen(!isDropdownOpen);
+        }}
       >
         <View style={{ flex: 1 }}>
           {iconName !== undefined && iconSource !== undefined ? (
@@ -90,12 +101,12 @@ export const DropdownPicker = ({
               <Text
                 style={[styles.selectedText, { color: activeColors.accent }]}
               >
-                {selectedLabel}
+                {displayedLabel}
               </Text>
             </View>
           ) : (
             <Text style={[styles.selectedText, { color: activeColors.accent }]}>
-              {selectedLabel}
+              {displayedLabel}
             </Text>
           )}
         </View>
@@ -113,27 +124,29 @@ export const DropdownPicker = ({
           ]}
         >
           <ScrollView showsVerticalScrollIndicator={false}>
-            {options.map((item) => (
-              <TouchableOpacity
-                key={item.value.toString()}
-                style={[
-                  styles.dropdownItem,
-                  selectedValue === item.value && {
-                    backgroundColor: activeColors.tertiary,
-                  },
-                ]}
-                onPress={() => handleSelect(item.value)}
-              >
-                <Text
+            <View>
+              {options.map((item) => (
+                <TouchableOpacity
+                  key={item.value.toString()}
                   style={[
-                    styles.dropdownItemText,
-                    { color: activeColors.secondary },
+                    styles.dropdownItem,
+                    selectedValues.includes(item.value) && {
+                      backgroundColor: activeColors.tertiary, // Highlight selected items
+                    },
                   ]}
+                  onPress={() => handleSelect(item.value)}
                 >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.dropdownItemText,
+                      { color: activeColors.secondary },
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </ScrollView>
         </View>
       )}
@@ -165,7 +178,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-
   selectedText: {
     fontSize: 15,
     marginLeft: 10,

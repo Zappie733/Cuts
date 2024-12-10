@@ -502,9 +502,11 @@ export const clockIn = async (req: Request, res: Response) => {
           .json(<ResponseObj>{ error: true, message: "Worker not found" });
       }
 
+      //7 jam sebelumnya dari hari ini
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Set to midnight
 
+      //hari ini 00:00:00
       const adjustedToday = new Date(today.getTime() + 7 * 60 * 60 * 1000);
 
       const workerHistory = worker.history?.find(
