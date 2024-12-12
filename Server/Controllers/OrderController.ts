@@ -258,11 +258,11 @@ export const addOrder = async (req: Request, res: Response) => {
             console.log("worker has order");
             if (longestAvailableTime === undefined) {
               console.log("first");
-              longestAvailableTime = lastOrder.endTime;
+              longestAvailableTime = lastOrder.createdAt;
               longestAvailableWorkerId = availableWorkerId;
-            } else if (lastOrder.endTime < longestAvailableTime) {
+            } else if (lastOrder.createdAt < longestAvailableTime) {
               console.log("change");
-              longestAvailableTime = lastOrder.endTime;
+              longestAvailableTime = lastOrder.createdAt;
               longestAvailableWorkerId = availableWorkerId;
             }
           }
@@ -1229,6 +1229,9 @@ export const completeOrder = async (req: Request, res: Response) => {
       }
 
       order.status = "Completed";
+      order.timeDifference = Math.ceil(
+        (currentTime.getTime() - order.endTime.getTime()) / (1000 * 60)
+      );
       order.endTime = currentTime;
 
       await order.save();

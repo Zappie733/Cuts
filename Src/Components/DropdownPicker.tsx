@@ -5,12 +5,14 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Pressable,
 } from "react-native";
-import { Entypo, Fontisto } from "@expo/vector-icons";
+import { Entypo, Feather, Fontisto } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { DropdownPickerProps } from "../Types/ComponentTypes/DropdownPickerTypes";
+import { set } from "mongoose";
 
 export const DropdownPicker = ({
   options,
@@ -21,6 +23,8 @@ export const DropdownPicker = ({
   iconSource,
   isInput,
   context,
+  isEditable,
+  setEditable,
 }: DropdownPickerProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
@@ -66,12 +70,18 @@ export const DropdownPicker = ({
           context !== undefined &&
           selectedLabel !== placeHolder
             ? {
-                backgroundColor: activeColors.secondary,
+                backgroundColor:
+                  isEditable || isEditable === undefined
+                    ? activeColors.secondary
+                    : activeColors.disabledColor,
                 borderWidth: 1,
                 borderColor: activeColors.tertiary,
               }
             : {
-                backgroundColor: activeColors.secondary,
+                backgroundColor:
+                  isEditable || isEditable === undefined
+                    ? activeColors.secondary
+                    : activeColors.disabledColor,
                 height: "auto",
               },
         ]}
@@ -100,12 +110,38 @@ export const DropdownPicker = ({
           )}
         </View>
         <View style={{ width: 20 }}>
-          <Entypo name="chevron-down" size={20} color={activeColors.tertiary} />
+          {isEditable !== undefined ? (
+            <Pressable
+              style={styles.actionIcon}
+              onPress={() => setEditable && setEditable(!isEditable)}
+            >
+              {isEditable === false ? (
+                <Feather
+                  name={isEditable ? "x" : "edit-2"}
+                  size={24}
+                  color={activeColors.tertiary}
+                />
+              ) : (
+                <Entypo
+                  name="chevron-down"
+                  size={24}
+                  color={activeColors.tertiary}
+                />
+              )}
+            </Pressable>
+          ) : (
+            <Entypo
+              name="chevron-down"
+              size={24}
+              color={activeColors.tertiary}
+              style={styles.actionIcon}
+            />
+          )}
         </View>
       </TouchableOpacity>
 
       {/* Dropdown List */}
-      {isDropdownOpen && (
+      {isDropdownOpen && (isEditable || isEditable === undefined) && (
         <View
           style={[
             styles.dropdownListContainer,
@@ -186,5 +222,12 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: {
     fontSize: 15,
+  },
+
+  actionIcon: {
+    // position: "absolute",
+    // top: 20,
+    // right: 15,
+    marginLeft: -10,
   },
 });

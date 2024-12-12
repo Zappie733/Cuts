@@ -17,4 +17,6 @@ export interface DropdownPickerProps {
     | "EvilIcons";
   isInput: boolean;
   context?: string;
+  isEditable?: boolean;
+  setEditable?: (value: boolean) => void;
 }

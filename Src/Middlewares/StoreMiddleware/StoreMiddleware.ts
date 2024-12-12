@@ -273,7 +273,7 @@ export const activeStore = async ({
   };
 
   const result = await apiCallWithToken(apiCallWithTokenProps);
-  // console.log(JSON.stringify(result, null, 2));
+  console.log(JSON.stringify(result, null, 2));
 
   return {
     status: result.status,
@@ -281,7 +281,7 @@ export const activeStore = async ({
   };
 };
 
-export const inActiceStore = async ({
+export const inActiveStore = async ({
   auth,
   updateAccessToken,
 }: ApiRequestProps): Promise<IResponseProps> => {
@@ -291,14 +291,14 @@ export const inActiceStore = async ({
   };
 
   const apiCallWithTokenProps: ApiCallWithTokenProps = {
-    endpoint: "/store/inActiceStore",
+    endpoint: "/store/inActiveStore",
     options: apiOptions,
     auth,
     updateAccessToken,
   };
 
   const result = await apiCallWithToken(apiCallWithTokenProps);
-  // console.log(JSON.stringify(result, null, 2));
+  console.log(JSON.stringify(result, null, 2));
 
   return {
     status: result.status,

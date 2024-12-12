@@ -9,5 +9,6 @@ export interface SelectImageProps {
 }
 
 export interface SelectImagesProps {
+  imagesData?: IImageProps[];
   handleSetImages: (images: IImageProps[]) => void;
 }

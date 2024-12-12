@@ -339,7 +339,7 @@ export const StoreHomeScreen = ({
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        style={{ marginBottom: 100 }}
+        style={{ marginBottom: 90 }}
         nestedScrollEnabled={true}
       >
         {/* form bikin order */}
@@ -515,7 +515,9 @@ export const StoreHomeScreen = ({
                   )}
                 </View>
 
-                <Text style={[styles.noteText, { color: "yellow" }]}>
+                <Text
+                  style={[styles.noteText, { color: activeColors.infoColor }]}
+                >
                   IMPORTANT NOTES:{"\n"}- Date & Time only for onsite future
                   booking. {"\n"}- Customer must pay before creating the onsite
                   future booking
@@ -531,7 +533,7 @@ export const StoreHomeScreen = ({
               ]}
               onPress={handleCreateOrder}
             >
-              <Text>Create Order</Text>
+              <Text style={{ color: activeColors.primary }}>Create Order</Text>
             </Pressable>
           </View>
         </View>

@@ -23,6 +23,9 @@ export interface OrderObj {
   workerId?: string;
   rejectedReason?: string;
   userName?: string; //untuk manual
+  timeDifference?: number;
+
+  createdAt: Date;
 }
 
 export interface AddOrderRequestObj {

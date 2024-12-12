@@ -26,12 +26,13 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { Header } from "../Components/Header";
 import { Switch } from "../Components/Switch";
 import { Store } from "../Components/Store";
 import { logoutUser } from "../Middlewares/UserMiddleware";
 import { GetStoresByUserIdResponse } from "../Types/ResponseTypes/StoreResponse";
 import { getStoresByUserId } from "../Middlewares/StoreMiddleware/StoreMiddleware";
+import { Store as StoresC } from "../Contexts/StoreContext";
+import { ImageSlider } from "../Components/ImageSlider";
 
 export const SettingsScreen = ({
   navigation,
@@ -42,12 +43,9 @@ export const SettingsScreen = ({
 
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   let { user } = useContext(User);
+  const { store, refetchData } = useContext(StoresC);
 
   const screenWidth = Dimensions.get("screen").width;
-
-  const handleGoBack = () => {
-    navigation.goBack();
-  };
 
   const handleLogout = async () => {
     console.log("Logout Process");
@@ -120,6 +118,18 @@ export const SettingsScreen = ({
     }
   };
 
+  const operationalHourModification = (value: number) => {
+    if (value === 0) {
+      return "00";
+    }
+
+    if (value < 10) {
+      return `0${value}`;
+    }
+
+    return value;
+  };
+
   //getUserStores
   useEffect(() => {
     handleFetchUserStores();
@@ -147,9 +157,11 @@ export const SettingsScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
-      <Header goBack={handleGoBack} />
-
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ marginBottom: 90 }}
+      >
+        {/* Profile Container */}
         <View
           style={[
             styles.profileContainer,
@@ -159,45 +171,153 @@ export const SettingsScreen = ({
             },
           ]}
         >
-          {/* Image */}
-          <View style={styles.imageContainer}>
-            {!user.image || user.image.file === "" ? (
-              <View
-                style={[
-                  styles.noImage,
-                  {
-                    backgroundColor: activeColors.primary,
-                  },
-                ]}
-              >
-                <EvilIcons name="user" size={100} color={activeColors.accent} />
+          {user.role === "user" && (
+            <>
+              {/* Image */}
+              <View style={styles.imageContainer}>
+                {!user.image || user.image.file === "" ? (
+                  <View
+                    style={[
+                      styles.noImage,
+                      {
+                        backgroundColor: activeColors.primary,
+                      },
+                    ]}
+                  >
+                    <EvilIcons
+                      name="user"
+                      size={100}
+                      color={activeColors.accent}
+                    />
+                  </View>
+                ) : (
+                  <Image
+                    source={{ uri: user.image.file }}
+                    style={styles.image}
+                  />
+                )}
               </View>
-            ) : (
-              <Image source={{ uri: user.image.file }} style={styles.image} />
-            )}
-          </View>
-          {/* Profile Info */}
-          <View style={styles.infoContainer}>
-            <Text
-              style={[
-                styles.profileText,
-                { color: activeColors.accent, fontSize: 22, fontWeight: "400" },
-              ]}
-            >
-              {user.firstName} {user.lastName}
-            </Text>
-            <Text style={[styles.profileText, { color: activeColors.accent }]}>
-              {user.email}
-            </Text>
-            <Text style={[styles.profileText, { color: activeColors.accent }]}>
-              {user.phone}
-            </Text>
-          </View>
+
+              {/* Profile Info */}
+              <View style={styles.infoContainer}>
+                <Text
+                  style={[
+                    styles.profileText,
+                    {
+                      color: activeColors.accent,
+                      fontSize: 22,
+                      fontWeight: "400",
+                    },
+                  ]}
+                >
+                  {user.firstName} {user.lastName}
+                </Text>
+                <Text
+                  style={[styles.profileText, { color: activeColors.accent }]}
+                >
+                  {user.email}
+                </Text>
+                <Text
+                  style={[styles.profileText, { color: activeColors.accent }]}
+                >
+                  {user.phone}
+                </Text>
+              </View>
+            </>
+          )}
+
+          {user.role === "store" && (
+            <View style={[styles.storeInfoContainer]}>
+              {/* store name */}
+              <Text
+                style={[styles.storeInfoName, { color: activeColors.accent }]}
+              >
+                {store.name}
+              </Text>
+              {/* image */}
+              <View style={{ width: "100%", height: 200, padding: 10 }}>
+                <ImageSlider images={store.images.map((item) => item.file)} />
+              </View>
+
+              {/* Store general info */}
+              <View style={styles.storeGeneralInfoContainer}>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>Email:</Text>{" "}
+                  {store.email}
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>Type:</Text>{" "}
+                  {store.type}
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>
+                    Location:
+                  </Text>{" "}
+                  {store.location}
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>
+                    Operational hour:
+                  </Text>{" "}
+                  {operationalHourModification(store.openHour)}:
+                  {operationalHourModification(store.openMinute)} -{" "}
+                  {operationalHourModification(store.closeHour)}:
+                  {operationalHourModification(store.closeMinute)}
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>
+                    Pick a worker:
+                  </Text>{" "}
+                  {store.canChooseWorker ? "Yes" : "No"}
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>
+                    Tolerance time:
+                  </Text>{" "}
+                  {store.toleranceTime} Minutes
+                </Text>
+              </View>
+            </View>
+          )}
 
           {/* Edit Button */}
           <Pressable
             style={{ position: "absolute", top: 10, right: 10 }}
-            onPress={() => navigation.navigate("Profile")}
+            onPress={() =>
+              user.role === "user"
+                ? navigation.navigate("Profile")
+                : navigation.navigate("StoreProfile")
+            }
           >
             <FontAwesome5
               name="user-edit"
@@ -206,30 +326,32 @@ export const SettingsScreen = ({
             />
           </Pressable>
         </View>
+
         {/* Theme */}
         <View
           style={[
-            styles.themeContainer,
+            styles.switchContainer,
             {
               backgroundColor: activeColors.secondary,
               borderColor: activeColors.tertiary,
             },
           ]}
         >
-          <View style={styles.themeTextContainer}>
+          <View style={styles.switchTextContainer}>
             <MaterialCommunityIcons
               name="theme-light-dark"
               size={24}
               color={activeColors.accent}
             />
 
-            <Text style={[styles.themeText, { color: activeColors.accent }]}>
+            <Text style={[styles.switchText, { color: activeColors.accent }]}>
               Theme ({theme.mode === "dark" ? "Dark" : "Light"} mode)
             </Text>
           </View>
 
           <Switch onPress={changeTheme} />
         </View>
+
         {/* Logout */}
         <Pressable onPress={handleLogout}>
           <View
@@ -251,6 +373,7 @@ export const SettingsScreen = ({
             />
           </View>
         </Pressable>
+
         {/* Line */}
         <View
           style={[
@@ -260,7 +383,9 @@ export const SettingsScreen = ({
               backgroundColor: activeColors.secondary,
             },
           ]}
-        ></View>
+        />
+
+        {/* User's Stores */}
         {user.role === "user" && (
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Stores */}
@@ -310,10 +435,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderRadius: 10,
     marginHorizontal: 30,
-    marginTop: 20,
     borderWidth: 2,
     alignItems: "center",
-    marginBottom: 20,
+    marginVertical: 20,
   },
   image: {
     width: 100,
@@ -339,7 +463,7 @@ const styles = StyleSheet.create({
     fontWeight: "300",
     marginBottom: 5,
   },
-  themeContainer: {
+  switchContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -349,12 +473,12 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 20,
   },
-  themeTextContainer: {
+  switchTextContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-  themeText: {
-    fontSize: 20,
+  switchText: {
+    fontSize: 19,
     fontWeight: "400",
     marginRight: 20,
     marginLeft: 5,
@@ -396,5 +520,28 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 10,
+  },
+
+  storeInfoContainer: {
+    width: "100%",
+    flexDirection: "column",
+  },
+  storeInfoName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 10,
+    textAlign: "center",
+  },
+  storeGeneralInfoContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+  },
+  storeGeneralInfoText: {
+    fontSize: 17,
+    fontWeight: "300",
+    marginBottom: 5,
+  },
+  storeGeneralInfoTextLabel: {
+    fontWeight: "bold",
   },
 });

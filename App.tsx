@@ -1,3 +1,4 @@
+import React from "react"; // Add this import at the top
 import { NavigationContainer } from "@react-navigation/native";
 import { RootNavigator } from "./Src/Navigations/RootNavigator";
 import { ThemeContext, AuthContext } from "./Src/Contexts";

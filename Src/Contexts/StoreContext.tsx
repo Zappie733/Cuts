@@ -142,9 +142,6 @@ export const StoreContext = ({ children }: { children: ReactNode }) => {
       }
     }
   };
-  const test = () => {
-    console.log("test");
-  };
 
   useEffect(() => {
     fetchStore();

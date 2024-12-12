@@ -218,7 +218,10 @@ export const SelectImage = ({ userImage }: SelectImageProps) => {
   );
 };
 
-export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
+export const SelectImages = ({
+  imagesData,
+  handleSetImages,
+}: SelectImagesProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
@@ -252,6 +255,11 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
     (async () => {
       await requestPermission();
     })();
+
+    if (imagesData) {
+      setSelectedImages(imagesData.map((image) => image.file));
+      setImagesOptionForUpload(imagesData);
+    }
   }, []);
 
   const pickImage = async () => {
@@ -265,7 +273,8 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
 
     if (!result.canceled) {
       const uris = result.assets.map((asset) => asset.uri);
-      setSelectedImages(uris);
+      // setSelectedImages(uris);
+      setSelectedImages([...selectedImages, ...uris]);
 
       const base64Images = await Promise.all(
         uris.map((uri) => {
@@ -343,6 +352,7 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
     setSelectedImageIndex(index);
     setImageViewerVisible(true);
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
@@ -381,6 +391,7 @@ export const SelectImages = ({ handleSetImages }: SelectImagesProps) => {
                 </View>
               </TouchableOpacity>
             ))}
+
             {/* Fullscreen Image Viewer */}
             <ImageViewing
               images={images}

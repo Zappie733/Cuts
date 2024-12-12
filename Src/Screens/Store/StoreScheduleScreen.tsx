@@ -18,6 +18,7 @@ import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import {
+  completeOrder,
   confirmOrder,
   getOrderforSchedule,
   rejectOrder,
@@ -52,7 +53,7 @@ export const StoreScheduleScreen = ({
   const [groupedOrders, setGroupedOrders] = useState<
     Record<number, OrderObj[]>
   >({});
-
+  // console.log(groupedOrders);
   const [selectedDate, setSelectedDate] = useState<number>();
   const [workersRecord, setWorkersRecord] = useState<Record<string, WorkerObj>>(
     {}
@@ -168,7 +169,7 @@ export const StoreScheduleScreen = ({
 
     dates.forEach((day) => {
       const matchingOrders = orders.filter((order) => {
-        const orderDate = new Date().getDate();
+        const orderDate = new Date(order.date).getDate();
         return orderDate === day;
       });
       grouped[day] = matchingOrders;
@@ -284,6 +285,29 @@ export const StoreScheduleScreen = ({
       .join("\n"); // Join the lines back into a single string
 
     setReason(formattedText); // Set the updated text
+  };
+
+  const handleCompleteOrder = async (orderId: string) => {
+    const response = await apiCallHandler({
+      apiCall: () =>
+        completeOrder({
+          auth,
+          updateAccessToken,
+          params: {
+            orderId,
+          },
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
+
+    if (response && response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+      handleFetchOrderSchedule();
+    } else if (response) {
+      console.log(response.status, response.message);
+    }
   };
 
   useEffect(() => {
@@ -514,7 +538,21 @@ export const StoreScheduleScreen = ({
                           ]}
                         >
                           {new Date(order.date).toUTCString().split(" ")[4]} -{" "}
-                          {new Date(order.endTime).toUTCString().split(" ")[4]}
+                          {new Date(order.endTime).toUTCString().split(" ")[4]}{" "}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.timeDifferenceText,
+                            { color: activeColors.infoColor },
+                          ]}
+                        >
+                          {order.timeDifference && order.timeDifference > 0
+                            ? `${order.timeDifference} minutes slower than expected`
+                            : order.timeDifference && order.timeDifference < 0
+                            ? `${Math.abs(
+                                order.timeDifference
+                              )} minutes faster than expected`
+                            : ""}
                         </Text>
                       </View>
 
@@ -802,6 +840,48 @@ export const StoreScheduleScreen = ({
                         </Pressable>
                       </View>
                     )}
+
+                    {(order.status === "Paid" ||
+                      order.status === undefined) && (
+                      <View style={styles.actionsContainer}>
+                        <Pressable
+                          style={[
+                            styles.actionButton,
+                            {
+                              backgroundColor: activeColors.accent,
+                              borderColor: "green",
+                            },
+                          ]}
+                          onPress={() =>
+                            Alert.alert(
+                              "Complete Order",
+                              "Are you sure to complete this order?",
+                              [
+                                {
+                                  text: "OK",
+                                  onPress: () =>
+                                    handleCompleteOrder(order._id ?? ""),
+                                },
+                                {
+                                  text: "Cancel",
+                                  style: "cancel",
+                                  onPress: () => console.log("Cancel Pressed"),
+                                },
+                              ]
+                            )
+                          }
+                        >
+                          <Text
+                            style={[
+                              styles.actionButtonText,
+                              { color: activeColors.secondary },
+                            ]}
+                          >
+                            Complete
+                          </Text>
+                        </Pressable>
+                      </View>
+                    )}
                   </View>
                 ))
             ) : (
@@ -1007,6 +1087,10 @@ const styles = StyleSheet.create({
   durationText: {
     fontWeight: "bold",
     fontSize: 20,
+    textAlign: "center",
+  },
+  timeDifferenceText: {
+    fontSize: 16,
     textAlign: "center",
   },
   userInfoContainer: {

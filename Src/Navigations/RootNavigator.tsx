@@ -14,6 +14,7 @@ import { ProfileScreen } from "../Screens/ProfileScreen";
 import { RegisterStoreScreen } from "../Screens/RegisterStoreScreen";
 import { DocumentDetailsScreen } from "../Screens/DocumentDetailsScreen";
 import { RegistrationStoreData } from "../Types/StoreTypes/StoreTypes";
+import { StoreProfileScreen } from "../Screens/Store/StoreProfileScreen";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;
@@ -39,6 +40,7 @@ export type RootStackParamsObj = {
     documentUri: string;
     fileName: string;
   };
+  StoreProfile: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsObj>();
@@ -83,7 +85,10 @@ export const RootNavigator = () => {
         <>
           {console.log("root nav store")}
           <RootStack.Screen name="TabsStack" component={TabsNavigator} />
-          <RootStack.Screen name="Profile" component={ProfileScreen} />
+          <RootStack.Screen
+            name="StoreProfile"
+            component={StoreProfileScreen}
+          />
         </>
       ) : (
         <>

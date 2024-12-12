@@ -1289,7 +1289,9 @@ export const updateStoreOpenCloseStatus = async (
 
       return res.status(200).json(<ResponseObj>{
         error: false,
-        message: `Store has been updated successfully`,
+        message: `Store has been set to ${
+          store.isOpen ? "Open" : "Close"
+        } successfully`,
       });
     }
 

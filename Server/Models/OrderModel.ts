@@ -72,6 +72,9 @@ const OrderSchema = new Schema(
     userName: {
       type: String,
     },
+    timeDifference: {
+      type: Number,
+    },
   },
   {
     toJSON: {
