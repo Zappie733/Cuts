@@ -1088,7 +1088,7 @@ export const updateStoreGeneralInformation = async (
           .status(404)
           .json(<ResponseObj>{ error: true, message: "Store not found" });
       }
-
+      // console.log(req.body);
       const { error } = UpdateStoreGeneralInformationValidate(
         <UpdateStoreGeneralInformationRequestObj>req.body
       );

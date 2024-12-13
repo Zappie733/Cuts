@@ -1,5 +1,8 @@
 import Joi from "joi";
-import { UpdateStoreGeneralInformationRequestObj } from "../../dto";
+import {
+  ImageRequestObj,
+  UpdateStoreGeneralInformationRequestObj,
+} from "../../dto";
 
 export const UpdateStoreGeneralInformationValidate = (
   data: UpdateStoreGeneralInformationRequestObj
@@ -8,7 +11,7 @@ export const UpdateStoreGeneralInformationValidate = (
     name: Joi.string().required().label("Name"),
     images: Joi.array()
       .items(
-        Joi.object({
+        Joi.object<ImageRequestObj>({
           imageId: Joi.string().label("Image ID"),
           file: Joi.string()
             .pattern(
@@ -16,7 +19,8 @@ export const UpdateStoreGeneralInformationValidate = (
             )
             .required()
             .label("File"),
-          // path: Joi.string().required().label("Path"),
+          path: Joi.string().label("Path"),
+          _id: Joi.string().label("_id"),
         })
       )
       .min(1)

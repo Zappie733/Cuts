@@ -24,6 +24,7 @@ import { apiCallHandler } from "../../Middlewares/util";
 import {
   activeStore,
   inActiveStore,
+  updateStoreGeneralInformation,
   updateStoreOpenCloseStatus,
 } from "../../Middlewares/StoreMiddleware/StoreMiddleware";
 import { DropdownPicker } from "../../Components/DropdownPicker";
@@ -61,7 +62,7 @@ export const StoreProfileScreen = ({
   // console.log(JSON.stringify(defaultStoreFormData, null, 2));
   const [storeFormData, setStoreFormData] =
     useState<UpdateStoreGeneralInformationData>(defaultStoreFormData);
-  // console.log(JSON.stringify(storeFormData, null, 2));
+  console.log(JSON.stringify(storeFormData, null, 2));
   const handleTextChange = <T extends keyof UpdateStoreGeneralInformationData>(
     text: UpdateStoreGeneralInformationData[T],
     fieldname: T
@@ -161,6 +162,31 @@ export const StoreProfileScreen = ({
   };
 
   const [isChanges, setIsChanges] = useState(false);
+
+  const handleUpdateStoreGeneralInformation = async () => {
+    console.log("test");
+    const response = await apiCallHandler({
+      apiCall: () =>
+        updateStoreGeneralInformation({
+          auth,
+          updateAccessToken,
+          data: storeFormData,
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
+
+    if (response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+      await refetchData();
+      setTimeout(() => {
+        handleGoBack();
+      }, 1000);
+    } else if (response) {
+      console.log(response.status, response.message);
+    }
+  };
 
   useEffect(() => {
     setStoreFormData(defaultStoreFormData);
@@ -337,7 +363,7 @@ export const StoreProfileScreen = ({
           </View>
 
           {/* Save Button */}
-          <Pressable onPress={() => {}}>
+          <Pressable onPress={() => handleUpdateStoreGeneralInformation()}>
             <Text
               style={[
                 styles.submitButton,
