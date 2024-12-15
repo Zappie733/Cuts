@@ -539,8 +539,10 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
           });
         } else {
           const startDate = new Date(year, month - 1, 1); // Start of the month
+          startDate.setHours(startDate.getHours() + 7);
           const endDate = new Date(year, month, 1); // Start of the next month
-
+          endDate.setHours(endDate.getHours() + 7);
+          // console.log("startDate: ", startDate, "endDate: ", endDate);
           query.date = {
             $gte: startDate,
             $lt: endDate,
@@ -579,8 +581,10 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
       responseData.orders = orders;
       responseData.total = await ORDERS.countDocuments(query);
 
+      const summaryOrders = await ORDERS.find(query).sort({ date: 1 }); //asc
+
       const summaryMap: { [key: string]: number } = {};
-      for (const order of orders) {
+      for (const order of summaryOrders) {
         for (const serviceId of order.serviceIds) {
           const service = store.services.find(
             (serviceData) =>

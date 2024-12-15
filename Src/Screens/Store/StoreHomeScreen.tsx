@@ -182,7 +182,7 @@ export const StoreHomeScreen = ({
   const services = store.services;
 
   const servicesOptions: Option[] = services.map((service) => ({
-    label: service.name ?? "",
+    label: service.name.replace(/\b\w/g, (char) => char.toUpperCase()) ?? "",
     value: service._id ?? "",
   }));
 
@@ -398,7 +398,10 @@ export const StoreHomeScreen = ({
               if (serviceProducts) {
                 const serviceProductsOptions = serviceProducts?.map(
                   (serviceProduct) => ({
-                    label: serviceProduct?.name ?? "",
+                    label:
+                      serviceProduct?.name.replace(/\b\w/g, (char) =>
+                        char.toUpperCase()
+                      ) ?? "",
                     value: serviceProduct?._id ?? "",
                   })
                 );

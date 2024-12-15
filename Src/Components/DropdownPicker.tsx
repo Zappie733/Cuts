@@ -12,7 +12,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { DropdownPickerProps } from "../Types/ComponentTypes/DropdownPickerTypes";
-import { set } from "mongoose";
 
 export const DropdownPicker = ({
   options,
@@ -157,6 +156,7 @@ export const DropdownPicker = ({
                   selectedValue === item.value && {
                     backgroundColor: activeColors.tertiary,
                   },
+                  { height: isInput === true ? 66 : 52 },
                 ]}
                 onPress={() => handleSelect(item.value)}
               >
@@ -180,6 +180,7 @@ export const DropdownPicker = ({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
+    zIndex: 1,
   },
   dropdownButton: {
     borderRadius: 18,
@@ -216,7 +217,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   dropdownItem: {
-    height: 62,
     justifyContent: "center",
     paddingHorizontal: 15,
   },

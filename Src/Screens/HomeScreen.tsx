@@ -13,6 +13,8 @@ import { colors } from "../Config/Theme";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { Theme } from "../Contexts/ThemeContext";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
+import { Header } from "../Components/Header";
+import { Auth } from "../Contexts";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -23,6 +25,10 @@ export const HomeScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const { auth } = useContext(Auth);
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
   return (
     <SafeAreaView
       style={[
@@ -30,6 +36,7 @@ export const HomeScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {auth._id === "" && <Header goBack={handleGoBack} />}
       <ExpoStatusBar
         hidden={false}
         style={theme.mode === "dark" ? "light" : "dark"}

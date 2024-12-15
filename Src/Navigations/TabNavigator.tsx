@@ -112,20 +112,20 @@ export const TabsNavigator = () => {
     >
       {role === undefined && (
         <>
-          {console.log("bottom tab guest")}
+          {/* {console.log("bottom tab guest")} */}
           <TabsStack.Screen name="Home" component={HomeScreen} />
         </>
       )}
       {role === "user" && (
         <>
-          {console.log("bottom tab user")}
+          {/* {console.log("bottom tab user")} */}
           <TabsStack.Screen name="Home" component={HomeScreen} />
           <TabsStack.Screen name="Settings" component={SettingsScreen} />
         </>
       )}
       {role === "admin" && (
         <>
-          {console.log("bottom tab admin")}
+          {/* {console.log("bottom tab admin")} */}
           <TabsStack.Screen name="Home" component={AdminHomeScreen} />
           <TabsStack.Screen
             name="AdminStoreManagement"
@@ -151,7 +151,7 @@ export const TabsNavigator = () => {
       )}
       {role === "store" && (
         <>
-          {console.log("bottom tab store")}
+          {/* {console.log("bottom tab store")} */}
           <TabsStack.Screen name="Home" component={StoreHomeScreen} />
           <TabsStack.Screen
             name="StoreSchedule"

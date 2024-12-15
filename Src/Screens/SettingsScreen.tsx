@@ -21,10 +21,13 @@ import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import {
+  AntDesign,
+  Entypo,
   EvilIcons,
   FontAwesome5,
   MaterialCommunityIcons,
   MaterialIcons,
+  Octicons,
 } from "@expo/vector-icons";
 import { Switch } from "../Components/Switch";
 import { Store } from "../Components/Store";
@@ -33,6 +36,10 @@ import { GetStoresByUserIdResponse } from "../Types/ResponseTypes/StoreResponse"
 import { getStoresByUserId } from "../Middlewares/StoreMiddleware/StoreMiddleware";
 import { Store as StoresC } from "../Contexts/StoreContext";
 import { ImageSlider } from "../Components/ImageSlider";
+import { PressableOptions } from "../Components/PressableOptions";
+import { GetRatingSummaryByStoreIdResponse } from "../Types/ResponseTypes/RatingResponse";
+import { getRatingSummaryByStoreId } from "../Middlewares/RatingMiddleware";
+import { PerRating } from "../Components/PerRating";
 
 export const SettingsScreen = ({
   navigation,
@@ -130,26 +137,66 @@ export const SettingsScreen = ({
     return value;
   };
 
-  //getUserStores
-  useEffect(() => {
-    handleFetchUserStores();
+  const [ratingSummary, setRatingSummary] =
+    useState<GetRatingSummaryByStoreIdResponse>();
+  // console.log(JSON.stringify(ratingSummary, null, 2));
 
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "active") {
-        handleFetchUserStores();
+  const handleFetchRatingSummary = async () => {
+    if (store._id !== "") {
+      const response = await getRatingSummaryByStoreId({
+        auth,
+        updateAccessToken,
+        params: { storeId: store._id },
+      });
+
+      if (response.status >= 200 && response.status < 400 && response.data) {
+        setRatingSummary(response.data);
+      } else if (response) {
+        console.log(response.status, response.message);
       }
-    });
+    }
+  };
 
-    return () => {
-      subscription.remove();
-    };
+  useEffect(() => {
+    if (user.role === "user") {
+      handleFetchUserStores();
+
+      const subscription = AppState.addEventListener(
+        "change",
+        (nextAppState) => {
+          if (nextAppState === "active") {
+            handleFetchUserStores();
+          }
+        }
+      );
+
+      return () => {
+        subscription.remove();
+      };
+    } else if (user.role === "store") {
+      handleFetchRatingSummary();
+
+      const subscription = AppState.addEventListener(
+        "change",
+        (nextAppState) => {
+          if (nextAppState === "active") {
+            handleFetchRatingSummary();
+          }
+        }
+      );
+
+      return () => {
+        subscription.remove();
+      };
+    }
   }, []);
+
   useFocusEffect(
     useCallback(() => {
-      handleFetchUserStores();
+      if (user.role === "user") handleFetchUserStores();
+      else if (user.role === "store") handleFetchRatingSummary();
     }, [])
   );
-
   return (
     <SafeAreaView
       style={[
@@ -171,7 +218,7 @@ export const SettingsScreen = ({
             },
           ]}
         >
-          {user.role === "user" && (
+          {(user.role === "user" || user.role === "admin") && (
             <>
               {/* Image */}
               <View style={styles.imageContainer}>
@@ -314,7 +361,7 @@ export const SettingsScreen = ({
           <Pressable
             style={{ position: "absolute", top: 10, right: 10 }}
             onPress={() =>
-              user.role === "user"
+              user.role === "user" || user.role === "admin"
                 ? navigation.navigate("Profile")
                 : navigation.navigate("StoreProfile")
             }
@@ -327,60 +374,168 @@ export const SettingsScreen = ({
           </Pressable>
         </View>
 
-        {/* Theme */}
-        <View
-          style={[
-            styles.switchContainer,
-            {
-              backgroundColor: activeColors.secondary,
-              borderColor: activeColors.tertiary,
-            },
-          ]}
-        >
-          <View style={styles.switchTextContainer}>
-            <MaterialCommunityIcons
-              name="theme-light-dark"
-              size={24}
-              color={activeColors.accent}
-            />
-
-            <Text style={[styles.switchText, { color: activeColors.accent }]}>
-              Theme ({theme.mode === "dark" ? "Dark" : "Light"} mode)
-            </Text>
-          </View>
-
-          <Switch onPress={changeTheme} />
-        </View>
-
-        {/* Logout */}
-        <Pressable onPress={handleLogout}>
-          <View
-            style={[
-              styles.logoutContainer,
-              { backgroundColor: activeColors.accent },
-            ]}
-          >
-            <Text
-              style={[styles.logoutText, { color: activeColors.secondary }]}
+        {/* theme and logout for user */}
+        {(user.role === "user" || user.role === "admin") && (
+          <>
+            {/* Theme */}
+            <View
+              style={[
+                styles.switchContainer,
+                {
+                  backgroundColor: activeColors.secondary,
+                  borderColor: activeColors.tertiary,
+                },
+              ]}
             >
-              Log Out
-            </Text>
+              <View style={styles.switchTextContainer}>
+                <MaterialCommunityIcons
+                  name="theme-light-dark"
+                  size={24}
+                  color={activeColors.accent}
+                />
 
-            <MaterialIcons
-              name="logout"
-              size={24}
-              color={activeColors.secondary}
-            />
-          </View>
-        </Pressable>
+                <Text
+                  style={[styles.switchText, { color: activeColors.accent }]}
+                >
+                  Theme ({theme.mode === "dark" ? "Dark" : "Light"} mode)
+                </Text>
+              </View>
+
+              <Switch onPress={changeTheme} />
+            </View>
+
+            {/* Logout */}
+            <Pressable onPress={handleLogout}>
+              <View
+                style={[
+                  styles.logoutContainer,
+                  { backgroundColor: activeColors.accent },
+                ]}
+              >
+                <Text
+                  style={[styles.logoutText, { color: activeColors.secondary }]}
+                >
+                  Log Out
+                </Text>
+
+                <MaterialIcons
+                  name="logout"
+                  size={24}
+                  color={activeColors.secondary}
+                />
+              </View>
+            </Pressable>
+          </>
+        )}
+
+        {/* store order history & ratings */}
+        {user.role === "store" && (
+          <>
+            {/* Order History */}
+            <Pressable
+              style={[
+                styles.orderHistoryButton,
+                { backgroundColor: activeColors.accent },
+              ]}
+              onPress={() => navigation.navigate("StoreOrderHistory")}
+            >
+              <Text
+                style={[
+                  styles.orderHistoryButtonText,
+                  { color: activeColors.secondary },
+                ]}
+              >
+                Order History
+              </Text>
+
+              <Octicons
+                name="history"
+                size={20}
+                color={activeColors.secondary}
+              />
+            </Pressable>
+
+            {/* Ratings */}
+            <View
+              style={[
+                styles.ratingsContainer,
+                { backgroundColor: activeColors.secondary },
+              ]}
+            >
+              {/* title */}
+              <Text
+                style={[styles.ratingTitle, { color: activeColors.accent }]}
+              >
+                Overall Ratings Summary
+              </Text>
+
+              {/* total per rating */}
+              <PerRating
+                key={5}
+                rating={5}
+                totalPerRating={ratingSummary?.totalRating5 ?? 0}
+                totalRating={ratingSummary?.totalRating ?? 0}
+              />
+              <PerRating
+                key={4}
+                rating={4}
+                totalPerRating={ratingSummary?.totalRating4 ?? 0}
+                totalRating={ratingSummary?.totalRating ?? 0}
+              />
+              <PerRating
+                key={3}
+                rating={3}
+                totalPerRating={ratingSummary?.totalRating3 ?? 0}
+                totalRating={ratingSummary?.totalRating ?? 0}
+              />
+              <PerRating
+                key={2}
+                rating={2}
+                totalPerRating={ratingSummary?.totalRating2 ?? 0}
+                totalRating={ratingSummary?.totalRating ?? 0}
+              />
+              <PerRating
+                key={1}
+                rating={1}
+                totalPerRating={ratingSummary?.totalRating1 ?? 0}
+                totalRating={ratingSummary?.totalRating ?? 0}
+              />
+
+              {/* Total & average rating */}
+              <View style={styles.averageRatingContainer}>
+                <AntDesign name="star" size={30} color="yellow" />
+                <Text
+                  style={[
+                    styles.averageRatingText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  Average Rating: {ratingSummary?.averageRating.toFixed(2) ?? 0}{" "}
+                  ({ratingSummary?.totalRating} ratings)
+                </Text>
+              </View>
+
+              <Pressable onPress={() => navigation.navigate("StoreRatings")}>
+                <Text
+                  style={{
+                    color: activeColors.accent,
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  See all ratings
+                </Text>
+              </Pressable>
+            </View>
+          </>
+        )}
 
         {/* Line */}
         <View
           style={[
             styles.line,
             {
-              borderColor: activeColors.secondary,
-              backgroundColor: activeColors.secondary,
+              borderColor: activeColors.tertiary,
+              backgroundColor: activeColors.tertiary,
             },
           ]}
         />
@@ -417,6 +572,146 @@ export const SettingsScreen = ({
               </Pressable>
             </View>
           </ScrollView>
+        )}
+
+        {user.role === "store" && (
+          // Management
+          <View style={styles.managementContainer}>
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: activeColors.accent,
+                  textAlign: "center",
+                  marginBottom: 15,
+                },
+              ]}
+            >
+              Management
+            </Text>
+
+            <View style={styles.managementOptionsContainer}>
+              <View style={styles.managementOptionsRowContainer}>
+                <PressableOptions
+                  key={"service"}
+                  text="Services"
+                  fontSize={13}
+                  iconName="scissors"
+                  iconSource="Entypo"
+                  iconSize={38}
+                  onPress={() => navigation.navigate("StoreServices")}
+                />
+                <PressableOptions
+                  key={"serviceProduct"}
+                  text="Service Products"
+                  fontSize={13}
+                  iconName="pump-soap"
+                  iconSource="FontAwesome5"
+                  iconSize={38}
+                  onPress={() => navigation.navigate("StoreServiceProducts")}
+                />
+                <PressableOptions
+                  key={"salesProduct"}
+                  text="Sales Products"
+                  fontSize={13}
+                  iconName="shopping-bag-1"
+                  iconSource="Fontisto"
+                  iconSize={38}
+                  onPress={() => navigation.navigate("StoreSalesProducts")}
+                />
+              </View>
+
+              <View style={styles.managementOptionsRowContainer}>
+                <PressableOptions
+                  key={"workers"}
+                  text="Workers"
+                  fontSize={13}
+                  iconName="persons"
+                  iconSource="Fontisto"
+                  iconSize={38}
+                  onPress={() => navigation.navigate("StoreWorkers")}
+                />
+                <PressableOptions
+                  key={"promotion"}
+                  text="Promotions"
+                  fontSize={13}
+                  iconSource="MaterialIcons"
+                  iconName="discount"
+                  iconSize={38}
+                  onPress={() => navigation.navigate("StorePromotions")}
+                />
+                <PressableOptions
+                  key={"gallery"}
+                  text="Gallery"
+                  fontSize={13}
+                  iconName="images"
+                  iconSource="Ionicons"
+                  iconSize={38}
+                  onPress={() => navigation.navigate("StoreGallery")}
+                />
+              </View>
+            </View>
+
+            {/* Line */}
+            <View
+              style={[
+                styles.line,
+                {
+                  borderColor: activeColors.tertiary,
+                  backgroundColor: activeColors.tertiary,
+                },
+              ]}
+            />
+
+            {/* Theme */}
+            <View
+              style={[
+                styles.switchContainer,
+                {
+                  backgroundColor: activeColors.secondary,
+                  borderColor: activeColors.tertiary,
+                },
+              ]}
+            >
+              <View style={styles.switchTextContainer}>
+                <MaterialCommunityIcons
+                  name="theme-light-dark"
+                  size={24}
+                  color={activeColors.accent}
+                />
+
+                <Text
+                  style={[styles.switchText, { color: activeColors.accent }]}
+                >
+                  Theme ({theme.mode === "dark" ? "Dark" : "Light"} mode)
+                </Text>
+              </View>
+
+              <Switch onPress={changeTheme} />
+            </View>
+
+            {/* Logout */}
+            <Pressable onPress={handleLogout}>
+              <View
+                style={[
+                  styles.logoutContainer,
+                  { backgroundColor: activeColors.accent },
+                ]}
+              >
+                <Text
+                  style={[styles.logoutText, { color: activeColors.secondary }]}
+                >
+                  Log Out
+                </Text>
+
+                <MaterialIcons
+                  name="logout"
+                  size={24}
+                  color={activeColors.secondary}
+                />
+              </View>
+            </Pressable>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -459,7 +754,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   profileText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "300",
     marginBottom: 5,
   },
@@ -543,5 +838,61 @@ const styles = StyleSheet.create({
   },
   storeGeneralInfoTextLabel: {
     fontWeight: "bold",
+  },
+  orderHistoryButton: {
+    flex: 1,
+    marginHorizontal: 30,
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 10,
+    marginBottom: 20,
+  },
+  orderHistoryButtonText: {
+    fontSize: 20,
+    textAlign: "center",
+    fontWeight: "bold",
+    marginRight: 10,
+  },
+  ratingsContainer: {
+    marginHorizontal: 30,
+    flexDirection: "column",
+    alignItems: "center",
+    borderRadius: 10,
+    padding: 20,
+  },
+  ratingTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  averageRatingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  averageRatingText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginLeft: 5,
+  },
+
+  managementContainer: {
+    paddingBottom: 20,
+  },
+  managementOptionsContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    rowGap: 20,
+  },
+  managementOptionsRowContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    columnGap: 20,
   },
 });

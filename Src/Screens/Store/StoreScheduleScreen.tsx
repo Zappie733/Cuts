@@ -166,10 +166,12 @@ export const StoreScheduleScreen = ({
 
     const grouped: Record<number, OrderObj[]> = {};
     const orders = orderSchedule.orders;
-
     dates.forEach((day) => {
       const matchingOrders = orders.filter((order) => {
-        const orderDate = new Date(order.date).getDate();
+        const orderDate = new Date(
+          new Date(order.date).getTime() - 7 * 60 * 60 * 1000
+        ).getDate();
+
         return orderDate === day;
       });
       grouped[day] = matchingOrders;
@@ -197,7 +199,8 @@ export const StoreScheduleScreen = ({
       Alert.alert("Success", response.message);
       handleFetchOrderSchedule();
     } else if (response) {
-      console.log(response.status, response.message);
+      // console.log(response.status, response.message);
+      Alert.alert("Error", response.message);
     }
   };
 
@@ -224,7 +227,8 @@ export const StoreScheduleScreen = ({
       setReason("");
       setIsModalVisible(false);
     } else if (response) {
-      console.log(response.status, response.message);
+      // console.log(response.status, response.message);
+      Alert.alert("Error", response.message);
     }
   };
 
@@ -306,7 +310,7 @@ export const StoreScheduleScreen = ({
       Alert.alert("Success", response.message);
       handleFetchOrderSchedule();
     } else if (response) {
-      console.log(response.status, response.message);
+      Alert.alert("Error", response.message);
     }
   };
 
@@ -540,20 +544,22 @@ export const StoreScheduleScreen = ({
                           {new Date(order.date).toUTCString().split(" ")[4]} -{" "}
                           {new Date(order.endTime).toUTCString().split(" ")[4]}{" "}
                         </Text>
-                        <Text
-                          style={[
-                            styles.timeDifferenceText,
-                            { color: activeColors.infoColor },
-                          ]}
-                        >
-                          {order.timeDifference && order.timeDifference > 0
-                            ? `${order.timeDifference} minutes slower than expected`
-                            : order.timeDifference && order.timeDifference < 0
-                            ? `${Math.abs(
-                                order.timeDifference
-                              )} minutes faster than expected`
-                            : ""}
-                        </Text>
+                        {order.timeDifference && (
+                          <Text
+                            style={[
+                              styles.timeDifferenceText,
+                              { color: activeColors.infoColor },
+                            ]}
+                          >
+                            {order.timeDifference && order.timeDifference > 0
+                              ? `${order.timeDifference} minutes slower than expected`
+                              : order.timeDifference && order.timeDifference < 0
+                              ? `${Math.abs(
+                                  order.timeDifference
+                                )} minutes faster than expected`
+                              : ""}
+                          </Text>
+                        )}
                       </View>
 
                       {/* User Info */}
@@ -714,6 +720,7 @@ export const StoreScheduleScreen = ({
                                           flexDirection: "row",
                                           justifyContent: "space-between",
                                           marginVertical: 3,
+                                          paddingLeft: 10,
                                         }}
                                       >
                                         <Text
