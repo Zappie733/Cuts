@@ -825,6 +825,19 @@ export const RegisterStoreScreen = ({
 
                 {/* Inputs */}
                 <View style={styles.inputContainer}>
+                  {/* Store Name Input */}
+                  <Input
+                    key="registerStoreName"
+                    context="Name"
+                    placeholder="Enter Store Name"
+                    value={storeRegisterFormData.storeName}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeName")
+                    }
+                    iconName="shopping-store"
+                    iconSource="Fontisto"
+                  />
+                  
                   {/* Email Input */}
                   <Input
                     key="registerStoreEmail"
@@ -901,18 +914,6 @@ export const RegisterStoreScreen = ({
                     />
                   </View>
 
-                  {/* Store Name Input */}
-                  <Input
-                    key="registerStoreName"
-                    context="Name"
-                    placeholder="Enter Store Name"
-                    value={storeRegisterFormData.storeName}
-                    updateValue={(text: string) =>
-                      handleRegisterStoreTextChange(text, "storeName")
-                    }
-                    iconName="shopping-store"
-                    iconSource="Fontisto"
-                  />
                   {/* Store Location Input */}
                   <Input
                     key="registerStoreLocation"
