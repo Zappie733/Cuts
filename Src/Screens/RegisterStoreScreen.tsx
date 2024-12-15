@@ -787,7 +787,7 @@ export const RegisterStoreScreen = ({
               <>
                 {/* Title */}
                 <Text style={[styles.title, { color: activeColors.accent }]}>
-                  Join With Cuts & Expands Your Store
+                  Join Cuts and Expand Your Store
                 </Text>
 
                 {/* Information Button */}
