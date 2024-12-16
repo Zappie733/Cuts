@@ -17,7 +17,8 @@ export const UpdateStorePromotionValidate = (
         ) // Base64 validation pattern
         .required()
         .label("File"),
-      // path: Joi.string().required().label("Path"),
+      path: Joi.string().label("Path"),
+      _id: Joi.string().label("_id"),
     })
       .required()
       .label("Image"),

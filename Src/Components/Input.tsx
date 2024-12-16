@@ -161,7 +161,11 @@ export const Input = ({
               onBlur={onBlurHandler}
               // blurOnSubmit={true}
               autoCapitalize={"none"}
-              multiline={context !== "Location" ? false : true}
+              multiline={
+                context !== "Location" && context !== "Description"
+                  ? false
+                  : true
+              }
               numberOfLines={1}
             />
           </>
@@ -186,7 +190,9 @@ export const Input = ({
             onFocus={onFocusHandler}
             onBlur={onBlurHandler}
             autoCapitalize={"none"}
-            multiline={context !== "Location" ? false : true}
+            multiline={
+              context !== "Location" && context !== "Description" ? false : true
+            }
             numberOfLines={1}
           />
         )}

@@ -90,6 +90,7 @@ export const AuthContext = ({ children }: { children: ReactNode }) => {
   };
 
   const updateAccessToken = (newAccessToken: string) => {
+    console.log("UPDATE ACCESS TOKEN");
     setAuth((prevAuth) => ({
       ...prevAuth,
       accessToken: newAccessToken,

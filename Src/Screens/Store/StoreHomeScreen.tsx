@@ -196,7 +196,7 @@ export const StoreHomeScreen = ({
   };
   const [orderFormData, setOrderFormData] =
     useState<AddOrderData>(defaultOrderData);
-  console.log(orderFormData);
+  // console.log("orderFormData", orderFormData);
   // console.log(JSON.stringify(orderFormData, null, 2));
   const handleOrderTextChange = <T extends keyof AddOrderData>(
     value: AddOrderData[T],
@@ -305,7 +305,7 @@ export const StoreHomeScreen = ({
 
   useEffect(() => {
     if (store._id) {
-      console.log("get workers");
+      // console.log("get workers");
       getStoreWorkers();
     }
   }, [store]);

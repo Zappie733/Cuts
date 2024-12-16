@@ -156,14 +156,19 @@ export const DropdownPicker = ({
                   selectedValue === item.value && {
                     backgroundColor: activeColors.tertiary,
                   },
-                  { height: isInput === true ? 66 : 52 },
+                  {
+                    height: isInput === true ? 66 : 52,
+                    borderColor: activeColors.secondary,
+                  },
                 ]}
                 onPress={() => handleSelect(item.value)}
               >
                 <Text
                   style={[
                     styles.dropdownItemText,
-                    { color: activeColors.secondary },
+                    {
+                      color: activeColors.secondary,
+                    },
                   ]}
                 >
                   {item.label}
@@ -219,6 +224,7 @@ const styles = StyleSheet.create({
   dropdownItem: {
     justifyContent: "center",
     paddingHorizontal: 15,
+    borderWidth: 1,
   },
   dropdownItemText: {
     fontSize: 15,

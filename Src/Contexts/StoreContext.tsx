@@ -103,7 +103,7 @@ export const StoreContext = ({ children }: { children: ReactNode }) => {
     useContext(Auth);
 
   const fetchStore = async () => {
-    console.log("set store");
+    // console.log("set store");
     const refreshTokenPayload = getRefreshTokenPayload();
 
     if (auth._id !== "" && refreshTokenPayload?.role === "store") {

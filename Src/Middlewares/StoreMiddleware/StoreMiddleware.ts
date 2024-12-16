@@ -362,7 +362,7 @@ export const getStoreByUserId = async ({
   auth,
   updateAccessToken,
 }: ApiRequestProps): Promise<IResponseProps<StoreObj>> => {
-  console.log("getStoreByUserId Process");
+  // console.log("getStoreByUserId Process");
   const apiOptions: ApiOptions = {
     method: "GET",
   };

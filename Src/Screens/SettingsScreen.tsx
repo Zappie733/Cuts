@@ -367,7 +367,7 @@ export const SettingsScreen = ({
             }
           >
             <FontAwesome5
-              name="user-edit"
+              name={user.role === "store" ? "edit" : "user-edit"}
               color={activeColors.accent}
               size={20}
             />
