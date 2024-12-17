@@ -113,20 +113,36 @@ export const TabsNavigator = () => {
       {role === undefined && (
         <>
           {/* {console.log("bottom tab guest")} */}
-          <TabsStack.Screen name="Home" component={HomeScreen} />
+          <TabsStack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ unmountOnBlur: true }}
+          />
         </>
       )}
       {role === "user" && (
         <>
           {/* {console.log("bottom tab user")} */}
-          <TabsStack.Screen name="Home" component={HomeScreen} />
-          <TabsStack.Screen name="Settings" component={SettingsScreen} />
+          <TabsStack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ unmountOnBlur: true }}
+          />
+          <TabsStack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ unmountOnBlur: true }}
+          />
         </>
       )}
       {role === "admin" && (
         <>
           {/* {console.log("bottom tab admin")} */}
-          <TabsStack.Screen name="Home" component={AdminHomeScreen} />
+          <TabsStack.Screen
+            name="Home"
+            component={AdminHomeScreen}
+            options={{ unmountOnBlur: true }}
+          />
           <TabsStack.Screen
             name="AdminStoreManagement"
             component={AdminStoreManagementScreen}
@@ -144,15 +160,24 @@ export const TabsNavigator = () => {
                   Store Management
                 </Text>
               ),
+              unmountOnBlur: true,
             }}
           />
-          <TabsStack.Screen name="Settings" component={SettingsScreen} />
+          <TabsStack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ unmountOnBlur: true }}
+          />
         </>
       )}
       {role === "store" && (
         <>
           {/* {console.log("bottom tab store")} */}
-          <TabsStack.Screen name="Home" component={StoreHomeScreen} />
+          <TabsStack.Screen
+            name="Home"
+            component={StoreHomeScreen}
+            options={{ unmountOnBlur: true }}
+          />
           <TabsStack.Screen
             name="StoreSchedule"
             component={StoreScheduleScreen}
@@ -170,9 +195,14 @@ export const TabsNavigator = () => {
                   Schedule
                 </Text>
               ),
+              unmountOnBlur: true,
             }}
           />
-          <TabsStack.Screen name="Settings" component={SettingsScreen} />
+          <TabsStack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ unmountOnBlur: true }}
+          />
         </>
       )}
     </TabsStack.Navigator>

@@ -15,7 +15,7 @@ import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { Auth, Theme, User, UserContext } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { Header } from "../Components/Header";
-import { SelectImage } from "../Components/Image";
+import { SelectProfileImage } from "../Components/Image";
 import { Input } from "../Components/Input";
 import { logoutUser, updateUserProfile } from "../Middlewares/UserMiddleware";
 import { IResponseProps } from "../Types/ResponseTypes";
@@ -145,7 +145,7 @@ export const ProfileScreen = ({
             Your Profile
           </Text>
 
-          <SelectImage userImage={user.image?.file ?? ""} />
+          <SelectProfileImage userImage={user.image?.file ?? ""} />
 
           {/* Inputs */}
           <View style={{ marginTop: 20 }}>

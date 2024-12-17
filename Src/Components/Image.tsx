@@ -1,3 +1,4 @@
+import React from "react";
 import * as ImagePicker from "expo-image-picker";
 import { Camera } from "expo-camera";
 import { useState, useEffect, useContext, useRef } from "react";
@@ -20,6 +21,7 @@ import {
   IImageProps,
   SelectImageProps,
   SelectImagesProps,
+  SelectSingleImageProps,
 } from "../Types/ComponentTypes/ImageTypes";
 import * as FileSystem from "expo-file-system";
 import { IResponseProps } from "../Types/ResponseTypes";
@@ -34,7 +36,7 @@ import {
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
-export const SelectImage = ({ userImage }: SelectImageProps) => {
+export const SelectProfileImage = ({ userImage }: SelectImageProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
@@ -212,6 +214,171 @@ export const SelectImage = ({ userImage }: SelectImageProps) => {
           style={[styles.selectImageText, { color: activeColors.secondary }]}
         >
           Select Photo
+        </Text>
+      </Pressable>
+    </View>
+  );
+};
+
+export const SelectSingleImage = ({
+  imageData,
+  handleSetImage,
+}: SelectSingleImageProps) => {
+  const { theme } = useContext(Theme);
+  let activeColors = colors[theme.mode];
+
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageOptionForUpload, setImageOptionForUpload] =
+    useState<IImageProps | null>(null);
+  const [requestStatus, setRequestStatus] = useState(false);
+
+  const requestPermission = async () => {
+    const cameraStatus = await Camera.requestCameraPermissionsAsync();
+    const galleryStatus =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (
+      cameraStatus.status !== "granted" ||
+      galleryStatus.status !== "granted"
+    ) {
+      Alert.alert(
+        "Permission required",
+        "Sorry, we need camera and media permissions for this feature"
+      );
+      setRequestStatus(false);
+    } else {
+      setRequestStatus(true);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      await requestPermission();
+    })();
+
+    if (imageData) {
+      setSelectedImage(imageData.file);
+      setImageOptionForUpload(imageData);
+    }
+  }, []);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+
+      const base64Image = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      setSelectedImage(uri);
+      const newImageOptionForUpload = { file: base64Image };
+      setImageOptionForUpload(newImageOptionForUpload);
+    }
+  };
+
+  const takePhoto = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const { uri } = result.assets[0];
+      const base64Image = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      setSelectedImage(uri);
+      setImageOptionForUpload({ file: base64Image });
+    }
+  };
+
+  const handleImageSelection = () => {
+    if (requestStatus) {
+      Alert.alert(
+        "Select Image",
+        "Choose an option",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Take Photo", onPress: takePhoto },
+          { text: "Choose from Gallery", onPress: pickImage },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
+  const handleDeleteImage = () => {
+    setSelectedImage(null);
+    setImageOptionForUpload(null);
+  };
+
+  useEffect(() => {
+    handleSetImage(imageOptionForUpload);
+  }, [imageOptionForUpload]);
+
+  return (
+    <View style={styles.container}>
+      <View>
+        {selectedImage ? (
+          <>
+            <Image
+              source={{ uri: selectedImage }}
+              style={[
+                styles.singleImage,
+                { borderColor: activeColors.tertiary },
+              ]}
+            />
+            <Pressable
+              onPress={handleDeleteImage}
+              style={[
+                styles.deleteButton,
+                { backgroundColor: activeColors.tertiary },
+              ]}
+            >
+              <Feather name="x" size={20} color={activeColors.secondary} />
+            </Pressable>
+          </>
+        ) : (
+          <View
+            style={[
+              styles.singleImage,
+              {
+                borderColor: activeColors.tertiary,
+                alignItems: "center",
+                justifyContent: "center",
+              },
+            ]}
+          >
+            <Text style={{ color: activeColors.tertiary, fontSize: 20 }}>
+              No image selected
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Select Image */}
+      <Pressable
+        onPress={handleImageSelection}
+        style={[
+          styles.selectImageButton,
+          {
+            backgroundColor: requestStatus
+              ? activeColors.accent
+              : activeColors.disabledColor,
+          },
+        ]}
+      >
+        <Text
+          style={[styles.selectImageText, { color: activeColors.secondary }]}
+        >
+          {selectedImage ? "Change Image" : "Select Image"}
         </Text>
       </Pressable>
     </View>
@@ -464,5 +631,13 @@ const styles = StyleSheet.create({
   imageContainer: {
     marginBottom: 10,
     width: width,
+  },
+
+  singleImage: {
+    borderRadius: 5,
+    width: width,
+    height: 200,
+    borderWidth: 1,
+    marginBottom: 10,
   },
 });

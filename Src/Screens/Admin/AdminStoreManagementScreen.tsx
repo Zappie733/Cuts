@@ -35,6 +35,7 @@ import { SearchBar } from "../../Components/SearchBar";
 import { StoresByStatusResponse } from "../../Types/ResponseTypes/StoreResponse";
 import { GetStoresByStatusParam } from "../../Types/StoreTypes/StoreTypes";
 import { logoutUser } from "../../Middlewares/UserMiddleware";
+import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -240,6 +241,12 @@ export const AdminStoreManagementScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      <ExpoStatusBar
+        hidden={false}
+        style={theme.mode === "dark" ? "light" : "dark"}
+        backgroundColor={activeColors.primary}
+      />
+
       <Header goBack={handleGoBack} />
 
       {/* Dropdown Status */}

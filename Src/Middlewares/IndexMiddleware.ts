@@ -97,10 +97,10 @@ export const apiCallWithToken = async <T>({
         };
       }
 
-      console.log("New access token retrieved.");
       if (result.data) {
+        console.log("New access token retrieved:", result.data.accessToken);
         accessToken = result.data.accessToken;
-        updateAccessToken(accessToken);
+        updateAccessToken(result.data.accessToken);
       }
 
       try {

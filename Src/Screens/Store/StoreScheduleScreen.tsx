@@ -16,7 +16,7 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
 import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
-import { StatusBar as ExpoStatusBar } from "expo-status-bar";
+import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
 import {
   completeOrder,
   confirmOrder,
@@ -46,6 +46,12 @@ export const StoreScheduleScreen = ({
 
   const { store } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     console.log("accessToken Schedule: ", auth.accessToken);
+  //   }, [])
+  // );
 
   const [orderSchedule, setOrderSchedule] =
     useState<GetOrderforScheduleResponse>();
@@ -355,6 +361,11 @@ export const StoreScheduleScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      <ExpoStatusBar
+        hidden={false}
+        style={theme.mode === "dark" ? "light" : "dark"}
+        backgroundColor={activeColors.primary}
+      />
       <Text style={[styles.title, { color: activeColors.accent }]}>
         {month} - {year}
       </Text>

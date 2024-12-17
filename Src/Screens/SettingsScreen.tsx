@@ -40,6 +40,7 @@ import { PressableOptions } from "../Components/PressableOptions";
 import { GetRatingSummaryByStoreIdResponse } from "../Types/ResponseTypes/RatingResponse";
 import { getRatingSummaryByStoreId } from "../Middlewares/RatingMiddleware";
 import { PerRating } from "../Components/PerRating";
+import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
 
 export const SettingsScreen = ({
   navigation,
@@ -49,6 +50,12 @@ export const SettingsScreen = ({
   let activeColors = colors[theme.mode];
 
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     console.log("accessToken Setting: ", auth.accessToken);
+  //   }, [])
+  // );
   let { user } = useContext(User);
   const { store, refetchData } = useContext(StoresC);
 
@@ -204,6 +211,12 @@ export const SettingsScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      <ExpoStatusBar
+        hidden={false}
+        style={theme.mode === "dark" ? "light" : "dark"}
+        backgroundColor={activeColors.primary}
+      />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{ marginBottom: 90 }}

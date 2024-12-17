@@ -29,9 +29,7 @@ import {
   deleteService,
   updateService,
 } from "../../Middlewares/StoreMiddleware/ServiceMiddleware";
-import { set } from "mongoose";
 import { Input } from "../../Components/Input";
-import { DropdownPicker } from "../../Components/DropdownPicker";
 import { MultiSelectDropdownPicker } from "../../Components/MultiSelectDropdownPicker";
 import {
   AddServiceData,
@@ -118,6 +116,8 @@ export const StoreServiceScreen = ({
     }
   };
 
+  //---------------------
+  //ADD
   const [isAddForm, setIsAddForm] = useState(false);
 
   const defaultData: AddServiceData = {
@@ -168,9 +168,7 @@ export const StoreServiceScreen = ({
       Alert.alert("Success", response.message);
       await refetchData();
       setServiceFormData(defaultData);
-      setTimeout(() => {
-        setIsAddForm(false);
-      }, 1000);
+      setIsAddForm(false);
     } else if (response) {
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
@@ -230,9 +228,7 @@ export const StoreServiceScreen = ({
     };
     console.log("forEditData", currentData);
     setUpdateServiceFormData(currentData); //cha
-    setTimeout(() => {
-      setIsEditForm(true);
-    }, 300);
+    setIsEditForm(true);
   };
 
   const [serviceNameEdit, setServiceNameEdit] = useState(false);
@@ -240,6 +236,7 @@ export const StoreServiceScreen = ({
   const [servicePriceEdit, setServicePriceEdit] = useState(false);
   const [serviceDurationEdit, setServiceDurationEdit] = useState(false);
   const [serviceProductsEdit, setServiceProductsEdit] = useState(false);
+  const [serviceDiscountEdit, setServiceDiscountEdit] = useState(false);
 
   const handleUpdateService = async () => {
     const response = await apiCallHandler({
@@ -263,9 +260,8 @@ export const StoreServiceScreen = ({
       setServicePriceEdit(false);
       setServiceDurationEdit(false);
       setServiceProductsEdit(false);
-      setTimeout(() => {
-        setIsEditForm(false);
-      }, 1000);
+      setServiceDiscountEdit(false);
+      setIsEditForm(false);
     } else if (response) {
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
@@ -285,7 +281,6 @@ export const StoreServiceScreen = ({
       getStoreServiceProducts();
     }
   }, [store]);
-  ``;
 
   return (
     <SafeAreaView
@@ -300,9 +295,9 @@ export const StoreServiceScreen = ({
           {/* title */}
           <View>
             <Text style={[styles.title, { color: activeColors.accent }]}>
-              Store Services
+              Services
             </Text>
-            {/* add store */}
+            {/* add service button*/}
             <Pressable
               style={styles.addButtonContainer}
               onPress={() => setIsAddForm(true)}
@@ -371,7 +366,9 @@ export const StoreServiceScreen = ({
                   style={styles.deleteContainer}
                   onPress={() =>
                     Alert.alert(
-                      "Are you sure want to delete this service?",
+                      `Are you sure want to delete ${labelFormat(
+                        service.name
+                      )}?`,
                       "Choose an option",
                       [
                         {
@@ -510,10 +507,20 @@ export const StoreServiceScreen = ({
                             >
                               -{" "}
                               {labelFormat(
-                                serviceProductsRecord[productId]?.name
+                                serviceProductsRecord[productId]?.name ?? ""
                               )}
                             </Text>
                           ))}
+                          {service.serviceProduct?.length === 0 && (
+                            <Text
+                              style={[
+                                styles.modalInfoProductText,
+                                { color: activeColors.accent },
+                              ]}
+                            >
+                              - None
+                            </Text>
+                          )}
                         </View>
                       </View>
                     );
@@ -546,12 +553,13 @@ export const StoreServiceScreen = ({
               isAddForm
                 ? (setIsAddForm(false), setServiceFormData(defaultData))
                 : (setIsEditForm(false),
-                  setUpdateServiceFormData(defaultUpdateData), //ca
+                  setUpdateServiceFormData(defaultUpdateData),
                   setServiceNameEdit(false),
                   setServiceDescriptionEdit(false),
                   setServicePriceEdit(false),
                   setServiceDurationEdit(false),
-                  setServiceProductsEdit(false));
+                  setServiceProductsEdit(false),
+                  setServiceDiscountEdit(false));
             }}
           />
 
@@ -572,190 +580,221 @@ export const StoreServiceScreen = ({
           />
 
           {/* form service */}
-          <View
-            style={[
-              styles.formContainer,
-              { borderColor: activeColors.tertiary },
-            ]}
-          >
-            <View>
-              {/* username */}
-              <Input
-                key="serviceName"
-                context="Name"
-                placeholder="Enter Service Name"
-                value={
-                  isEditForm
-                    ? updateServiceFormData.name
-                    : serviceFormData?.name || ""
-                }
-                updateValue={(text: string) =>
-                  isEditForm
-                    ? handleUpdateServiceTextChange(text, "name")
-                    : handleServiceTextChange(text, "name")
-                }
-                isEditable={isEditForm ? serviceNameEdit : undefined}
-                setEditable={isEditForm ? setServiceNameEdit : undefined}
-              />
-              {/* description */}
-              <Input
-                key="description"
-                context="Description"
-                placeholder="Enter Description (Optional)"
-                value={
-                  isEditForm
-                    ? updateServiceFormData.description || ""
-                    : serviceFormData.description || ""
-                }
-                updateValue={(text: string) =>
-                  isEditForm
-                    ? handleUpdateServiceTextChange(text, "description")
-                    : handleServiceTextChange(text, "description")
-                }
-                isEditable={isEditForm ? serviceDescriptionEdit : undefined}
-                setEditable={isEditForm ? setServiceDescriptionEdit : undefined}
-              />
-              {/* price */}
-              <Input
-                key="price"
-                context="Price"
-                placeholder="Enter Service Price (Rp)"
-                value={
-                  isEditForm
-                    ? updateServiceFormData?.price.toString() !== "0"
-                      ? updateServiceFormData?.price.toString()
-                      : ""
-                    : serviceFormData?.price.toString() !== "0"
-                    ? serviceFormData?.price.toString()
-                    : ""
-                }
-                updateValue={(text: string) => {
-                  // Validate and accept only numeric input
-                  const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-                  isEditForm
-                    ? handleUpdateServiceTextChange(
-                        Number.parseInt(numericValue || "0"),
-                        "price"
-                      )
-                    : handleServiceTextChange(
-                        Number.parseInt(numericValue || "0"),
-                        "price"
-                      ); // Ensure at least "0" is passed if empty
-                }}
-                isEditable={isEditForm ? servicePriceEdit : undefined}
-                setEditable={isEditForm ? setServicePriceEdit : undefined}
-              />
-              {/* duration */}
-              <Input
-                key="duration"
-                context="Duration"
-                placeholder="Enter Estimate Duration (min)"
-                value={
-                  isEditForm
-                    ? updateServiceFormData?.duration.toString() !== "0"
-                      ? updateServiceFormData?.duration.toString()
-                      : ""
-                    : serviceFormData?.duration.toString() !== "0"
-                    ? serviceFormData?.duration.toString()
-                    : ""
-                }
-                updateValue={(text: string) => {
-                  // Validate and accept only numeric input
-                  const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-                  isEditForm
-                    ? handleUpdateServiceTextChange(
-                        Number.parseInt(numericValue || "0"),
-                        "duration"
-                      )
-                    : handleServiceTextChange(
-                        Number.parseInt(numericValue || "0"),
-                        "duration"
-                      ); // Ensure at least "0" is passed if empty
-                }}
-                isEditable={isEditForm ? serviceDurationEdit : undefined}
-                setEditable={isEditForm ? setServiceDurationEdit : undefined}
-              />
-
-              {/* services products */}
-              <View style={[styles.serviceInputContainer]}>
-                <MultiSelectDropdownPicker
-                  key="serviceProductIds"
-                  options={serviceProductsOptions}
-                  selectedValues={
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View
+              style={[
+                styles.formContainer,
+                { borderColor: activeColors.tertiary },
+              ]}
+            >
+              <View>
+                {/* username */}
+                <Input
+                  key="serviceName"
+                  context="Name"
+                  placeholder="Enter Service Name"
+                  value={
                     isEditForm
-                      ? updateServiceFormData.serviceProduct || []
-                      : serviceFormData.serviceProduct || []
+                      ? updateServiceFormData.name
+                      : serviceFormData?.name || ""
                   }
-                  onValuesChange={(newValues) =>
+                  updateValue={(text: string) =>
+                    isEditForm
+                      ? handleUpdateServiceTextChange(text, "name")
+                      : handleServiceTextChange(text, "name")
+                  }
+                  isEditable={isEditForm ? serviceNameEdit : undefined}
+                  setEditable={isEditForm ? setServiceNameEdit : undefined}
+                />
+                {/* description */}
+                <Input
+                  key="description"
+                  context="Description"
+                  placeholder="Enter Description (Optional)"
+                  value={
+                    isEditForm
+                      ? updateServiceFormData.description || ""
+                      : serviceFormData.description || ""
+                  }
+                  updateValue={(text: string) =>
+                    isEditForm
+                      ? handleUpdateServiceTextChange(text, "description")
+                      : handleServiceTextChange(text, "description")
+                  }
+                  isEditable={isEditForm ? serviceDescriptionEdit : undefined}
+                  setEditable={
+                    isEditForm ? setServiceDescriptionEdit : undefined
+                  }
+                />
+                {/* price */}
+                <Input
+                  key="price"
+                  context="Price"
+                  placeholder="Enter Service Price (Rp)"
+                  value={
+                    isEditForm
+                      ? updateServiceFormData?.price.toString() !== "0"
+                        ? updateServiceFormData?.price.toString()
+                        : ""
+                      : serviceFormData?.price.toString() !== "0"
+                      ? serviceFormData?.price.toString()
+                      : ""
+                  }
+                  updateValue={(text: string) => {
+                    // Validate and accept only numeric input
+                    const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
                     isEditForm
                       ? handleUpdateServiceTextChange(
-                          newValues,
-                          "serviceProduct"
+                          Number.parseInt(numericValue || "0"),
+                          "price"
                         )
-                      : handleServiceTextChange(newValues, "serviceProduct")
-                  }
-                  placeHolder="Select Service Products..."
-                  isInput={true}
-                  context="Service Products"
-                  isEditable={isEditForm ? serviceProductsEdit : undefined}
-                  setEditable={isEditForm ? setServiceProductsEdit : undefined}
-                />
-              </View>
-
-              {/* line separator */}
-              <View
-                style={{
-                  borderWidth: 1,
-                  borderColor: activeColors.tertiary,
-                }}
-              />
-
-              {/* images */}
-              <View style={{ marginVertical: 10 }}>
-                <SelectImages
-                  imagesData={
-                    isEditForm
-                      ? updateServiceFormData.images
-                      : serviceFormData.images
-                  }
-                  handleSetImages={(images: IImageProps[]) => {
-                    isEditForm
-                      ? handleUpdateServiceTextChange(images, "images")
-                      : handleServiceTextChange(images, "images");
+                      : handleServiceTextChange(
+                          Number.parseInt(numericValue || "0"),
+                          "price"
+                        ); // Ensure at least "0" is passed if empty
                   }}
+                  isEditable={isEditForm ? servicePriceEdit : undefined}
+                  setEditable={isEditForm ? setServicePriceEdit : undefined}
                 />
-              </View>
+                {/* duration */}
+                <Input
+                  key="duration"
+                  context="Duration"
+                  placeholder="Enter Estimate Duration (min)"
+                  value={
+                    isEditForm
+                      ? updateServiceFormData?.duration.toString() !== "0"
+                        ? updateServiceFormData?.duration.toString()
+                        : ""
+                      : serviceFormData?.duration.toString() !== "0"
+                      ? serviceFormData?.duration.toString()
+                      : ""
+                  }
+                  updateValue={(text: string) => {
+                    // Validate and accept only numeric input
+                    const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+                    isEditForm
+                      ? handleUpdateServiceTextChange(
+                          Number.parseInt(numericValue || "0"),
+                          "duration"
+                        )
+                      : handleServiceTextChange(
+                          Number.parseInt(numericValue || "0"),
+                          "duration"
+                        ); // Ensure at least "0" is passed if empty
+                  }}
+                  isEditable={isEditForm ? serviceDurationEdit : undefined}
+                  setEditable={isEditForm ? setServiceDurationEdit : undefined}
+                />
 
-              {/* line separator */}
-              <View
-                style={{
-                  borderWidth: 1,
-                  borderColor: activeColors.tertiary,
-                }}
-              />
+                {/* discount */}
+                {isEditForm && (
+                  <Input
+                    key="discount"
+                    context="Discount"
+                    placeholder="Enter Discount (%) (Optional)"
+                    value={
+                      typeof updateServiceFormData?.discount === "number" &&
+                      updateServiceFormData?.discount !== 0
+                        ? updateServiceFormData?.discount.toString()
+                        : ""
+                    }
+                    updateValue={(text: string) => {
+                      // Validate and accept only numeric input
+                      const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+                      handleUpdateServiceTextChange(
+                        Number.parseInt(numericValue || "0"),
+                        "discount"
+                      );
+                    }}
+                    isEditable={serviceDiscountEdit}
+                    setEditable={setServiceDiscountEdit}
+                  />
+                )}
 
-              {/* create order */}
-              <Pressable
-                style={[
-                  styles.createServiceButton,
-                  { backgroundColor: activeColors.accent },
-                ]}
-                onPress={() =>
-                  isAddForm ? handleAddService() : handleUpdateService()
-                }
-              >
-                <Text
+                {/* services products */}
+                <View style={[styles.serviceInputContainer]}>
+                  <MultiSelectDropdownPicker
+                    key="serviceProductIds"
+                    options={serviceProductsOptions}
+                    selectedValues={
+                      isEditForm
+                        ? updateServiceFormData.serviceProduct || []
+                        : serviceFormData.serviceProduct || []
+                    }
+                    onValuesChange={(newValues) =>
+                      isEditForm
+                        ? handleUpdateServiceTextChange(
+                            newValues,
+                            "serviceProduct"
+                          )
+                        : handleServiceTextChange(newValues, "serviceProduct")
+                    }
+                    placeHolder="Select Service Products..."
+                    isInput={true}
+                    context="Service Products"
+                    isEditable={isEditForm ? serviceProductsEdit : undefined}
+                    setEditable={
+                      isEditForm ? setServiceProductsEdit : undefined
+                    }
+                  />
+                </View>
+
+                {/* line separator */}
+                <View
                   style={{
-                    color: activeColors.primary,
-                    fontWeight: "bold",
-                    fontSize: 16,
+                    borderWidth: 1,
+                    borderColor: activeColors.tertiary,
                   }}
+                />
+
+                {/* images */}
+                <View style={{ marginVertical: 10 }}>
+                  <SelectImages
+                    imagesData={
+                      isEditForm
+                        ? updateServiceFormData.images
+                        : serviceFormData.images
+                    }
+                    handleSetImages={(images: IImageProps[]) => {
+                      isEditForm
+                        ? handleUpdateServiceTextChange(images, "images")
+                        : handleServiceTextChange(images, "images");
+                    }}
+                  />
+                </View>
+
+                {/* line separator */}
+                <View
+                  style={{
+                    borderWidth: 1,
+                    borderColor: activeColors.tertiary,
+                  }}
+                />
+
+                {/* create order */}
+                <Pressable
+                  style={[
+                    styles.createServiceButton,
+                    { backgroundColor: activeColors.accent },
+                  ]}
+                  onPress={() =>
+                    isAddForm ? handleAddService() : handleUpdateService()
+                  }
                 >
-                  {isAddForm ? "Add Service" : "Update Service"}
-                </Text>
-              </Pressable>
+                  <Text
+                    style={{
+                      color: activeColors.primary,
+                      fontWeight: "bold",
+                      fontSize: 16,
+                    }}
+                  >
+                    {isAddForm ? "Add Service" : "Update Service"}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </>
       )}
     </SafeAreaView>

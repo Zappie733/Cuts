@@ -9,7 +9,7 @@ export const UpdateServiceValidate = (data: UpdateServiceRequestObj) => {
     duration: Joi.number().required().label("Duration"),
     description: Joi.string().label("Description"),
     serviceProduct: Joi.array().items(Joi.string()).label("Service Product"),
-    discount: Joi.number().label("Discount"),
+    discount: Joi.number().min(0).max(100).label("Discount"),
     images: Joi.array()
       .items(
         Joi.object({
