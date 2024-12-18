@@ -74,7 +74,6 @@ export const RootNavigator = () => {
         headerShown: false,
       })}
       initialRouteName="Welcome"
-      key={auth._id}
     >
       {auth._id === "" ? (
         <>

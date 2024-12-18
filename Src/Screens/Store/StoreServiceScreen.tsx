@@ -459,7 +459,7 @@ export const StoreServiceScreen = ({
                           ]}
                         >
                           <Text style={{ color: activeColors.accent }}>
-                            {service.description}
+                            {service.description ?? "No description"}
                           </Text>
                         </View>
 

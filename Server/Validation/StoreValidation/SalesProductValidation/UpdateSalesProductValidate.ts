@@ -25,7 +25,17 @@ export const UpdateSalesProductValidate = (
       .min(1)
       .required()
       .label("Images"),
-    links: Joi.array().items(Joi.string()).required().label("Links"),
+    links: Joi.array()
+      .items(
+        Joi.object({
+          label: Joi.string().required().label("Label"),
+          link: Joi.string().required().label("Link"),
+          _id: Joi.string().label("_id"),
+        })
+      )
+      .min(1)
+      .required()
+      .label("Links"),
     price: Joi.number().required().label("Price"),
   });
 

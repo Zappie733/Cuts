@@ -1,12 +1,17 @@
 import { IImageProps } from "../ComponentTypes/ImageTypes";
 
+export interface linksObj {
+  label: string;
+  link: string;
+}
+
 export interface SalesProductObj {
   _id?: string;
   name: string;
   description?: string;
   images: IImageProps[];
   price: number;
-  links: string[];
+  links: linksObj[];
 }
 
 export interface AddSalesProductData {
@@ -14,7 +19,7 @@ export interface AddSalesProductData {
   description?: string;
   images: IImageProps[];
   price: number;
-  links: string[];
+  links: linksObj[];
 }
 
 export interface UpdateSalesProductData {
@@ -23,5 +28,5 @@ export interface UpdateSalesProductData {
   description?: string;
   images: IImageProps[];
   price: number;
-  links: string[];
+  links: linksObj[];
 }

@@ -116,7 +116,7 @@ export const TabsNavigator = () => {
           <TabsStack.Screen
             name="Home"
             component={HomeScreen}
-            options={{ unmountOnBlur: true }}
+            // options={{ unmountOnBlur: true }}
           />
         </>
       )}
@@ -126,12 +126,12 @@ export const TabsNavigator = () => {
           <TabsStack.Screen
             name="Home"
             component={HomeScreen}
-            options={{ unmountOnBlur: true }}
+            // options={{ unmountOnBlur: true }}
           />
           <TabsStack.Screen
             name="Settings"
             component={SettingsScreen}
-            options={{ unmountOnBlur: true }}
+            // options={{ unmountOnBlur: true }}
           />
         </>
       )}
@@ -141,7 +141,7 @@ export const TabsNavigator = () => {
           <TabsStack.Screen
             name="Home"
             component={AdminHomeScreen}
-            options={{ unmountOnBlur: true }}
+            // options={{ unmountOnBlur: true }}
           />
           <TabsStack.Screen
             name="AdminStoreManagement"
@@ -160,13 +160,13 @@ export const TabsNavigator = () => {
                   Store Management
                 </Text>
               ),
-              unmountOnBlur: true,
+              // unmountOnBlur: true,
             }}
           />
           <TabsStack.Screen
             name="Settings"
             component={SettingsScreen}
-            options={{ unmountOnBlur: true }}
+            // options={{ unmountOnBlur: true }}
           />
         </>
       )}
@@ -176,7 +176,7 @@ export const TabsNavigator = () => {
           <TabsStack.Screen
             name="Home"
             component={StoreHomeScreen}
-            options={{ unmountOnBlur: true }}
+            // options={{ unmountOnBlur: true }}
           />
           <TabsStack.Screen
             name="StoreSchedule"
@@ -195,13 +195,13 @@ export const TabsNavigator = () => {
                   Schedule
                 </Text>
               ),
-              unmountOnBlur: true,
+              // unmountOnBlur: true,
             }}
           />
           <TabsStack.Screen
             name="Settings"
             component={SettingsScreen}
-            options={{ unmountOnBlur: true }}
+            // options={{ unmountOnBlur: true }}
           />
         </>
       )}

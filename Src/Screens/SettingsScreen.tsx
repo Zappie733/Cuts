@@ -41,6 +41,7 @@ import { GetRatingSummaryByStoreIdResponse } from "../Types/ResponseTypes/Rating
 import { getRatingSummaryByStoreId } from "../Middlewares/RatingMiddleware";
 import { PerRating } from "../Components/PerRating";
 import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
+import { apiCallHandler } from "../Middlewares/util";
 
 export const SettingsScreen = ({
   navigation,
@@ -53,9 +54,10 @@ export const SettingsScreen = ({
 
   // useFocusEffect(
   //   useCallback(() => {
-  //     console.log("accessToken Setting: ", auth.accessToken);
-  //   }, [])
+  //     console.log("Setting Auth state updated:", auth);
+  //   }, [auth])
   // );
+
   let { user } = useContext(User);
   const { store, refetchData } = useContext(StoresC);
 
@@ -97,7 +99,10 @@ export const SettingsScreen = ({
 
   const handleFetchUserStores = async () => {
     if (auth._id !== "") {
-      const response = await getStoresByUserId({ auth, updateAccessToken });
+      const response = await getStoresByUserId({
+        auth,
+        updateAccessToken,
+      });
 
       if (response.status === 402) {
         Alert.alert("Session Expired", response.message);
@@ -150,10 +155,16 @@ export const SettingsScreen = ({
 
   const handleFetchRatingSummary = async () => {
     if (store._id !== "") {
-      const response = await getRatingSummaryByStoreId({
+      const response = await apiCallHandler({
+        apiCall: () =>
+          getRatingSummaryByStoreId({
+            auth,
+            updateAccessToken,
+            params: { storeId: store._id },
+          }),
         auth,
-        updateAccessToken,
-        params: { storeId: store._id },
+        setAuth,
+        navigation,
       });
 
       if (response.status >= 200 && response.status < 400 && response.data) {
@@ -202,8 +213,9 @@ export const SettingsScreen = ({
     useCallback(() => {
       if (user.role === "user") handleFetchUserStores();
       else if (user.role === "store") handleFetchRatingSummary();
-    }, [])
+    }, [auth])
   );
+
   return (
     <SafeAreaView
       style={[

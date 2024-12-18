@@ -198,10 +198,16 @@ export const SalesProductSchema = new Schema(
       type: Number,
       required: true,
     },
-    links: {
-      type: [String],
-      required: true,
-    },
+    links: [
+      {
+        label: {
+          type: String,
+        },
+        link: {
+          type: String,
+        },
+      },
+    ],
   },
   {
     toJSON: {

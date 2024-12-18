@@ -318,7 +318,7 @@ export const StoreHomeScreen = ({
   useFocusEffect(
     useCallback(() => {
       refetchData();
-    }, [])
+    }, [auth])
   );
 
   useEffect(() => {

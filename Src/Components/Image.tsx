@@ -523,7 +523,7 @@ export const SelectImages = ({
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        {selectedImages.length > 0 && (
+        {selectedImages.length > 0 ? (
           <ScrollView
             horizontal={true}
             showsHorizontalScrollIndicator={false}
@@ -567,6 +567,12 @@ export const SelectImages = ({
               onRequestClose={() => setImageViewerVisible(false)}
             />
           </ScrollView>
+        ) : (
+          <View style={styles.multiImage}>
+            <Text style={[styles.noImages, { color: activeColors.tertiary }]}>
+              No images selected
+            </Text>
+          </View>
         )}
       </View>
 
@@ -639,5 +645,13 @@ const styles = StyleSheet.create({
     height: 200,
     borderWidth: 1,
     marginBottom: 10,
+  },
+  multiImage: {
+    width: width,
+    marginBottom: 10,
+  },
+  noImages: {
+    fontSize: 20,
+    textAlign: "center",
   },
 });
