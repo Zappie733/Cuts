@@ -1,6 +1,5 @@
 import React from "react";
 import { useContext, useEffect, useState } from "react";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { Store } from "../../Contexts/StoreContext";
 import {
@@ -37,6 +36,8 @@ import {
 } from "../../Types/StoreTypes/ServiceTypes";
 import { SelectImages } from "../../Components/Image";
 import { IImageProps } from "../../Types/ComponentTypes/ImageTypes";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -130,7 +131,7 @@ export const StoreServiceScreen = ({
   };
   const [serviceFormData, setServiceFormData] =
     useState<AddServiceData>(defaultData);
-  console.log("serviceFormData", serviceFormData);
+  // console.log("serviceFormData", serviceFormData);
 
   const handleServiceTextChange = <T extends keyof AddServiceData>(
     value: AddServiceData[T],
@@ -191,7 +192,7 @@ export const StoreServiceScreen = ({
 
   const [updateServiceFormData, setUpdateServiceFormData] =
     useState<UpdateServiceData>(defaultUpdateData);
-  console.log("updateServiceFormData", updateServiceFormData);
+  // console.log("updateServiceFormData", updateServiceFormData);
 
   const handleUpdateServiceTextChange = <T extends keyof UpdateServiceData>(
     value: UpdateServiceData[T],
@@ -227,7 +228,7 @@ export const StoreServiceScreen = ({
         0,
     };
     console.log("forEditData", currentData);
-    setUpdateServiceFormData(currentData); //cha
+    setUpdateServiceFormData(currentData);
     setIsEditForm(true);
   };
 

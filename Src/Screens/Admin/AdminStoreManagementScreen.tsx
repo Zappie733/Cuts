@@ -23,7 +23,6 @@ import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
 import { Theme } from "../../Contexts/ThemeContext";
 import { IResponseProps } from "../../Types/ResponseTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
-import { Auth } from "../../Contexts";
 import { getStoresByStatus } from "../../Middlewares/StoreMiddleware/StoreMiddleware";
 import { removeDataFromAsyncStorage } from "../../Config/AsyncStorage";
 import { IAuthObj } from "../../Types/ContextTypes/AuthContextTypes";
@@ -36,6 +35,7 @@ import { StoresByStatusResponse } from "../../Types/ResponseTypes/StoreResponse"
 import { GetStoresByStatusParam } from "../../Types/StoreTypes/StoreTypes";
 import { logoutUser } from "../../Middlewares/UserMiddleware";
 import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 

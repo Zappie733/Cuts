@@ -14,7 +14,6 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
-import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { EvilIcons, Feather } from "@expo/vector-icons";
 import {
@@ -33,6 +32,9 @@ import {
   logoutUser,
   updateUserProfileImage,
 } from "../Middlewares/UserMiddleware";
+import { Theme } from "../Contexts/ThemeContext";
+import { Auth } from "../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -403,7 +405,6 @@ export const SelectImages = ({
     const cameraStatus = await Camera.requestCameraPermissionsAsync();
     const galleryStatus =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (
       cameraStatus.status !== "granted" ||
       galleryStatus.status !== "granted"

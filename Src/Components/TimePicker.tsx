@@ -1,9 +1,9 @@
 import React, { useContext, useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { ITimePickerProps } from "../Types/ComponentTypes/TimePickerTypes";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const TimePicker = ({ onPress, isForUpdate }: ITimePickerProps) => {
   const { theme } = useContext(Theme);

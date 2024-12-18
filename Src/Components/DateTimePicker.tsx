@@ -8,9 +8,9 @@ import {
   Text,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { IDateTimePickerProps } from "../Types/ComponentTypes/DateTimePickerTypes";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const DateTimePickerComponent = ({ onPress }: IDateTimePickerProps) => {
   const { theme } = useContext(Theme);

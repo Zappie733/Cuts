@@ -1,6 +1,5 @@
 import React, { useCallback } from "react";
 import { useContext, useEffect, useState } from "react";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { Store } from "../../Contexts/StoreContext";
 import {
@@ -36,6 +35,8 @@ import {
 import { Input } from "../../Components/Input";
 import { SelectImages } from "../../Components/Image";
 import { IImageProps } from "../../Types/ComponentTypes/ImageTypes";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 

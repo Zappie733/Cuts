@@ -1,5 +1,4 @@
 import { useContext, useEffect, useState } from "react";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { Store } from "../../Contexts/StoreContext";
 import {
@@ -16,6 +15,8 @@ import {
 } from "react-native";
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 

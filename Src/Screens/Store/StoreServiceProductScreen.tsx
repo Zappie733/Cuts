@@ -1,6 +1,5 @@
 import React from "react";
 import { useContext, useEffect, useState } from "react";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { Store } from "../../Contexts/StoreContext";
 import {
@@ -35,6 +34,8 @@ import {
 import { SelectSingleImage } from "../../Components/Image";
 import { IImageProps } from "../../Types/ComponentTypes/ImageTypes";
 import { DropdownPicker } from "../../Components/DropdownPicker";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 

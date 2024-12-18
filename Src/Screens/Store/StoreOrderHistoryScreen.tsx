@@ -1,6 +1,5 @@
 import React from "react";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { Store } from "../../Contexts/StoreContext";
 import {
@@ -29,6 +28,8 @@ import { getUserInfoForOrderById } from "../../Middlewares/UserMiddleware";
 import { AntDesign } from "@expo/vector-icons";
 import { ServiceObj } from "../../Types/StoreTypes/ServiceTypes";
 import { ServiceProductObj } from "../../Types/StoreTypes/ServiceProductTypes";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 const PAGE_LIMIT = 3;

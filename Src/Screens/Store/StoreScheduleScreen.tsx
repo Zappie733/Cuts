@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
 import {
@@ -34,6 +33,8 @@ import { GetUserInfoForOrderByIdResponse } from "../../Types/ResponseTypes";
 import { AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { WorkerObj } from "../../Types/StoreTypes/WorkerTypes";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -345,14 +346,14 @@ export const StoreScheduleScreen = ({
         // Cleanup interval on unmount
         return () => clearInterval(interval);
       }
-    }, [store])
+    }, [store, auth])
   );
 
   useEffect(() => {
     if (!orderSchedule) return;
     groupOrdersByDate();
     getUserInfoRecord();
-  }, [orderSchedule]);
+  }, [orderSchedule, auth]);
 
   return (
     <SafeAreaView

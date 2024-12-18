@@ -15,7 +15,6 @@ import {
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { Store } from "../../Contexts/StoreContext";
@@ -38,6 +37,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import { chosenServiceProductObj } from "../../Types/OrderTypes";
 import { DateTimePickerComponent } from "../../Components/DateTimePicker";
 import { CheckBox } from "../../Components/CheckBox";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -317,6 +318,7 @@ export const StoreHomeScreen = ({
 
   useFocusEffect(
     useCallback(() => {
+      console.log("home jalan");
       refetchData();
     }, [auth])
   );

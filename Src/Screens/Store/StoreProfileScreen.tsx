@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState } from "react";
-import { Auth, Theme } from "../../Contexts";
+import { useCallback, useContext, useEffect, useState } from "react";
+
 import { colors } from "../../Config/Theme";
 import { Store } from "../../Contexts/StoreContext";
 import {
@@ -31,6 +31,9 @@ import { DropdownPicker } from "../../Components/DropdownPicker";
 import { SelectImages } from "../../Components/Image";
 import { IImageProps } from "../../Types/ComponentTypes/ImageTypes";
 import { TimePicker } from "../../Components/TimePicker";
+import { useFocusEffect } from "@react-navigation/native";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -45,7 +48,8 @@ export const StoreProfileScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
-  const { store, refetchData } = useContext(Store);
+  let { store, refetchData } = useContext(Store);
+
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
   const defaultStoreFormData: UpdateStoreGeneralInformationData = {
@@ -62,7 +66,7 @@ export const StoreProfileScreen = ({
   // console.log(JSON.stringify(defaultStoreFormData, null, 2));
   const [storeFormData, setStoreFormData] =
     useState<UpdateStoreGeneralInformationData>(defaultStoreFormData);
-  console.log(JSON.stringify(storeFormData, null, 2));
+  // console.log(JSON.stringify(storeFormData, null, 2));
   const handleTextChange = <T extends keyof UpdateStoreGeneralInformationData>(
     text: UpdateStoreGeneralInformationData[T],
     fieldname: T
@@ -164,7 +168,6 @@ export const StoreProfileScreen = ({
   const [isChanges, setIsChanges] = useState(false);
 
   const handleUpdateStoreGeneralInformation = async () => {
-    console.log("test");
     const response = await apiCallHandler({
       apiCall: () =>
         updateStoreGeneralInformation({
@@ -225,6 +228,7 @@ export const StoreProfileScreen = ({
       }
     }
   }, [selectedOpenTime, selectedCloseTime]);
+
   return (
     <SafeAreaView
       style={[
@@ -315,6 +319,7 @@ export const StoreProfileScreen = ({
               width: "100%",
             }}
           ></View>
+
           <SelectImages
             imagesData={storeFormData.images}
             handleSetImages={handleChangeImages}

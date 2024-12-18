@@ -17,7 +17,6 @@ import {
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
-import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { Header } from "../Components/Header";
 import { AntDesign, FontAwesome6 } from "@expo/vector-icons";
@@ -45,6 +44,9 @@ import {
   RegistrationStoreData,
 } from "../Types/StoreTypes/StoreTypes";
 import { logoutUser } from "../Middlewares/UserMiddleware";
+import { Theme } from "../Contexts/ThemeContext";
+import { User } from "../Contexts/UserContext";
+import { Auth } from "../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 

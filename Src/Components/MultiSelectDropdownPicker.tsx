@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import { Entypo, Feather, Fontisto } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { MultiSelectDropdownPickerProps } from "../Types/ComponentTypes/MultiSelectDropdownPickerTypes";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const MultiSelectDropdownPicker = ({
   options,

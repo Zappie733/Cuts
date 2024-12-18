@@ -9,7 +9,6 @@ import { TabsNavigator, TabsStackParamsObj } from "./TabNavigator";
 import { LoginScreen } from "../Screens/LoginScreen";
 import { WelcomeScreen } from "../Screens/WelcomeScreen";
 import { RegisterScreen } from "../Screens/RegisterScreen";
-import { Auth, User } from "../Contexts";
 import { ProfileScreen } from "../Screens/ProfileScreen";
 import { RegisterStoreScreen } from "../Screens/RegisterStoreScreen";
 import { DocumentDetailsScreen } from "../Screens/DocumentDetailsScreen";
@@ -23,6 +22,8 @@ import { StorePromotionScreen } from "../Screens/Store/StorePromotionScreen";
 import { StoreGalleryScreen } from "../Screens/Store/StoreGalleryScreen";
 import { StoreOrderHistoryScreen } from "../Screens/Store/StoreOrderHistoryScreen";
 import { StoreRatingScreen } from "../Screens/Store/StoreRatingScreen";
+import { Auth } from "../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;

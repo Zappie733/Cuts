@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
-import { Auth, Theme, User, UserContext } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { Header } from "../Components/Header";
 import { SelectProfileImage } from "../Components/Image";
@@ -23,6 +22,9 @@ import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { CommonActions } from "@react-navigation/native";
 import { ProfileData } from "../Types/UserTypes";
+import { Theme } from "../Contexts/ThemeContext";
+import { Auth } from "../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
 
 export const ProfileScreen = ({
   navigation,

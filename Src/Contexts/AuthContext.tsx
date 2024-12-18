@@ -45,7 +45,6 @@ export const AuthContext = ({ children }: { children: ReactNode }) => {
     if (auth !== null) {
       // console.log(auth);
       storeDataToAsyncStorage("auth", auth);
-      console.log("Auth state updated:", auth);
     }
   }, [auth]);
 
@@ -92,6 +91,7 @@ export const AuthContext = ({ children }: { children: ReactNode }) => {
 
   const updateAccessToken = (newAccessToken: string) => {
     console.log("UPDATE ACCESS TOKEN");
+    console.log("NEW ACCESS TOKEN: ", newAccessToken);
     setAuth((prevAuth) => ({
       ...prevAuth,
       accessToken: newAccessToken,

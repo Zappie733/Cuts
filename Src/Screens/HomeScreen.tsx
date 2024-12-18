@@ -14,7 +14,7 @@ import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { Theme } from "../Contexts/ThemeContext";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { Header } from "../Components/Header";
-import { Auth } from "../Contexts";
+import { Auth } from "../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 

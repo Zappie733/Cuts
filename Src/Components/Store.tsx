@@ -10,7 +10,6 @@ import {
   View,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
-import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
 import {
   DeleteStoreData,
@@ -27,6 +26,9 @@ import { Input } from "./Input";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { loginUser, logoutUser } from "../Middlewares/UserMiddleware";
 import { LoginData } from "../Types/UserTypes";
+import { Theme } from "../Contexts/ThemeContext";
+import { Auth } from "../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 

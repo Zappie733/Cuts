@@ -14,13 +14,13 @@ import * as DocumentPicker from "expo-document-picker";
 import { useNavigation } from "@react-navigation/native"; // For navigation to PDF viewer
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { FontAwesome6 } from "@expo/vector-icons";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import {
   IDocumentProps,
   ISelectDocumentProps,
 } from "../Types/ComponentTypes/DocumentTypes";
 import * as FileSystem from "expo-file-system";
+import { Theme } from "../Contexts/ThemeContext";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 

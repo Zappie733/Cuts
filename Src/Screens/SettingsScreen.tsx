@@ -15,7 +15,6 @@ import {
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { colors } from "../Config/Theme";
-import { Theme, Auth, User } from "../Contexts";
 import { IResponseProps } from "../Types/ResponseTypes";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
@@ -42,6 +41,9 @@ import { getRatingSummaryByStoreId } from "../Middlewares/RatingMiddleware";
 import { PerRating } from "../Components/PerRating";
 import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
 import { apiCallHandler } from "../Middlewares/util";
+import { Theme } from "../Contexts/ThemeContext";
+import { Auth } from "../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
 
 export const SettingsScreen = ({
   navigation,
@@ -211,6 +213,7 @@ export const SettingsScreen = ({
 
   useFocusEffect(
     useCallback(() => {
+      console.log("setting jalan");
       if (user.role === "user") handleFetchUserStores();
       else if (user.role === "store") handleFetchRatingSummary();
     }, [auth])

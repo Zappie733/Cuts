@@ -1,6 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useContext } from "react";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import {
   Entypo,
@@ -10,6 +9,7 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { PressableOptionsProps } from "../Types/ComponentTypes/PressableOptionsTypes";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const PressableOptions = ({
   onPress,

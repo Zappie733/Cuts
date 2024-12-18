@@ -11,11 +11,12 @@ import { Ionicons, Fontisto, MaterialCommunityIcons } from "@expo/vector-icons";
 import { HomeScreen } from "../Screens/HomeScreen";
 import { colors } from "../Config/Theme";
 import { SettingsScreen } from "../Screens/SettingsScreen";
-import { Theme, Auth } from "../Contexts/";
 import { AdminHomeScreen } from "../Screens/Admin/AdminHomeScreen";
 import { AdminStoreManagementScreen } from "../Screens/Admin/AdminStoreManagementScreen";
 import { StoreHomeScreen } from "../Screens/Store/StoreHomeScreen";
 import { StoreScheduleScreen } from "../Screens/Store/StoreScheduleScreen";
+import { Theme } from "../Contexts/ThemeContext";
+import { Auth } from "../Contexts/AuthContext";
 
 export type TabsStackParamsObj = {
   Home: undefined;

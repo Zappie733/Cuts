@@ -1,10 +1,12 @@
 import React from "react"; // Add this import at the top
 import { NavigationContainer } from "@react-navigation/native";
 import { RootNavigator } from "./Src/Navigations/RootNavigator";
-import { ThemeContext, AuthContext } from "./Src/Contexts";
+
 import { UserContext } from "./Src/Contexts/UserContext";
 import { enableScreens } from "react-native-screens";
 import { StoreContext } from "./Src/Contexts/StoreContext";
+import { AuthContext } from "./Src/Contexts/AuthContext";
+import { ThemeContext } from "./Src/Contexts/ThemeContext";
 
 export default function App() {
   enableScreens();
@@ -12,11 +14,11 @@ export default function App() {
     <AuthContext>
       <ThemeContext>
         <NavigationContainer>
-          <UserContext>
-            <StoreContext>
+          <StoreContext>
+            <UserContext>
               <RootNavigator />
-            </StoreContext>
-          </UserContext>
+            </UserContext>
+          </StoreContext>
         </NavigationContainer>
       </ThemeContext>
     </AuthContext>

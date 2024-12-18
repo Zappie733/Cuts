@@ -1,8 +1,8 @@
 import React, { useContext, useRef, useState } from "react";
 import { Animated, StyleSheet, TouchableOpacity } from "react-native";
 import { ISwitchProps } from "../Types/ComponentTypes/SwitchTypes";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const Switch = ({ onPress }: ISwitchProps) => {
   const { theme } = useContext(Theme);

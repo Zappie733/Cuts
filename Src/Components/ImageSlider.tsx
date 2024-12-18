@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
 import { View, Image, StyleSheet, Text } from "react-native";
 import Swiper from "react-native-swiper";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { IImageSliderProps } from "../Types/ComponentTypes/ImageSliderTypes";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const ImageSlider = ({ images }: IImageSliderProps) => {
   const { theme } = useContext(Theme);

@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { useContext } from "react";
 import { AntDesign } from "@expo/vector-icons";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { IPerRatingProps } from "../Types/ComponentTypes/PerRatingTypes";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const PerRating = ({
   rating,

@@ -18,7 +18,7 @@ import {
   MaterialCommunityIcons,
   Octicons,
 } from "@expo/vector-icons";
-import { Theme } from "../Contexts";
+import { Theme } from "../Contexts/ThemeContext";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 

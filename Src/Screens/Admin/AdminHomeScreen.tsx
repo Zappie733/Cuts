@@ -21,7 +21,6 @@ import { colors } from "../../Config/Theme";
 import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
 import { Theme } from "../../Contexts/ThemeContext";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import { Auth, User } from "../../Contexts";
 import { getAppSummary } from "../../Middlewares/AppMiddleware";
 import {
   GetAdminRecentActivityResponse,
@@ -35,6 +34,8 @@ import {
   getAdminRecentActivity,
   logoutUser,
 } from "../../Middlewares/UserMiddleware";
+import { User } from "../../Contexts/UserContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 

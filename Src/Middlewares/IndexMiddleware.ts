@@ -5,6 +5,8 @@ import {
 } from "../Types/ResponseTypes";
 import { API_HOST, API_PORT } from "../Config/Api";
 import { ApiCallWithTokenProps } from "../Types/MiddleWareTypes";
+import { useContext } from "react";
+import { Auth } from "../Contexts/AuthContext";
 
 export const handleAxiosError = (error: any): IResponseProps<any> => {
   if (axios.isAxiosError(error)) {
@@ -104,7 +106,9 @@ export const apiCallWithToken = async <T>({
       }
 
       try {
+        console.log("Retrying request with new access token.");
         const retryResponse = await makeRequest(accessToken);
+        console.log("Retry response:", retryResponse.status);
         return {
           status: retryResponse.status,
           data: retryResponse.data.data as T,
