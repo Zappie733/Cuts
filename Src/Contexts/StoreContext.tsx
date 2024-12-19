@@ -2,7 +2,6 @@ import { AppState } from "react-native"; // Import AppState
 import {
   createContext,
   ReactNode,
-  useCallback,
   useContext,
   useEffect,
   useState,
@@ -14,11 +13,7 @@ import { Alert } from "react-native";
 import { IResponseProps } from "../Types/ResponseTypes";
 import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
 import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
-import {
-  CommonActions,
-  useFocusEffect,
-  useNavigation,
-} from "@react-navigation/native";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 import { IStoreContext } from "../Types/ContextTypes/StoreContextTypes";
 import { StoreObj } from "../Types/StoreTypes/StoreTypes";
 import { getStoreByUserId } from "../Middlewares/StoreMiddleware/StoreMiddleware";

@@ -10,6 +10,7 @@ export interface IUserObj {
   verified: boolean;
   image: IImageProps;
   userId?: string;
+  likes: string[];
 }
 
 export interface RegistrationData {

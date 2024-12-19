@@ -54,12 +54,6 @@ export const SettingsScreen = ({
 
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     console.log("Setting Auth state updated:", auth);
-  //   }, [auth])
-  // );
-
   let { user } = useContext(User);
   const { store, refetchData } = useContext(StoresC);
 
@@ -213,10 +207,9 @@ export const SettingsScreen = ({
 
   useFocusEffect(
     useCallback(() => {
-      console.log("setting jalan");
       if (user.role === "user") handleFetchUserStores();
       else if (user.role === "store") handleFetchRatingSummary();
-    }, [auth])
+    }, [])
   );
 
   return (

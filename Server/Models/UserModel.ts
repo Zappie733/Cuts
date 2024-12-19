@@ -87,6 +87,10 @@ const UserSchema = new Schema(
         ],
       },
     },
+    likes: {
+      type: [Schema.Types.ObjectId],
+      ref: "Gallery",
+    },
   },
   {
     toJSON: {

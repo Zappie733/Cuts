@@ -35,9 +35,11 @@ const defaultContext: IUserContext = {
       path: "",
     },
     userId: "",
+    likes: [],
   },
   setUser: () => {},
   updateUserImage: (image: IImageProps) => {},
+  refetchUser: () => {},
 };
 export const User = createContext(defaultContext);
 
@@ -58,6 +60,7 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
       path: "",
     },
     userId: "",
+    likes: [],
   };
   const [user, setUser] = useState<IUserObj>(defaultUser);
 
@@ -124,7 +127,9 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <User.Provider value={{ user, setUser, updateUserImage }}>
+    <User.Provider
+      value={{ user, setUser, updateUserImage, refetchUser: fetchUserProfile }}
+    >
       {children}
     </User.Provider>
   );

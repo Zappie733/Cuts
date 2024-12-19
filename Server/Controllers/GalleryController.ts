@@ -21,6 +21,7 @@ import {
   IMAGEKIT_PUBLIC_KEY,
 } from "../Config";
 import { UpdateGalleryValidate } from "../Validation/StoreValidation/GalleryValidation/UpdateGalleryValidate";
+import { USERS } from "../Models/UserModel";
 
 export const getGalleryByStoreId = async (req: Request, res: Response) => {
   try {
@@ -366,6 +367,12 @@ export const deleteGalleryById = async (req: Request, res: Response) => {
 
       await store.save();
 
+      // Remove galleryId from all users' likes arrays
+      await USERS.updateMany(
+        { likes: galleryIdParam },
+        { $pull: { likes: galleryIdParam } }
+      );
+
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: "Gallery deleted successfully",
@@ -490,7 +497,18 @@ export const likeGalleryById = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
-      const store = await STORES.findOne({ userId: payload._id });
+      const user = await USERS.findOne({ _id: payload._id });
+
+      if (!user) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "User not found",
+        });
+      }
+
+      const { id: galleryIdParam, storeId: storeIdParam } = req.params;
+
+      const store = await STORES.findOne({ _id: storeIdParam });
 
       if (!store) {
         return res.status(404).json(<ResponseObj>{
@@ -498,8 +516,6 @@ export const likeGalleryById = async (req: Request, res: Response) => {
           message: "Store not found",
         });
       }
-
-      const { id: galleryIdParam } = req.params;
 
       if (!mongoose.Types.ObjectId.isValid(galleryIdParam)) {
         return res.status(400).json(<ResponseObj>{
@@ -520,9 +536,18 @@ export const likeGalleryById = async (req: Request, res: Response) => {
       }
 
       if (gallery.likes || gallery.likes === 0) {
-        gallery.likes++;
+        if (user.likes?.includes(galleryIdParam.toString())) {
+          gallery.likes--;
+          user.likes = user.likes.filter(
+            (id) => id.toString() !== galleryIdParam.toString()
+          );
+        } else {
+          gallery.likes++;
+          user.likes?.push(galleryIdParam);
+        }
       }
 
+      await user.save();
       await store.save();
 
       return res.status(200).json(<ResponseObj>{

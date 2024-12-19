@@ -161,7 +161,7 @@ export const updateGallery = async ({
 export const likeGalleryById = async ({
   auth,
   updateAccessToken,
-  params, //galleryId
+  params, //storeId, galleryId
 }: ApiRequestProps): Promise<IResponseProps> => {
   // console.log("likeGalleryById Process");
   const apiOptions: ApiOptions = {
@@ -169,7 +169,7 @@ export const likeGalleryById = async ({
   };
 
   const apiCallWithTokenProps: ApiCallWithTokenProps = {
-    endpoint: `/store/gallery/likeGalleryById/${params?.galleryId}`,
+    endpoint: `/store/gallery/likeGalleryById/${params?.storeId}/${params?.galleryId}`,
     options: apiOptions,
     auth,
     updateAccessToken,

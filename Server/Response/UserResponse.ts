@@ -15,6 +15,7 @@ export interface UserProfileResponse {
   role: "admin" | "user" | "store";
   verified: boolean;
   image: ImageRequestObj;
+  likes: string[];
 }
 
 export interface GetNewAccessTokenResponse {

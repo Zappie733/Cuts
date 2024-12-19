@@ -21,6 +21,7 @@ export interface GetUserProfileResponse {
   role: "admin" | "user" | "store";
   verified: boolean;
   image: IImageProps;
+  likes: string[];
 }
 
 export interface UpdateUserProfileImageResponse {

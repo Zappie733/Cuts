@@ -52,11 +52,6 @@ export const StoreHomeScreen = ({
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     console.log("accessToken Home: ", auth.accessToken);
-  //   }, [])
-  // );
   const [workersRecord, setWorkersRecord] = useState<Record<string, WorkerObj>>(
     {}
   );
@@ -318,9 +313,8 @@ export const StoreHomeScreen = ({
 
   useFocusEffect(
     useCallback(() => {
-      console.log("home jalan");
       refetchData();
-    }, [auth])
+    }, [])
   );
 
   useEffect(() => {

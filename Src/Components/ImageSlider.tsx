@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   image: {
     resizeMode: "contain",
     width: "auto",
-    height: 200,
+    height: "100%",
     borderRadius: 10,
   },
   button: {

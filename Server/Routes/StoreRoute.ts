@@ -148,4 +148,4 @@ StoreRoute.get(
 StoreRoute.post("/gallery/addGallery", addGallery);
 StoreRoute.delete("/gallery/deleteGalleryById/:id", deleteGalleryById);
 StoreRoute.put("/gallery/updateGallery", updateGallery);
-StoreRoute.patch("/gallery/likeGalleryById/:id", likeGalleryById);
+StoreRoute.patch("/gallery/likeGalleryById/:storeId/:id", likeGalleryById);
