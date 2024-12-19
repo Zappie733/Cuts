@@ -15,19 +15,30 @@ import {
   Pressable,
   ImageBackground,
   Modal,
+  Image,
 } from "react-native";
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
 import { Theme } from "../../Contexts/ThemeContext";
 import { Auth } from "../../Contexts/AuthContext";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, FontAwesome5 } from "@expo/vector-icons";
 import { ImageSlider } from "../../Components/ImageSlider";
 import { apiCallHandler } from "../../Middlewares/util";
 import {
+  addGallery,
   deleteGalleryById,
   likeGalleryById,
+  updateGallery,
 } from "../../Middlewares/StoreMiddleware/GalleryMiddleware";
 import { User } from "../../Contexts/UserContext";
+import {
+  AddGalleryData,
+  UpdateGalleryData,
+} from "../../Types/StoreTypes/GalleryTypes";
+import { Input } from "../../Components/Input";
+import { SelectImages } from "../../Components/Image";
+import { IImageProps } from "../../Types/ComponentTypes/ImageTypes";
+import { DropdownPicker } from "../../Components/DropdownPicker";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -45,10 +56,11 @@ export const StoreGalleryScreen = ({
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   const { user, refetchUser } = useContext(User);
-  // useEffect(() => {
-  //   console.log(user);
-  // }, [user]);
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
   const [selectedGalleryId, setSelectedGalleryId] = useState("");
+  console.log("selectedGalleryId", selectedGalleryId);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -111,9 +123,128 @@ export const StoreGalleryScreen = ({
   //ADD
   const [isAddForm, setIsAddForm] = useState(false);
 
+  const defaultAddData: AddGalleryData = {
+    images: [],
+    caption: "",
+  };
+
+  const [addData, setAddData] = useState(defaultAddData);
+  console.log("galleryAddData", addData);
+
+  const handleAddTextChange = <T extends keyof AddGalleryData>(
+    value: AddGalleryData[T],
+    fieldname: T
+  ) => {
+    setAddData({
+      ...addData,
+      [fieldname]: value,
+    });
+  };
+
+  const handleAddPost = async () => {
+    const response = await apiCallHandler({
+      apiCall: () =>
+        addGallery({
+          auth,
+          updateAccessToken,
+          data: addData,
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
+
+    if (response.status >= 200 && response.status < 400) {
+      Alert.alert("Success", response.message);
+      console.log(response.status, response.message);
+      await refetchData();
+      setAddData(defaultAddData);
+      setIsAddForm(false);
+    } else if (response) {
+      Alert.alert("Error", response.message);
+      console.log(response.status, response.message);
+    }
+  };
   //-------------------------------------------------------------------
   // EDIT
   const [isEditForm, setIsEditForm] = useState(false);
+
+  const defaultUpdateData: UpdateGalleryData = {
+    galleryId: "",
+    caption: "",
+    isPublic: false,
+  };
+
+  const [updateData, setUpdateData] = useState(defaultUpdateData);
+  console.log("galleryUpdateData", updateData);
+  const [imagesEditForm, setImagesEditForm] = useState<IImageProps[]>([]);
+  // console.log("imagesEditForm", imagesEditForm);
+
+  const handleUpdateTextChange = <T extends keyof UpdateGalleryData>(
+    value: UpdateGalleryData[T],
+    fieldname: T
+  ) => {
+    setUpdateData({
+      ...updateData,
+      [fieldname]: value,
+    });
+  };
+
+  const handleSetEditData = () => {
+    const gallery = store.gallery.find(
+      (gallery) => gallery._id === selectedGalleryId
+    );
+
+    const currentData: UpdateGalleryData = {
+      galleryId: selectedGalleryId,
+      caption: gallery?.caption ?? "",
+      isPublic: gallery?.isPublic ?? false,
+    };
+
+    console.log("forEditData", currentData);
+    setUpdateData(currentData);
+    setImagesEditForm(gallery?.images ?? []);
+    setTimeout(() => {
+      setIsEditForm(true);
+    }, 300);
+  };
+
+  const [galleryCaptionEdit, setGalleryCaptionEdit] = useState(false);
+  const [isPublicEdit, setIsPublicEdit] = useState(false);
+
+  const handleUpdatePost = async () => {
+    const response = await apiCallHandler({
+      apiCall: () =>
+        updateGallery({
+          auth,
+          updateAccessToken,
+          data: updateData,
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
+
+    if (response.status >= 200 && response.status < 400) {
+      console.log(response.status, response.message);
+      await refetchData();
+      setUpdateData(defaultUpdateData);
+      setIsEditForm(false);
+      setGalleryCaptionEdit(false);
+      setIsPublicEdit(false);
+      Alert.alert("Success", response.message);
+
+      // setSelectedGalleryId("");
+    } else if (response) {
+      Alert.alert("Error", response.message);
+      console.log(response.status, response.message);
+    }
+  };
+
+  const isPublicOptions = [
+    { label: "Yes", value: "true" },
+    { label: "No", value: "false" },
+  ];
 
   useEffect(() => {
     if (selectedGalleryId) {
@@ -287,7 +418,6 @@ export const StoreGalleryScreen = ({
                     );
                   }
                 })}
-
                 {/* Close Button */}
                 <Pressable
                   onPress={() => {
@@ -302,7 +432,6 @@ export const StoreGalleryScreen = ({
                     color={activeColors.accent}
                   />
                 </Pressable>
-
                 {/* Delete Icon */}
                 <Pressable
                   style={styles.modalDeleteButton}
@@ -329,12 +458,189 @@ export const StoreGalleryScreen = ({
                     color={activeColors.accent}
                   />
                 </Pressable>
+                {/* Edit Icon */}
+                <Pressable
+                  style={styles.modalEditContainer}
+                  onPress={() => {
+                    handleSetEditData();
+                  }}
+                >
+                  <FontAwesome5
+                    name="edit"
+                    size={22}
+                    color={activeColors.accent}
+                  />
+                </Pressable>
               </View>
             </View>
           </Modal>
         </>
       ) : (
-        <></>
+        <>
+          <Header
+            goBack={() => {
+              isAddForm
+                ? (setIsAddForm(false), setAddData(defaultAddData))
+                : (setIsEditForm(false),
+                  setUpdateData(defaultUpdateData),
+                  setGalleryCaptionEdit(false),
+                  setIsPublicEdit(false));
+            }}
+          />
+
+          {/* title */}
+          <View>
+            <Text
+              style={[
+                styles.title,
+                { color: activeColors.accent, fontSize: 26 },
+              ]}
+            >
+              {isAddForm ? "Add Post Form" : "Edit Post Form"}
+            </Text>
+          </View>
+
+          {/* line separator */}
+          <View
+            style={{
+              borderWidth: 1,
+              marginHorizontal: 60,
+              borderColor: activeColors.tertiary,
+            }}
+          />
+
+          {/* form gallery */}
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View
+              style={[
+                styles.formContainer,
+                { borderColor: activeColors.tertiary },
+              ]}
+            >
+              <View>
+                {/* image */}
+                <View
+                  style={{
+                    width: "100%",
+                    height: 300,
+                    // alignSelf: "center",
+                    marginVertical: 10,
+                  }}
+                >
+                  {isAddForm && addData.images.length === 1 ? (
+                    <>
+                      <Image
+                        source={{
+                          uri:
+                            "data:image/png;base64," + addData.images[0]?.file,
+                        }}
+                        style={styles.image}
+                      />
+                    </>
+                  ) : (
+                    <ImageSlider
+                      images={
+                        isAddForm
+                          ? addData.images.map((item) => item.file)
+                          : imagesEditForm.map((item) => item.file)
+                      }
+                    />
+                  )}
+                </View>
+
+                {isAddForm && (
+                  <>
+                    {/* line separator */}
+                    <View
+                      style={{
+                        borderWidth: 1,
+                        borderColor: activeColors.tertiary,
+                      }}
+                    />
+
+                    <View style={{ marginVertical: 10 }}>
+                      <SelectImages
+                        imagesData={addData.images}
+                        handleSetImages={(images: IImageProps[]) => {
+                          handleAddTextChange(images, "images");
+                        }}
+                      />
+                    </View>
+                  </>
+                )}
+
+                <View style={{ alignSelf: "center" }}>
+                  {/* caption */}
+                  <Input
+                    key="caption"
+                    context="Caption"
+                    placeholder="Enter Caption"
+                    value={
+                      isEditForm ? updateData.caption : addData?.caption || ""
+                    }
+                    updateValue={(text: string) =>
+                      isEditForm
+                        ? handleUpdateTextChange(text, "caption")
+                        : handleAddTextChange(text, "caption")
+                    }
+                    isEditable={isEditForm ? galleryCaptionEdit : undefined}
+                    setEditable={isEditForm ? setGalleryCaptionEdit : undefined}
+                  />
+
+                  {isEditForm && (
+                    <View style={styles.typeInputContainer}>
+                      <DropdownPicker
+                        key={"storeCanChooseWorker"}
+                        options={isPublicOptions}
+                        selectedValue={updateData.isPublic.toString()}
+                        onValueChange={(text: string) =>
+                          handleUpdateTextChange(
+                            text === "true" ? true : false,
+                            "isPublic"
+                          )
+                        }
+                        placeHolder="Can Customer Pick a Worker"
+                        isInput={true}
+                        context="Public"
+                        isEditable={isPublicEdit}
+                        setEditable={setIsPublicEdit}
+                      />
+                    </View>
+                  )}
+                </View>
+
+                {/* line separator */}
+                <View
+                  style={{
+                    borderWidth: 1,
+                    borderColor: activeColors.tertiary,
+                  }}
+                />
+
+                {/* create order */}
+                <Pressable
+                  style={[
+                    styles.createServiceButton,
+                    { backgroundColor: activeColors.accent },
+                  ]}
+                  onPress={() =>
+                    isAddForm ? handleAddPost() : handleUpdatePost()
+                  }
+                >
+                  <Text
+                    style={{
+                      color: activeColors.primary,
+                      fontWeight: "bold",
+                      fontSize: 16,
+                    }}
+                  >
+                    {isAddForm ? "Add Post" : "Update Post"}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </ScrollView>
+        </>
       )}
     </SafeAreaView>
   );
@@ -362,7 +668,7 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     rowGap: 3,
     columnGap: 3,
   },
@@ -402,6 +708,11 @@ const styles = StyleSheet.create({
     top: 10,
     left: 10,
   },
+  modalEditContainer: {
+    position: "absolute",
+    top: 8,
+    left: 50,
+  },
 
   dateNLikesContainer: {
     flexDirection: "row",
@@ -426,5 +737,29 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     marginVertical: 5,
     paddingHorizontal: 30,
+  },
+
+  formContainer: {
+    flexDirection: "column",
+    // alignItems: "center",
+    marginHorizontal: 25,
+    marginVertical: 20,
+    paddingHorizontal: 25,
+    paddingBottom: 20,
+    borderRadius: 20,
+    borderWidth: 2,
+  },
+  createServiceButton: {
+    width: (screenWidth * 2) / 3 + 50,
+    marginTop: 10,
+    paddingVertical: 10,
+    borderRadius: 50,
+    alignItems: "center",
+    alignSelf: "center",
+  },
+  typeInputContainer: {
+    width: (screenWidth * 2) / 3 + 50,
+    zIndex: 99,
+    marginVertical: 10,
   },
 });

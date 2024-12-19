@@ -15,6 +15,19 @@ export const ImageSlider = ({ images }: IImageSliderProps) => {
     "https://via.placeholder.com/600/24f355",
   ];
 
+  const isBase64 = (str: string) => {
+    return (
+      /^data:image\/[a-z]+;base64,/.test(str) || /^[A-Za-z0-9+/=]+$/.test(str)
+    );
+  };
+
+  const prepareUri = (uri: string) => {
+    if (isBase64(uri) && !uri.startsWith("data:image")) {
+      return `data:image/png;base64,${uri}`; // Add prefix if missing
+    }
+    return uri;
+  };
+
   return (
     <View style={styles.container}>
       <Swiper
@@ -30,17 +43,30 @@ export const ImageSlider = ({ images }: IImageSliderProps) => {
           <Text style={[styles.button, { color: activeColors.accent }]}>‹</Text>
         } // Custom left button
       >
-        {images && images.length > 0
-          ? images.map((uri, index) => (
-              <Image key={index} source={{ uri }} style={styles.image} />
-            ))
-          : imagesDefault.map((uri, index) => (
-              <Image key={index} source={{ uri }} style={styles.image} />
-            ))}
+        {images && images.length > 0 ? (
+          images.map((uri, index) => (
+            <Image
+              key={index}
+              source={{ uri: prepareUri(uri) }}
+              style={styles.image}
+            />
+          ))
+        ) : (
+          <></>
+        )}
       </Swiper>
     </View>
   );
 };
+{
+  /* imagesDefault.map((uri, index) => (
+              <Image
+                key={index}
+                source={{ uri: prepareUri(uri) }}
+                style={styles.image}
+              />
+            ))} */
+}
 
 const styles = StyleSheet.create({
   container: {

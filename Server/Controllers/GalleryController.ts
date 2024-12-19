@@ -67,7 +67,9 @@ export const getGalleryByStoreId = async (req: Request, res: Response) => {
         total: 0,
       };
 
-      const totalStoreGallery = store.gallery.length;
+      const totalStoreGallery = store.gallery.filter(
+        (gallery) => gallery.isPublic
+      ).length;
 
       if (totalStoreGallery === 0) {
         return res.status(200).json(<ResponseObj>{
@@ -77,7 +79,9 @@ export const getGalleryByStoreId = async (req: Request, res: Response) => {
         });
       }
 
-      const paginatedStoreGallery = store.gallery.slice(offset, offset + limit);
+      const paginatedStoreGallery = store.gallery
+        .filter((gallery) => gallery.isPublic)
+        .slice(offset, offset + limit);
 
       responseData.gallery = paginatedStoreGallery;
       responseData.total = totalStoreGallery;
@@ -161,6 +165,7 @@ export const getMostLikesGalleryByStoreId = async (
       const quantityNum = parseInt(quantity as string, 10) || 5;
 
       const galleryWithMostLikes = store.gallery
+        .filter((gallery) => gallery.isPublic)
         .sort((a, b) => {
           const likesA = a.likes || 0;
           const likesB = b.likes || 0;
@@ -245,6 +250,7 @@ export const addGallery = async (req: Request, res: Response) => {
         images: uploadedImages,
         caption,
         date: new Date(Date.now() + 7 * 60 * 60 * 1000),
+        isPublic: false,
       };
 
       store.gallery.push(newGallery);
@@ -432,7 +438,8 @@ export const updateGallery = async (req: Request, res: Response) => {
         });
       }
 
-      const { galleryId, caption }: UpdateGalleryRequestObj = req.body;
+      const { galleryId, caption, isPublic }: UpdateGalleryRequestObj =
+        req.body;
 
       if (!mongoose.Types.ObjectId.isValid(galleryId)) {
         return res.status(400).json(<ResponseObj>{
@@ -453,6 +460,7 @@ export const updateGallery = async (req: Request, res: Response) => {
       }
 
       gallery.caption = caption;
+      gallery.isPublic = isPublic;
 
       await store.save();
 

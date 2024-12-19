@@ -164,7 +164,8 @@ export const Input = ({
               multiline={
                 context !== "Location" &&
                 context !== "Description" &&
-                context !== "Link URL"
+                context !== "Link URL" &&
+                context !== "Caption"
                   ? false
                   : true
               }
@@ -195,7 +196,8 @@ export const Input = ({
             multiline={
               context !== "Location" &&
               context !== "Description" &&
-              context !== "Link URL"
+              context !== "Link URL" &&
+              context !== "Caption"
                 ? false
                 : true
             }

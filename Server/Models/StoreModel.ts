@@ -286,6 +286,10 @@ export const GallerySchema = new Schema(
       type: Date,
       required: true,
     },
+    isPublic: {
+      type: Boolean,
+      required: true,
+    },
   },
   {
     toJSON: {

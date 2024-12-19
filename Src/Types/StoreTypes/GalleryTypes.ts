@@ -6,6 +6,7 @@ export interface GalleryObj {
   caption: string;
   likes?: number;
   date: Date;
+  isPublic: boolean;
 }
 
 export interface AddGalleryData {
@@ -16,4 +17,5 @@ export interface AddGalleryData {
 export interface UpdateGalleryData {
   galleryId: string;
   caption: string;
+  isPublic: boolean;
 }
