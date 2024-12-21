@@ -42,9 +42,13 @@ import ImageViewing from "react-native-image-viewing";
 import { DropdownPicker } from "../Components/DropdownPicker";
 import {
   DeleteStoreData,
-  RegistrationStoreData,
+  RegistrationStoreData
 } from "../Types/StoreTypes/StoreTypes";
 import { logoutUser } from "../Middlewares/UserMiddleware";
+
+import { extractLatLng } from "../../Server/Utils/LocationUtils";
+
+import { Coordinates, Location } from "../Types/StoreTypes/StoreTypes";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -64,6 +68,14 @@ export const RegisterStoreScreen = ({
     navigation.goBack();
   };
 
+  const defaultLocation: Location = {
+    name: null,
+    coordinates: null
+  }
+
+  const [locationName, setLocationName] = useState(String);
+  const [locationCoord, setLocationCoord] = useState<Coordinates>();
+
   //Data
   const defaultStoreRegisterFormData: RegistrationStoreData = {
     userId: user?._id || "",
@@ -74,7 +86,7 @@ export const RegisterStoreScreen = ({
     storeImages: [],
     storeName: "",
     storeType: "",
-    storeLocation: "",
+    storeLocation: defaultLocation,
     storeDocuments: [],
   };
   const [storeRegisterFormData, setStoreRegisterFormData] =
@@ -104,6 +116,45 @@ export const RegisterStoreScreen = ({
     { label: "Salon", value: "salon" },
     { label: "Barbershop", value: "barbershop" },
   ];
+
+  const handleChangeLocationName = (text: string) => {
+    setLocationName(text)
+
+    const tempLocation: Location = {
+      address: locationName,
+      coordinates: locationCoord
+    }
+
+    setStoreRegisterFormData({
+      ...storeRegisterFormData,
+      storeLocation: tempLocation
+    })
+  }
+
+  const handleChangeLocationCoord = (text: string) => {
+    const hasGoogle = text.includes("https://www.google.com/maps");
+
+    if (text !== null && text !== undefined && text.trim() !== '' && hasGoogle) {
+      const extractedLatLon = extractLatLng(text);
+
+      const tempCoord: Coordinates = extractedLatLon
+
+      setLocationCoord(tempCoord)
+
+      const tempLocation: Location = {
+        address: locationName,
+        coordinates: locationCoord
+      }
+
+      if (extractedLatLon != null){
+        setStoreRegisterFormData({
+          ...storeRegisterFormData,
+          storeLocation: tempLocation
+        })
+      }
+    }
+  }
+
   const handleChangeImages = (images: IImageProps[]) => {
     setStoreRegisterFormData({
       ...storeRegisterFormData,
@@ -120,7 +171,7 @@ export const RegisterStoreScreen = ({
     console.log("Register Store On Process");
     const response = await registerStore({
       auth,
-      updateAccessToken,
+      updateAccessToken,  
       data: storeRegisterFormData,
     });
 
@@ -374,7 +425,7 @@ export const RegisterStoreScreen = ({
         await removeDataFromAsyncStorage("auth");
         const defaultAuth: IAuthObj = {
           _id: "",
-          refreshToken: "",
+          refreshToken: "",  
           accessToken: "",
         };
         setAuth(defaultAuth);
@@ -837,7 +888,7 @@ export const RegisterStoreScreen = ({
                     iconName="shopping-store"
                     iconSource="Fontisto"
                   />
-                  
+
                   {/* Email Input */}
                   <Input
                     key="registerStoreEmail"
@@ -916,12 +967,23 @@ export const RegisterStoreScreen = ({
 
                   {/* Store Location Input */}
                   <Input
-                    key="registerStoreLocation"
+                    key="registerStoreLocationName"
                     context="Location"
                     placeholder="Enter Store Location"
-                    value={storeRegisterFormData.storeLocation}
+                    value={locationName}
                     updateValue={(text: string) =>
-                      handleRegisterStoreTextChange(text, "storeLocation")
+                      handleChangeLocationName(text)
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                  />
+                  <Input
+                    key="registerStoreLocationCoord"
+                    context="Location"
+                    placeholder="Enter Google Maps Link"
+                    value={locationCoord}
+                    updateValue={(text: string) =>
+                      handleChangeLocationCoord(text)
                     }
                     iconName="location"
                     iconSource="EvilIcons"

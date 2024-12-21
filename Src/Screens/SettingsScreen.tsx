@@ -85,6 +85,8 @@ export const SettingsScreen = ({
     if (auth._id !== "") {
       const response = await getStoresByUserId({ auth, updateAccessToken });
 
+      console.log(response.data)
+
       if (response.status === 402) {
         Alert.alert("Session Expired", response.message);
         const result: IResponseProps = await logoutUser(auth.refreshToken);
@@ -268,7 +270,9 @@ export const SettingsScreen = ({
                   <Text style={styles.storeGeneralInfoTextLabel}>
                     Location:
                   </Text>{" "}
-                  {store.location}
+                  {store.location.address}
+                  {store.location.coordinates.lat}
+                  {store.location.coordinates.lon}
                 </Text>
                 <Text
                   style={[

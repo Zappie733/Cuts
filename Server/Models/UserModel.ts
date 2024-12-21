@@ -68,7 +68,20 @@ const UserSchema = new Schema(
           enum: ["salon", "barbershop"], // Restrict storeType to "Salon" or "Barbershop"
         },
         storeLocation: {
-          type: String,
+          address: {
+            type: String,
+            required: true,
+          },
+          coordinates: {
+            lat: {
+              type: Number,
+              required: true,
+            },
+            lon: {
+              type: Number,
+              required: true,
+            }
+          }
         },
         storeDocuments: [
           {

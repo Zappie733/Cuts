@@ -1,3 +1,4 @@
+import { Double } from "react-native/Libraries/Types/CodegenTypes";
 import { IDocumentProps } from "../ComponentTypes/DocumentTypes";
 import { IImageProps } from "../ComponentTypes/ImageTypes";
 import { GalleryObj } from "./GalleryTypes";
@@ -22,7 +23,7 @@ export interface StoreObj {
   name: string;
   type: "salon" | "barbershop";
   status: "Waiting for Approval" | "Rejected" | "Active" | "InActive" | "Hold";
-  location: string;
+  location: Location;
   isOpen: boolean;
   documents: IDocumentProps[];
   // operationalHour: string;
@@ -59,6 +60,16 @@ export interface StoreObj {
   toleranceTime: number;
 }
 
+export interface Coordinates {
+  lat: Double;
+  lon: Double;
+}
+
+export interface Location {
+  address: string;
+  coordinates: Coordinates
+}
+
 // --------------------------------------
 export interface RegistrationStoreData {
   userId?: string;
@@ -69,7 +80,8 @@ export interface RegistrationStoreData {
   storeImages: IImageProps[];
   storeName: string;
   storeType: "salon" | "barbershop" | "";
-  storeLocation: string;
+  storeLocationName: String;
+  storeLocationCoord: String;
   storeDocuments: IDocumentProps[];
 }
 

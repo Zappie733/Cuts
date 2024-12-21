@@ -332,8 +332,20 @@ const StoreSchema = new Schema(
       default: "Waiting for Approval",
     },
     location: {
-      type: String,
-      required: true,
+      address: {
+        type: String,
+        required: true,
+      },
+      coordinates: {
+        lat: {
+          type: Number,
+          required: true,
+        },
+        lon: {
+          type: Number,
+          required: true,
+        }
+      }
     },
     isOpen: {
       type: Boolean,

@@ -58,6 +58,16 @@ export interface IDocumentProps {
   path?: string;
 }
 
+export interface Coordinates {
+  lat: number;
+  lon: number;
+}
+
+export interface Location {
+  address: string;
+  coordinates: Coordinates
+}
+
 export interface RegisterStoreRequestObj {
   userId: string;
   email: string;
@@ -67,7 +77,7 @@ export interface RegisterStoreRequestObj {
   storeImages: ImageRequestObj[];
   storeName: string;
   storeType: "salon" | "barbershop";
-  storeLocation: string;
+  storeLocation: Location;
   storeDocuments: IDocumentProps[];
 }
 
@@ -75,7 +85,7 @@ export interface PendingStoreObj {
   storeImages: ImageRequestObj[];
   storeName: string;
   storeType: "salon" | "barbershop";
-  storeLocation: string;
+  storeLocation: Location;
   storeDocuments: IDocumentProps[];
 }
 
