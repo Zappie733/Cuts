@@ -68,13 +68,18 @@ export const RegisterStoreScreen = ({
     navigation.goBack();
   };
 
-  const defaultLocation: Location = {
-    name: null,
-    coordinates: null
-  }
-
+  
   const [locationName, setLocationName] = useState(String);
-  const [locationCoord, setLocationCoord] = useState<Coordinates>();
+  const [locationCoordText, setLocationCoordText] = useState(String);
+  const [locationCoord, setLocationCoord] = useState(Array<Number>);
+  
+  const defaultLocation: Location = {
+    address: locationName,
+    coordinates: {
+      type: "Point",
+      coordinates: locationCoord
+    }
+  }
 
   //Data
   const defaultStoreRegisterFormData: RegistrationStoreData = {
@@ -120,9 +125,14 @@ export const RegisterStoreScreen = ({
   const handleChangeLocationName = (text: string) => {
     setLocationName(text)
 
+    const tempCoord: Coordinates = {
+      type: "Point",
+      coordinates: locationCoord
+    }
+
     const tempLocation: Location = {
       address: locationName,
-      coordinates: locationCoord
+      coordinates: tempCoord
     }
 
     setStoreRegisterFormData({
@@ -134,16 +144,20 @@ export const RegisterStoreScreen = ({
   const handleChangeLocationCoord = (text: string) => {
     const hasGoogle = text.includes("https://www.google.com/maps");
 
+    setLocationCoordText(text)
+
     if (text !== null && text !== undefined && text.trim() !== '' && hasGoogle) {
       const extractedLatLon = extractLatLng(text);
+      setLocationCoordText(`${extractedLatLon.lat}, ${extractedLatLon.lon}`)
 
-      const tempCoord: Coordinates = extractedLatLon
-
-      setLocationCoord(tempCoord)
-
+      const tempCoord: Coordinates = {
+        type: "Point",
+        coordinates: [extractedLatLon.lon, extractedLatLon.lat]
+      }
+      
       const tempLocation: Location = {
         address: locationName,
-        coordinates: locationCoord
+        coordinates: tempCoord
       }
 
       if (extractedLatLon != null){
@@ -981,7 +995,7 @@ export const RegisterStoreScreen = ({
                     key="registerStoreLocationCoord"
                     context="Location"
                     placeholder="Enter Google Maps Link"
-                    value={locationCoord}
+                    value={locationCoordText}
                     updateValue={(text: string) =>
                       handleChangeLocationCoord(text)
                     }
@@ -1124,7 +1138,7 @@ export const RegisterStoreScreen = ({
                     key="registerStoreReviewLocation"
                     context="Location"
                     placeholder="Enter Store Location"
-                    value={storeRegisterFormData.storeLocation}
+                    value={storeRegisterFormData.storeLocation.address}
                     updateValue={(text: string) =>
                       handleRegisterStoreTextChange(text, "storeLocation")
                     }

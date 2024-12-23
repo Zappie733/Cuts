@@ -58,14 +58,9 @@ export interface IDocumentProps {
   path?: string;
 }
 
-export interface Coordinates {
-  lat: number;
-  lon: number;
-}
-
 export interface Location {
   address: string;
-  coordinates: Coordinates
+  coordinates: Array<number>;
 }
 
 export interface RegisterStoreRequestObj {

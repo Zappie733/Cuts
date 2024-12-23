@@ -61,13 +61,13 @@ export interface StoreObj {
 }
 
 export interface Coordinates {
-  lat: Double;
-  lon: Double;
+  type: String | "Point";
+  coordinates: Array<Number> | null;
 }
 
 export interface Location {
   address: string;
-  coordinates: Coordinates
+  coordinates: Coordinates;
 }
 
 // --------------------------------------
@@ -80,8 +80,7 @@ export interface RegistrationStoreData {
   storeImages: IImageProps[];
   storeName: string;
   storeType: "salon" | "barbershop" | "";
-  storeLocationName: String;
-  storeLocationCoord: String;
+  storeLocation: Location;
   storeDocuments: IDocumentProps[];
 }
 

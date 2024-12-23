@@ -54,8 +54,9 @@ export const Store = ({
       role: "store",
       storeType: data.type,
       storeName: data.name,
-      storeLocationName: data.location?.address,
-      storeLocationCoord: `${data.location?.coordinates?.lat}, ${data.location?.coordinates?.lon}`,
+      storeLocation: data.location,
+      // storeLocationName: data.location?.address,
+      // storeLocationCoord: `${data.location?.coordinates?.coordinates}}`,
       storeImages: data.images,
       storeDocuments: data.documents,
     };
@@ -260,12 +261,7 @@ export const Store = ({
             <Text
               style={[styles.text, { color: activeColors.accent }]}
             >
-              <Text style={{ fontWeight: "400", color: activeColors.accent }}>Latitude: </Text> {data.location.coordinates.lat}
-            </Text>
-            <Text
-              style={[styles.text, { color: activeColors.accent }]}
-            >
-              <Text style={{ fontWeight: "400", color: activeColors.accent }}>Longitude: </Text> {data.location.coordinates.lon}
+              <Text style={{ fontWeight: "400", color: activeColors.accent }}>Lon, Lat: </Text> {`${data.location.coordinates.coordinates}`}
             </Text>
           </View>
         </View>

@@ -73,14 +73,12 @@ const UserSchema = new Schema(
             required: true,
           },
           coordinates: {
-            lat: {
-              type: Number,
-              required: true,
+            type: {
+              type: String,
+              enum: ["Point"],
+              required: true
             },
-            lon: {
-              type: Number,
-              required: true,
-            }
+            coordinates: [Number]
           }
         },
         storeDocuments: [

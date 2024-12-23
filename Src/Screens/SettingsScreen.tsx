@@ -271,8 +271,7 @@ export const SettingsScreen = ({
                     Location:
                   </Text>{" "}
                   {store.location.address}
-                  {store.location.coordinates.lat}
-                  {store.location.coordinates.lon}
+                  {`${store.location.coordinates.coordinates}`}
                 </Text>
                 <Text
                   style={[
