@@ -84,7 +84,7 @@ export const registerStore = async (req: Request, res: Response) => {
 
     return res.status(201).json(<ResponseObj>{
       error: false,
-      message: "An Email sent to your account, please verify your account to continue the registration of your store",
+      message: "An email has been sent to your account, please verify your account to continue the registration of your store",
     });
 
   } catch (error) {
