@@ -107,7 +107,6 @@ export const RegisterStoreScreen = ({
 
   //Register Store (user)
   const [hidePassword, setHidePassword] = useState(true);
-  const [hideCPassword, setHideCPassword] = useState(true);
   const handleRegisterStoreTextChange = (
     text: string,
     field: keyof RegistrationStoreData
@@ -920,7 +919,7 @@ export const RegisterStoreScreen = ({
                     key="registerStorePassword"
                     context="Store Password"
                     isHidden={hidePassword}
-                    setHidden={setHidePassword}
+                    setHidden={() => setHidePassword(!hidePassword)}
                     placeholder="Enter Store Password"
                     value={
                       storeRegisterFormData.password
@@ -937,8 +936,8 @@ export const RegisterStoreScreen = ({
                   <Input
                     key="registerStoreConfirmPassword"
                     context="Confirm Password"
-                    isHidden={hideCPassword}
-                    setHidden={setHideCPassword}
+                    isHidden={hidePassword}
+                    setHidden={() => setHidePassword(!hidePassword)}
                     placeholder="Enter Store Confirm Password"
                     value={
                       storeRegisterFormData.confirmPassword
