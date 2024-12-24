@@ -247,6 +247,13 @@ export const addStorePromotion = async (req: Request, res: Response) => {
         });
       }
 
+      if (startDate > endDate) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Start date is greater than end date",
+        });
+      }
+
       const imagekit = new ImageKit({
         publicKey: IMAGEKIT_PUBLIC_KEY,
         privateKey: IMAGEKIT_PRIVATE_KEY,

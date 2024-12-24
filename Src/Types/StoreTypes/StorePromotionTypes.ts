@@ -11,14 +11,14 @@ export interface StorePromotionObj {
 export interface AddStorePromotionData {
   name: string;
   image: IImageProps;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
 }
 
 export interface UpdateStorePromotionData {
   promotionId: string;
   name: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   image: IImageProps;
 }

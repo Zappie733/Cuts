@@ -165,7 +165,8 @@ export const Input = ({
                 context !== "Location" &&
                 context !== "Description" &&
                 context !== "Link URL" &&
-                context !== "Caption"
+                context !== "Caption" &&
+                context !== "Promotion"
                   ? false
                   : true
               }
@@ -197,7 +198,8 @@ export const Input = ({
               context !== "Location" &&
               context !== "Description" &&
               context !== "Link URL" &&
-              context !== "Caption"
+              context !== "Caption" &&
+              context !== "Promotion"
                 ? false
                 : true
             }
