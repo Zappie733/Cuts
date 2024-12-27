@@ -16,6 +16,7 @@ import {
   ImageBackground,
   Modal,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
@@ -51,6 +52,8 @@ export const StoreServiceScreen = ({
 
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
 
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
@@ -94,6 +97,8 @@ export const StoreServiceScreen = ({
   };
 
   const handleDeleteService = async (serviceId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         deleteService({
@@ -115,6 +120,8 @@ export const StoreServiceScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   //---------------------
@@ -153,6 +160,8 @@ export const StoreServiceScreen = ({
   );
 
   const handleAddService = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         addService({
@@ -174,6 +183,8 @@ export const StoreServiceScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   //-------------------------------------------------------------------
@@ -240,6 +251,7 @@ export const StoreServiceScreen = ({
   const [serviceDiscountEdit, setServiceDiscountEdit] = useState(false);
 
   const handleUpdateService = async () => {
+    setLoading(true);
     const response = await apiCallHandler({
       apiCall: () =>
         updateService({
@@ -267,6 +279,8 @@ export const StoreServiceScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -290,6 +304,13 @@ export const StoreServiceScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       {!isAddForm && !isEditForm ? (
         <>
           <Header goBack={handleGoBack} />
@@ -486,6 +507,26 @@ export const StoreServiceScreen = ({
                             </Text>
                             {service.duration} min
                           </Text>
+
+                          {service.discount !== undefined &&
+                            service.discount > 0 && (
+                              <Text
+                                style={[
+                                  styles.modalInfoPriceNDurationText,
+                                  { color: activeColors.accent },
+                                ]}
+                              >
+                                <Text style={{ fontWeight: "400" }}>
+                                  Discount Price:
+                                </Text>{" "}
+                                Rp
+                                {priceFormat(
+                                  ((100 - service.discount) * service.price) /
+                                    100
+                                )}{" "}
+                                ({service.discount}% off)
+                              </Text>
+                            )}
                         </View>
 
                         {/* Product used */}
@@ -809,6 +850,12 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   title: {
     fontSize: 30,

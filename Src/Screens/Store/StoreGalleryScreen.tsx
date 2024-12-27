@@ -16,6 +16,7 @@ import {
   ImageBackground,
   Modal,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
@@ -53,6 +54,8 @@ export const StoreGalleryScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   const { user, refetchUser } = useContext(User);
@@ -65,6 +68,8 @@ export const StoreGalleryScreen = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleLikeGalleryById = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         likeGalleryById({
@@ -89,9 +94,13 @@ export const StoreGalleryScreen = ({
       // Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleDeleteGalleryById = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         deleteGalleryById({
@@ -117,6 +126,8 @@ export const StoreGalleryScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   //---------------------
@@ -142,6 +153,8 @@ export const StoreGalleryScreen = ({
   };
 
   const handleAddPost = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         addGallery({
@@ -164,6 +177,8 @@ export const StoreGalleryScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
   //-------------------------------------------------------------------
   // EDIT
@@ -213,6 +228,8 @@ export const StoreGalleryScreen = ({
   const [isPublicEdit, setIsPublicEdit] = useState(false);
 
   const handleUpdatePost = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         updateGallery({
@@ -239,6 +256,8 @@ export const StoreGalleryScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const isPublicOptions = [
@@ -261,6 +280,13 @@ export const StoreGalleryScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       {!isAddForm && !isEditForm ? (
         <>
           <Header goBack={handleGoBack} />
@@ -653,6 +679,12 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   title: {
     fontSize: 30,

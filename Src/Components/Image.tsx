@@ -13,6 +13,8 @@ import {
   ScrollView,
   Dimensions,
   TouchableOpacity,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { colors } from "../Config/Theme";
 import { EvilIcons, Feather } from "@expo/vector-icons";
@@ -23,24 +25,21 @@ import {
   SelectSingleImageProps,
 } from "../Types/ComponentTypes/ImageTypes";
 import * as FileSystem from "expo-file-system";
-import { IResponseProps } from "../Types/ResponseTypes";
-import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
-import { CommonActions, useNavigation } from "@react-navigation/native";
-import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
+import { useNavigation } from "@react-navigation/native";
 import ImageViewing from "react-native-image-viewing";
-import {
-  logoutUser,
-  updateUserProfileImage,
-} from "../Middlewares/UserMiddleware";
+import { updateUserProfileImage } from "../Middlewares/UserMiddleware";
 import { Theme } from "../Contexts/ThemeContext";
 import { Auth } from "../Contexts/AuthContext";
 import { User } from "../Contexts/UserContext";
+import { apiCallHandler } from "../Middlewares/util";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
 export const SelectProfileImage = ({ userImage }: SelectImageProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
 
   const [image, setImage] = useState("");
   const [imageOptionForUpload, setImageOptionForUpload] = useState<IImageProps>(
@@ -54,22 +53,30 @@ export const SelectProfileImage = ({ userImage }: SelectImageProps) => {
   const navigation = useNavigation();
 
   const requestPermission = async () => {
-    const cameraStatus = await Camera.requestCameraPermissionsAsync();
-    const galleryStatus =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    // Check camera &g allery permission
+    const cameraPermission = await Camera.getCameraPermissionsAsync();
+    const galleryPermission =
+      await ImagePicker.getMediaLibraryPermissionsAsync();
 
-    if (
-      cameraStatus.status !== "granted" ||
-      galleryStatus.status !== "granted"
-    ) {
-      Alert.alert(
-        "Permission required",
-        "Sorry, you need camera and media permissions to update your profile photo"
-      );
-      setRequestStatus(false);
-    } else {
-      setRequestStatus(true);
+    if (!cameraPermission.granted || !galleryPermission.granted) {
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      const galleryStatus =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (
+        cameraStatus.status !== "granted" ||
+        galleryStatus.status !== "granted"
+      ) {
+        Alert.alert(
+          "Permission required",
+          "Sorry, we need camera and media permissions for update your profile photo"
+        );
+        setRequestStatus(false);
+        return;
+      }
     }
+
+    setRequestStatus(true); // All required permissions are granted
   };
 
   useEffect(() => {
@@ -134,38 +141,19 @@ export const SelectProfileImage = ({ userImage }: SelectImageProps) => {
   };
 
   const handleUploadImage = async () => {
-    const response = await updateUserProfileImage({
-      auth,
-      updateAccessToken,
-      data: imageOptionForUpload,
-    });
+    setLoading(true);
     // console.log("Full response object:", response);
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        // setUserData(defaultUserData);
-        // Resetting the navigation stack
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
+    const response = await apiCallHandler({
+      apiCall: () =>
+        updateUserProfileImage({
+          auth,
+          updateAccessToken,
+          data: imageOptionForUpload,
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -176,6 +164,8 @@ export const SelectProfileImage = ({ userImage }: SelectImageProps) => {
     } else {
       console.error(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -185,6 +175,12 @@ export const SelectProfileImage = ({ userImage }: SelectImageProps) => {
 
   return (
     <View style={styles.container}>
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
       <View style={styles.image}>
         {userImage !== "" ? (
           <Image
@@ -235,22 +231,30 @@ export const SelectSingleImage = ({
   const [requestStatus, setRequestStatus] = useState(false);
 
   const requestPermission = async () => {
-    const cameraStatus = await Camera.requestCameraPermissionsAsync();
-    const galleryStatus =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    // Check camera &g allery permission
+    const cameraPermission = await Camera.getCameraPermissionsAsync();
+    const galleryPermission =
+      await ImagePicker.getMediaLibraryPermissionsAsync();
 
-    if (
-      cameraStatus.status !== "granted" ||
-      galleryStatus.status !== "granted"
-    ) {
-      Alert.alert(
-        "Permission required",
-        "Sorry, we need camera and media permissions for this feature"
-      );
-      setRequestStatus(false);
-    } else {
-      setRequestStatus(true);
+    if (!cameraPermission.granted || !galleryPermission.granted) {
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      const galleryStatus =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (
+        cameraStatus.status !== "granted" ||
+        galleryStatus.status !== "granted"
+      ) {
+        Alert.alert(
+          "Permission required",
+          "Sorry, we need camera and media permissions for this feature"
+        );
+        setRequestStatus(false);
+        return;
+      }
     }
+
+    setRequestStatus(true); // All required permissions are granted
   };
 
   useEffect(() => {
@@ -402,21 +406,30 @@ export const SelectImages = ({
   const [requestStatus, setRequestStatus] = useState(false);
 
   const requestPermission = async () => {
-    const cameraStatus = await Camera.requestCameraPermissionsAsync();
-    const galleryStatus =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (
-      cameraStatus.status !== "granted" ||
-      galleryStatus.status !== "granted"
-    ) {
-      Alert.alert(
-        "Permission required",
-        "Sorry, we need camera and media permissions for this feature"
-      );
-      setRequestStatus(false);
-    } else {
-      setRequestStatus(true);
+    // Check camera &g allery permission
+    const cameraPermission = await Camera.getCameraPermissionsAsync();
+    const galleryPermission =
+      await ImagePicker.getMediaLibraryPermissionsAsync();
+
+    if (!cameraPermission.granted || !galleryPermission.granted) {
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      const galleryStatus =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (
+        cameraStatus.status !== "granted" ||
+        galleryStatus.status !== "granted"
+      ) {
+        Alert.alert(
+          "Permission required",
+          "Sorry, we need camera and media permissions for this feature"
+        );
+        setRequestStatus(false);
+        return;
+      }
     }
+
+    setRequestStatus(true); // All required permissions are granted
   };
 
   useEffect(() => {
@@ -603,6 +616,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "column",
     alignItems: "center",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   image: {
     marginBottom: 10,

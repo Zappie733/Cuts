@@ -15,6 +15,7 @@ import {
   Pressable,
   ImageBackground,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
@@ -26,8 +27,6 @@ import {
   updateSalesProduct,
 } from "../../Middlewares/StoreMiddleware/SalesProductMiddleware";
 import { ImageSlider } from "../../Components/ImageSlider";
-import { IAuthObj } from "../../Types/ContextTypes/AuthContextTypes";
-import { useFocusEffect } from "@react-navigation/native";
 import {
   AddSalesProductData,
   UpdateSalesProductData,
@@ -50,6 +49,8 @@ export const StoreSalesProductScreen = ({
 
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
 
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
@@ -77,6 +78,8 @@ export const StoreSalesProductScreen = ({
   const [selectedSalesProductId, setSelectedSalesProductId] = useState("");
 
   const handleDeleteSalesProduct = async (salesProductId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         deleteSalesProductById({
@@ -98,6 +101,8 @@ export const StoreSalesProductScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -128,6 +133,8 @@ export const StoreSalesProductScreen = ({
   };
 
   const handleAddSalesProduct = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         addSalesProduct({
@@ -149,6 +156,8 @@ export const StoreSalesProductScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   //-------------------------------------------------------------------
@@ -221,6 +230,8 @@ export const StoreSalesProductScreen = ({
   };
 
   const handleUpdateSalesProduct = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         updateSalesProduct({
@@ -247,6 +258,8 @@ export const StoreSalesProductScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -264,6 +277,13 @@ export const StoreSalesProductScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       {!isAddForm && !isEditForm ? (
         <>
           <Header goBack={handleGoBack} />
@@ -871,6 +891,12 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   title: {
     fontSize: 30,

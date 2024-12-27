@@ -10,6 +10,8 @@ import {
   Dimensions,
   SafeAreaView,
   ScrollView,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import React, {
   useCallback,
@@ -36,6 +38,7 @@ import { GetStoresByStatusParam } from "../../Types/StoreTypes/StoreTypes";
 import { logoutUser } from "../../Middlewares/UserMiddleware";
 import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
 import { Auth } from "../../Contexts/AuthContext";
+import { apiCallHandler } from "../../Middlewares/util";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -45,6 +48,9 @@ export const AdminStoreManagementScreen = ({
 }: TabsStackScreenProps<"AdminStoreManagement">) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
+
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
   const handleGoBack = () => {
@@ -63,6 +69,8 @@ export const AdminStoreManagementScreen = ({
   // console.log(search);
 
   const handleFetchStores = async () => {
+    if (search === "") setLoading(true);
+
     const params: GetStoresByStatusParam = {
       limit,
       offset: offset,
@@ -75,36 +83,18 @@ export const AdminStoreManagementScreen = ({
       search,
     };
     // console.log(data);
-    const response = await getStoresByStatus({
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        getStoresByStatus({
+          auth,
+          updateAccessToken,
+          params,
+        }),
       auth,
-      updateAccessToken,
-      params,
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400 && response.data) {
       // setData(response.data);
@@ -118,6 +108,8 @@ export const AdminStoreManagementScreen = ({
     } else {
       console.log(response.status, response.message);
     }
+
+    if (search === "") setLoading(false);
   };
 
   const [selectedStatus, setSelectedStatus] = useState<string>("");
@@ -247,6 +239,13 @@ export const AdminStoreManagementScreen = ({
         backgroundColor={activeColors.primary}
       />
 
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       <Header goBack={handleGoBack} />
 
       {/* Dropdown Status */}
@@ -319,6 +318,13 @@ const styles = StyleSheet.create({
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+
   dropDownContainer: {
     marginTop: 20,
     marginHorizontal: 20,

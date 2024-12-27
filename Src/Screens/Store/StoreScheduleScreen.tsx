@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Modal,
@@ -45,14 +46,10 @@ export const StoreScheduleScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const { store } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
-
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     console.log("accessToken Schedule: ", auth.accessToken);
-  //   }, [])
-  // );
 
   const [orderSchedule, setOrderSchedule] =
     useState<GetOrderforScheduleResponse>();
@@ -113,6 +110,8 @@ export const StoreScheduleScreen = ({
   };
 
   const handleFetchOrderSchedule = async () => {
+    // setLoading(true); //ga enak kalau tiap 20detik ada loader
+
     const response = await apiCallHandler({
       apiCall: () =>
         getOrderforSchedule({
@@ -137,6 +136,8 @@ export const StoreScheduleScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    // setLoading(false);
   };
 
   const year = new Date().getFullYear();
@@ -188,6 +189,8 @@ export const StoreScheduleScreen = ({
   };
 
   const handleConfirmOrder = async (orderId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         confirmOrder({
@@ -209,9 +212,13 @@ export const StoreScheduleScreen = ({
       // console.log(response.status, response.message);
       Alert.alert("Error", response.message);
     }
+
+    setLoading(false);
   };
 
   const handleRejectOrder = async (orderId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         rejectOrder({
@@ -237,9 +244,13 @@ export const StoreScheduleScreen = ({
       // console.log(response.status, response.message);
       Alert.alert("Error", response.message);
     }
+
+    setLoading(false);
   };
 
   const fetchUserInfoForOrderById = async (userId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         getUserInfoForOrderById({
@@ -264,6 +275,8 @@ export const StoreScheduleScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const getUserInfoRecord = async () => {
@@ -299,6 +312,8 @@ export const StoreScheduleScreen = ({
   };
 
   const handleCompleteOrder = async (orderId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         completeOrder({
@@ -319,6 +334,8 @@ export const StoreScheduleScreen = ({
     } else if (response) {
       Alert.alert("Error", response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -367,6 +384,14 @@ export const StoreScheduleScreen = ({
         style={theme.mode === "dark" ? "light" : "dark"}
         backgroundColor={activeColors.primary}
       />
+
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       <Text style={[styles.title, { color: activeColors.accent }]}>
         {month} - {year}
       </Text>
@@ -668,22 +693,40 @@ export const StoreScheduleScreen = ({
                                       color: activeColors.accent,
                                     }}
                                   >
-                                    {servicesRecord[serviceId].name}
+                                    {servicesRecord[serviceId]?.name}
                                   </Text>
                                   <Text
                                     style={{
                                       color: activeColors.accent,
                                     }}
                                   >
-                                    {servicesRecord[serviceId].duration} min
+                                    {servicesRecord[serviceId]?.duration} min
                                   </Text>
-                                  <Text
-                                    style={{
-                                      color: activeColors.accent,
-                                    }}
-                                  >
-                                    Rp.{servicesRecord[serviceId].price}
-                                  </Text>
+
+                                  {servicesRecord[serviceId]?.discount &&
+                                  servicesRecord[serviceId]?.discount > 0 ? (
+                                    <Text
+                                      style={{
+                                        color: activeColors.accent,
+                                      }}
+                                    >
+                                      Rp.
+                                      {((100 -
+                                        servicesRecord[serviceId]?.discount) *
+                                        servicesRecord[serviceId]?.price) /
+                                        100}{" "}
+                                      ({servicesRecord[serviceId]?.discount}%
+                                      off)
+                                    </Text>
+                                  ) : (
+                                    <Text
+                                      style={{
+                                        color: activeColors.accent,
+                                      }}
+                                    >
+                                      Rp.{servicesRecord[serviceId]?.price}
+                                    </Text>
+                                  )}
                                 </View>
 
                                 {/* service products line */}
@@ -742,7 +785,7 @@ export const StoreScheduleScreen = ({
                                         >
                                           {
                                             serviceProductsRecord[productId]
-                                              .name
+                                              ?.name
                                           }
                                         </Text>
                                         <Text
@@ -752,7 +795,7 @@ export const StoreScheduleScreen = ({
                                         >
                                           Rp.
                                           {serviceProductsRecord[productId]
-                                            .addtionalPrice ?? 0}
+                                            ?.addtionalPrice ?? 0}
                                         </Text>
                                       </View>
                                     ))}
@@ -1030,6 +1073,12 @@ const styles = StyleSheet.create({
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
     paddingHorizontal: 20,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   title: {
     fontSize: 25,

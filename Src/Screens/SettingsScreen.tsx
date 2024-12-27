@@ -11,6 +11,8 @@ import {
   ScrollView,
   Dimensions,
   AppState,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
@@ -21,7 +23,6 @@ import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { CommonActions, useFocusEffect } from "@react-navigation/native";
 import {
   AntDesign,
-  Entypo,
   EvilIcons,
   FontAwesome5,
   MaterialCommunityIcons,
@@ -52,6 +53,8 @@ export const SettingsScreen = ({
   const { theme, changeTheme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const { auth, setAuth, updateAccessToken, refetchAuth } = useContext(Auth);
 
   let { user } = useContext(User);
@@ -60,9 +63,10 @@ export const SettingsScreen = ({
   const screenWidth = Dimensions.get("screen").width;
 
   const handleLogout = async () => {
-    console.log("Logout Process");
+    setLoading(true);
+    // console.log("Logout Process");
     const result: IResponseProps = await logoutUser(auth.refreshToken);
-    console.log(JSON.stringify(result, null, 2));
+    // console.log(JSON.stringify(result, null, 2));
 
     if (result.status >= 200 && result.status < 400) {
       Alert.alert("Success", result.message);
@@ -83,6 +87,8 @@ export const SettingsScreen = ({
     } else {
       Alert.alert("Logout Error", result.message);
     }
+
+    setLoading(false);
   };
 
   const handleAddStore = () => {
@@ -95,41 +101,26 @@ export const SettingsScreen = ({
 
   const handleFetchUserStores = async () => {
     if (auth._id !== "") {
-      const response = await getStoresByUserId({
+      setLoading(true);
+
+      const response = await apiCallHandler({
+        apiCall: () =>
+          getStoresByUserId({
+            auth,
+            updateAccessToken,
+          }),
         auth,
-        updateAccessToken,
+        setAuth,
+        navigation,
       });
-
-      if (response.status === 402) {
-        Alert.alert("Session Expired", response.message);
-        const result: IResponseProps = await logoutUser(auth.refreshToken);
-        console.log(JSON.stringify(result, null, 2));
-
-        if (result.status >= 200 && result.status < 400) {
-          await removeDataFromAsyncStorage("auth");
-          const defaultAuth: IAuthObj = {
-            _id: "",
-            refreshToken: "",
-            accessToken: "",
-          };
-          setAuth(defaultAuth);
-
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: "Welcome" }],
-            })
-          );
-        } else {
-          Alert.alert("Logout Error", result.message);
-        }
-      }
 
       if (response.status >= 200 && response.status < 400 && response.data) {
         setGetUserStores(response.data);
       } else {
         console.log(response.status, response.message);
       }
+
+      setLoading(false);
     }
   };
 
@@ -151,6 +142,8 @@ export const SettingsScreen = ({
 
   const handleFetchRatingSummary = async () => {
     if (store._id !== "") {
+      setLoading(true);
+
       const response = await apiCallHandler({
         apiCall: () =>
           getRatingSummaryByStoreId({
@@ -168,6 +161,8 @@ export const SettingsScreen = ({
       } else if (response) {
         console.log(response.status, response.message);
       }
+
+      setLoading(false);
     }
   };
 
@@ -230,6 +225,13 @@ export const SettingsScreen = ({
         style={theme.mode === "dark" ? "light" : "dark"}
         backgroundColor={activeColors.primary}
       />
+
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -379,6 +381,28 @@ export const SettingsScreen = ({
                     Tolerance time:
                   </Text>{" "}
                   {store.toleranceTime} Minutes
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>
+                    Operational Status:
+                  </Text>{" "}
+                  {store.isOpen ? "Open" : "Close"}
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>
+                    Store Status:
+                  </Text>{" "}
+                  {store.status}
                 </Text>
               </View>
             </View>
@@ -752,6 +776,12 @@ const styles = StyleSheet.create({
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
     flex: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   profileContainer: {
     flexDirection: "row",

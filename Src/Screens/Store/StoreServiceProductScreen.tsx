@@ -16,6 +16,7 @@ import {
   ImageBackground,
   Modal,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
@@ -50,6 +51,8 @@ export const StoreServiceProductScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
@@ -78,6 +81,8 @@ export const StoreServiceProductScreen = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleDeleteServiceProduct = async (serviceProductId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         deleteServiceProductById({
@@ -99,6 +104,8 @@ export const StoreServiceProductScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   //---------------------
@@ -130,6 +137,8 @@ export const StoreServiceProductScreen = ({
   };
 
   const handleAddServiceProduct = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         addServiceProduct({
@@ -151,6 +160,8 @@ export const StoreServiceProductScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   //-------------------------------------------------------------------
@@ -222,6 +233,8 @@ export const StoreServiceProductScreen = ({
     useState(false);
 
   const handleUpdateServiceProduct = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         updateServiceProduct({
@@ -249,6 +262,8 @@ export const StoreServiceProductScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const isAnOptionOptions = [
@@ -271,6 +286,13 @@ export const StoreServiceProductScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       {!isAddForm && !isEditForm ? (
         <>
           <Header goBack={handleGoBack} />
@@ -855,6 +877,12 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   title: {
     fontSize: 30,

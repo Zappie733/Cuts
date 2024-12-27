@@ -8,10 +8,7 @@ import {
   Platform,
   StatusBar,
   Text,
-  ScrollView,
   View,
-  Alert,
-  Pressable,
   ActivityIndicator,
   FlatList,
 } from "react-native";

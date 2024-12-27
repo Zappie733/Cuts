@@ -37,7 +37,6 @@ import { SelectSingleImage } from "../../Components/Image";
 import { Input } from "../../Components/Input";
 import { IImageProps } from "../../Types/ComponentTypes/ImageTypes";
 import { DropdownPicker } from "../../Components/DropdownPicker";
-import { set } from "mongoose";
 
 const screenWidth = Dimensions.get("screen").width;
 

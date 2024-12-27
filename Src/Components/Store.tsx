@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -29,6 +30,7 @@ import { LoginData } from "../Types/UserTypes";
 import { Theme } from "../Contexts/ThemeContext";
 import { Auth } from "../Contexts/AuthContext";
 import { User } from "../Contexts/UserContext";
+import { apiCallHandler } from "../Middlewares/util";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -39,6 +41,9 @@ export const Store = ({
 }: IStoreComponentProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
+
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   const { user } = useContext(User);
 
@@ -87,37 +92,20 @@ export const Store = ({
   };
 
   const handleDelete = async () => {
-    console.log("delete process");
-    const response = await deleteStore({
+    setLoading(true);
+    // console.log("delete process");
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        deleteStore({
+          auth,
+          updateAccessToken,
+          data: deleteStoreFormData,
+        }),
       auth,
-      updateAccessToken,
-      data: deleteStoreFormData,
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -129,6 +117,8 @@ export const Store = ({
     } else {
       Alert.alert("Deletion error", response.message);
     }
+
+    setLoading(false);
   };
 
   const [isLoginModal, setIsLoginModal] = useState(false);
@@ -151,11 +141,11 @@ export const Store = ({
   };
 
   const handleLogin = async () => {
-    console.log("Login Process");
+    setLoading(true);
+    // console.log("Login Process");
     const result: IResponseProps<LoginResponse> = await loginUser(
       loginStoreFormData
     );
-    console.log(JSON.stringify(result, null, 2));
 
     if (result.status >= 200 && result.status < 400) {
       const logoutResult: IResponseProps = await logoutUser(auth.refreshToken);
@@ -195,6 +185,8 @@ export const Store = ({
     } else {
       Alert.alert("Login Error", result.message);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -207,6 +199,13 @@ export const Store = ({
         },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       {/* Store Name */}
       <Text
         style={[
@@ -316,14 +315,15 @@ export const Store = ({
       </Pressable>
 
       {/* open/close */}
-      {data.isOpen === true && (
-        <View style={styles.oc}>
-          <Image
-            source={require("../../assets/open.png")}
-            style={{ width: 50, height: 50 }}
-          />
-        </View>
-      )}
+      {data.isOpen === true &&
+        (data.status === "Active" || data.status === "InActive") && (
+          <View style={styles.oc}>
+            <Image
+              source={require("../../assets/open.png")}
+              style={{ width: 50, height: 50 }}
+            />
+          </View>
+        )}
       {data.isOpen === false &&
         (data.status === "Active" || data.status === "InActive") && (
           <View style={styles.oc}>
@@ -496,6 +496,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 10,
     alignItems: "center",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   storeName: {
     fontSize: 22,

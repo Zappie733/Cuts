@@ -13,6 +13,8 @@ import {
   View,
   Alert,
   Pressable,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
@@ -47,6 +49,8 @@ export const StoreProfileScreen = ({
 
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
 
   let { store, refetchData } = useContext(Store);
 
@@ -94,6 +98,8 @@ export const StoreProfileScreen = ({
   const [selectedCloseTime, setSelectedCloseTime] = useState<Date>();
 
   const handleupdateStoreOpenCloseStatus = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         updateStoreOpenCloseStatus({
@@ -111,9 +117,13 @@ export const StoreProfileScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleActiveStore = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         activeStore({
@@ -131,9 +141,13 @@ export const StoreProfileScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleInActiveStore = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         inActiveStore({
@@ -151,6 +165,8 @@ export const StoreProfileScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const operationalHourModification = (value: number) => {
@@ -168,6 +184,8 @@ export const StoreProfileScreen = ({
   const [isChanges, setIsChanges] = useState(false);
 
   const handleUpdateStoreGeneralInformation = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         updateStoreGeneralInformation({
@@ -189,6 +207,8 @@ export const StoreProfileScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -236,6 +256,13 @@ export const StoreProfileScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       <Header goBack={handleGoBack} />
 
       <ScrollView
@@ -463,6 +490,12 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   updateScrollContainer: {
     alignItems: "center",

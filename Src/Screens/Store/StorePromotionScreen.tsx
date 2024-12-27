@@ -87,6 +87,7 @@ export const StorePromotionScreen = ({
 
   const handleDeleteStorePromotion = async (storePromotionId: string) => {
     setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         deleteStorePromotionById({
@@ -108,6 +109,7 @@ export const StorePromotionScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
     setLoading(false);
   };
 
@@ -139,6 +141,7 @@ export const StorePromotionScreen = ({
 
   const handleAddStorePromotion = async () => {
     setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         addStorePromotion({
@@ -160,6 +163,7 @@ export const StorePromotionScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
     setLoading(false);
   };
   //-------------------------------------------------------------------
@@ -217,6 +221,7 @@ export const StorePromotionScreen = ({
 
   const handleUpdateStorePromotion = async () => {
     setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         updateStorePromotion({
@@ -239,6 +244,7 @@ export const StorePromotionScreen = ({
       Alert.alert("Error", response.message);
       console.log(response.status, response.message);
     }
+
     setLoading(false);
   };
 

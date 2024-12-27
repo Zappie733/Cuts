@@ -157,7 +157,10 @@ export const MultiSelectDropdownPicker = ({
             { backgroundColor: activeColors.accent },
           ]}
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
             <View>
               {options.map((item) => (
                 <TouchableOpacity
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   dropdownItem: {
-    height: 62,
+    height: 66,
     justifyContent: "center",
     paddingHorizontal: 15,
     borderWidth: 1,

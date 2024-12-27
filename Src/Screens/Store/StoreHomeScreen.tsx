@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -49,6 +50,8 @@ export const StoreHomeScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
@@ -98,6 +101,8 @@ export const StoreHomeScreen = ({
   const adjustedToday = new Date(today.getTime() + 7 * 60 * 60 * 1000);
 
   const handleClockIn = async (workerId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         clockIn({
@@ -118,9 +123,13 @@ export const StoreHomeScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleClockOut = async (workerId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         clockOut({
@@ -141,9 +150,13 @@ export const StoreHomeScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleAbsence = async (workerId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         absence({
@@ -168,6 +181,8 @@ export const StoreHomeScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleReasonTextChange = (text: string) => {
@@ -221,7 +236,11 @@ export const StoreHomeScreen = ({
       );
 
       selectedServices.forEach((service) => {
-        totalPrice += service.price || 0;
+        if (service.discount !== undefined && service.discount > 0) {
+          totalPrice += ((100 - service.discount) * service.price) / 100 || 0;
+        } else {
+          totalPrice += service.price || 0;
+        }
         totalDuration += service.duration || 0;
       });
 
@@ -265,6 +284,8 @@ export const StoreHomeScreen = ({
   };
 
   const handleCreateOrder = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         addOrder({
@@ -291,6 +312,8 @@ export const StoreHomeScreen = ({
     } else if (response) {
       Alert.alert("Validation Error", response.message);
     }
+
+    setLoading(false);
   };
 
   const workersOptions: Option[] = store.workers
@@ -333,6 +356,13 @@ export const StoreHomeScreen = ({
         style={theme.mode === "dark" ? "light" : "dark"}
         backgroundColor={activeColors.primary}
       />
+
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
 
       <Text style={[styles.title, { color: activeColors.accent }]}>
         {store.name}
@@ -841,6 +871,13 @@ const styles = StyleSheet.create({
         : 0,
     paddingHorizontal: 20,
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+
   title: {
     marginTop: 10,
     marginBottom: 20,

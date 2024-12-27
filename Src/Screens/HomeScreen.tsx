@@ -7,8 +7,10 @@ import {
   Platform,
   Dimensions,
   SafeAreaView,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { colors } from "../Config/Theme";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { Theme } from "../Contexts/ThemeContext";
@@ -25,6 +27,8 @@ export const HomeScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const { auth } = useContext(Auth);
   const handleGoBack = () => {
     navigation.goBack();
@@ -36,6 +40,13 @@ export const HomeScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       {auth._id === "" && <Header goBack={handleGoBack} />}
       <ExpoStatusBar
         hidden={false}
@@ -55,5 +66,11 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });

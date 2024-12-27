@@ -230,7 +230,7 @@ export const addOrder = async (req: Request, res: Response) => {
           return res.status(400).json(<ResponseObj>{
             error: true,
             message:
-              "Sorry your order failed, All the workers are busy at your order time.",
+              "Sorry your order failed, All the workers are busy/not available at your order time.",
           });
         }
 
