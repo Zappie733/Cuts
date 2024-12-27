@@ -8,11 +8,11 @@ export const UpdateWorkerValidate = (data: UpdateWorkerRequestObj) => {
     lastName: Joi.string().required().label("Last Name"),
     age: Joi.number().required().label("Age"),
     role: Joi.string()
-      .valid("admin", "worker")
+      .valid("admin", "worker", "others")
       .required()
       .label("Role")
       .messages({
-        "any.only": "Role must be 'admin' or 'worker'.",
+        "any.only": "Role must be 'admin' or 'worker' or 'others'.",
       }),
     image: Joi.object({
       imageId: Joi.string().label("Image ID"),

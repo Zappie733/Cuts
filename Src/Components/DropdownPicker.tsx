@@ -147,7 +147,10 @@ export const DropdownPicker = ({
             { backgroundColor: activeColors.accent },
           ]}
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
             {options.map((item) => (
               <TouchableOpacity
                 key={item.value.toString()}
@@ -224,7 +227,7 @@ const styles = StyleSheet.create({
   dropdownItem: {
     justifyContent: "center",
     paddingHorizontal: 15,
-    borderWidth: 1,
+    borderBottomWidth: 1,
   },
   dropdownItemText: {
     fontSize: 15,

@@ -530,7 +530,7 @@ export const StorePromotionScreen = ({
                   }}
                 />
 
-                {/* create order */}
+                {/* create store promotion */}
                 <Pressable
                   style={[
                     styles.createServiceProductButton,

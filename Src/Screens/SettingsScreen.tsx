@@ -52,7 +52,7 @@ export const SettingsScreen = ({
   const { theme, changeTheme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
-  const { auth, setAuth, updateAccessToken } = useContext(Auth);
+  const { auth, setAuth, updateAccessToken, refetchAuth } = useContext(Auth);
 
   let { user } = useContext(User);
   const { store, refetchData } = useContext(StoresC);
@@ -207,9 +207,15 @@ export const SettingsScreen = ({
 
   useFocusEffect(
     useCallback(() => {
+      refetchAuth();
+    }, [])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
       if (user.role === "user") handleFetchUserStores();
       else if (user.role === "store") handleFetchRatingSummary();
-    }, [])
+    }, [auth])
   );
 
   return (

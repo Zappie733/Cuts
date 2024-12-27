@@ -511,21 +511,21 @@ export const StoreOrderHistoryScreen = ({
                                   color: activeColors.accent,
                                 }}
                               >
-                                {servicesRecord[serviceId].name}
+                                {servicesRecord[serviceId]?.name}
                               </Text>
                               <Text
                                 style={{
                                   color: activeColors.accent,
                                 }}
                               >
-                                {servicesRecord[serviceId].duration} min
+                                {servicesRecord[serviceId]?.duration} min
                               </Text>
                               <Text
                                 style={{
                                   color: activeColors.accent,
                                 }}
                               >
-                                Rp.{servicesRecord[serviceId].price}
+                                Rp.{servicesRecord[serviceId]?.price}
                               </Text>
                             </View>
 
@@ -551,7 +551,7 @@ export const StoreOrderHistoryScreen = ({
                                 marginLeft: 30,
                               }}
                             >
-                              {servicesRecord[serviceId].serviceProduct
+                              {servicesRecord[serviceId]?.serviceProduct
                                 ?.filter((productId) => {
                                   const serviceProduct =
                                     serviceProductsRecord[productId];
@@ -581,7 +581,7 @@ export const StoreOrderHistoryScreen = ({
                                         color: activeColors.accent,
                                       }}
                                     >
-                                      {serviceProductsRecord[productId].name}
+                                      {serviceProductsRecord[productId]?.name}
                                     </Text>
                                     <Text
                                       style={{
@@ -590,7 +590,7 @@ export const StoreOrderHistoryScreen = ({
                                     >
                                       Rp.
                                       {serviceProductsRecord[productId]
-                                        .addtionalPrice ?? 0}
+                                        ?.addtionalPrice ?? 0}
                                     </Text>
                                   </View>
                                 ))}

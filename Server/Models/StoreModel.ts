@@ -18,7 +18,7 @@ export const WorkerSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "worker"],
+      enum: ["admin", "worker", "others"],
       required: true,
     },
     isOnDuty: {
@@ -54,6 +54,10 @@ export const WorkerSchema = new Schema(
       path: {
         type: String,
       },
+    },
+    joinDate: {
+      type: Date,
+      required: true,
     },
   },
   {

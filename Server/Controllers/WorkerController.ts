@@ -178,6 +178,7 @@ export const registerWorker = async (req: Request, res: Response) => {
         age,
         role,
         image: uploadedImage,
+        joinDate: new Date(Date.now() + 7 * 60 * 60 * 1000),
       };
 
       store.workers.push(newWorker);

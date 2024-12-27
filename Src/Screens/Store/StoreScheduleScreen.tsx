@@ -85,7 +85,7 @@ export const StoreScheduleScreen = ({
   const getStoreWorkers = () => {
     const workersRecordTemp: Record<string, WorkerObj> = {};
     store.workers.forEach((worker) => {
-      if (worker.role === "admin") return;
+      if (worker.role === "admin" || worker.role === "others") return;
 
       workersRecordTemp[worker._id ?? ""] = worker;
     });
