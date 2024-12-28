@@ -249,7 +249,7 @@ export const StoreScheduleScreen = ({
   };
 
   const fetchUserInfoForOrderById = async (userId: string) => {
-    setLoading(true);
+    // setLoading(true);
 
     const response = await apiCallHandler({
       apiCall: () =>
@@ -276,7 +276,7 @@ export const StoreScheduleScreen = ({
       console.log(response.status, response.message);
     }
 
-    setLoading(false);
+    // setLoading(false);
   };
 
   const getUserInfoRecord = async () => {
@@ -358,7 +358,7 @@ export const StoreScheduleScreen = ({
         const interval = setInterval(() => {
           console.log("refetching order schedule");
           handleFetchOrderSchedule();
-        }, 20000); // 20000 ms = 20 seconds
+        }, 15000); // 15000 ms = 15 seconds
 
         // Cleanup interval on unmount
         return () => clearInterval(interval);
@@ -570,6 +570,22 @@ export const StoreScheduleScreen = ({
 
                     {/* Info */}
                     <View style={styles.infoContainer}>
+                      {/* Online flag */}
+                      {!order.isManual && (
+                        <View style={{ marginBottom: 3 }}>
+                          <Text
+                            style={{
+                              color: activeColors.infoColor,
+                              textAlign: "center",
+                              fontSize: 18,
+                              fontWeight: "300",
+                            }}
+                          >
+                            Online Order
+                          </Text>
+                        </View>
+                      )}
+
                       {/* duration */}
                       <View style={styles.durationContainer}>
                         <Text

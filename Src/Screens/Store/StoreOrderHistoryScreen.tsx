@@ -19,7 +19,6 @@ import {
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
 import { DropdownPicker } from "../../Components/DropdownPicker";
-import { set } from "mongoose";
 import { GetStoreOrderHistoryResponse } from "../../Types/ResponseTypes/OrderResponse";
 import { getStoreOrderHistory } from "../../Middlewares/OrderMiddleware";
 import { apiCallHandler } from "../../Middlewares/util";
@@ -140,50 +139,50 @@ export const StoreOrderHistoryScreen = ({
     return <ActivityIndicator style={{ margin: 10 }} />;
   };
 
-  const [userInfoRecord, setUserInfoRecord] = useState<
-    Record<string, GetUserInfoForOrderByIdResponse>
-  >({});
+  // const [userInfoRecord, setUserInfoRecord] = useState<
+  //   Record<string, GetUserInfoForOrderByIdResponse>
+  // >({});
 
-  const fetchUserInfoForOrderById = async (userId: string) => {
-    const response = await apiCallHandler({
-      apiCall: () =>
-        getUserInfoForOrderById({
-          auth,
-          updateAccessToken,
-          params: {
-            userId,
-          },
-        }),
-      auth,
-      setAuth,
-      navigation,
-    });
+  // const fetchUserInfoForOrderById = async (userId: string) => {
+  //   const response = await apiCallHandler({
+  //     apiCall: () =>
+  //       getUserInfoForOrderById({
+  //         auth,
+  //         updateAccessToken,
+  //         params: {
+  //           userId,
+  //         },
+  //       }),
+  //     auth,
+  //     setAuth,
+  //     navigation,
+  //   });
 
-    if (
-      response &&
-      response.status >= 200 &&
-      response.status < 400 &&
-      response.data
-    ) {
-      return response.data;
-    } else if (response) {
-      console.log(response.status, response.message);
-    }
-  };
+  //   if (
+  //     response &&
+  //     response.status >= 200 &&
+  //     response.status < 400 &&
+  //     response.data
+  //   ) {
+  //     return response.data;
+  //   } else if (response) {
+  //     console.log(response.status, response.message);
+  //   }
+  // };
 
-  const getUserInfoRecord = async () => {
-    const userInfoRecordTemp: Record<string, GetUserInfoForOrderByIdResponse> =
-      {};
+  // const getUserInfoRecord = async () => {
+  //   const userInfoRecordTemp: Record<string, GetUserInfoForOrderByIdResponse> =
+  //     {};
 
-    const promises = data?.orders.map(async (order) => {
-      if (order.isManual) return;
-      const userInfo = await fetchUserInfoForOrderById(order.userId ?? "");
-      userInfoRecordTemp[order.userId ?? ""] = userInfo;
-    });
+  //   const promises = data?.orders.map(async (order) => {
+  //     if (order.isManual) return;
+  //     const userInfo = await fetchUserInfoForOrderById(order.userId ?? "");
+  //     userInfoRecordTemp[order.userId ?? ""] = userInfo;
+  //   });
 
-    await Promise.all(promises ?? []);
-    setUserInfoRecord(userInfoRecordTemp);
-  };
+  //   await Promise.all(promises ?? []);
+  //   setUserInfoRecord(userInfoRecordTemp);
+  // };
 
   const [viewOrderDetail, setViewOrderDetail] =
     useState<Map<string, boolean>>();
@@ -195,38 +194,38 @@ export const StoreOrderHistoryScreen = ({
     });
   };
 
-  const [servicesRecord, setServicesRecord] = useState<
-    Record<string, ServiceObj>
-  >({});
+  // const [servicesRecord, setServicesRecord] = useState<
+  //   Record<string, ServiceObj>
+  // >({});
 
-  const getStoreServices = () => {
-    const servicesRecordTemp: Record<string, ServiceObj> = {};
+  // const getStoreServices = () => {
+  //   const servicesRecordTemp: Record<string, ServiceObj> = {};
 
-    store.services.forEach((service) => {
-      servicesRecordTemp[service._id ?? ""] = service;
-    });
-    setServicesRecord(servicesRecordTemp);
-  };
+  //   store.services.forEach((service) => {
+  //     servicesRecordTemp[service._id ?? ""] = service;
+  //   });
+  //   setServicesRecord(servicesRecordTemp);
+  // };
 
-  const [serviceProductsRecord, setServiceProductsRecord] = useState<
-    Record<string, ServiceProductObj>
-  >({});
+  // const [serviceProductsRecord, setServiceProductsRecord] = useState<
+  //   Record<string, ServiceProductObj>
+  // >({});
 
-  const getStoreServiceProducts = () => {
-    const serviceProductsRecordTemp: Record<string, ServiceProductObj> = {};
+  // const getStoreServiceProducts = () => {
+  //   const serviceProductsRecordTemp: Record<string, ServiceProductObj> = {};
 
-    store.serviceProducts.forEach((serviceProduct) => {
-      serviceProductsRecordTemp[serviceProduct._id ?? ""] = serviceProduct;
-    });
-    setServiceProductsRecord(serviceProductsRecordTemp);
-  };
+  //   store.serviceProducts.forEach((serviceProduct) => {
+  //     serviceProductsRecordTemp[serviceProduct._id ?? ""] = serviceProduct;
+  //   });
+  //   setServiceProductsRecord(serviceProductsRecordTemp);
+  // };
 
-  useEffect(() => {
-    if (store._id) {
-      getStoreServices();
-      getStoreServiceProducts();
-    }
-  }, [store]);
+  // useEffect(() => {
+  //   if (store._id) {
+  //     getStoreServices();
+  //     getStoreServiceProducts();
+  //   }
+  // }, [store]);
 
   useEffect(() => {
     if (offset === 0) {
@@ -249,11 +248,11 @@ export const StoreOrderHistoryScreen = ({
     setOffset(0);
   }, [month, year]);
 
-  useEffect(() => {
-    if (data) {
-      getUserInfoRecord();
-    }
-  }, [data]);
+  // useEffect(() => {
+  //   if (data) {
+  //     getUserInfoRecord();
+  //   }
+  // }, [data]);
 
   return (
     <SafeAreaView
@@ -294,352 +293,387 @@ export const StoreOrderHistoryScreen = ({
         </View>
       </View>
 
-      {/* Summary */}
-      <View>
-        <Text style={[styles.titleSummary, { color: activeColors.accent }]}>
-          Summary for {monthslable[Number(month) - 1]} {year}
-        </Text>
-
-        <View
-          style={[
-            styles.summaryContainer,
-            { backgroundColor: activeColors.secondary },
-          ]}
-        >
-          {data?.summary && data.summary.length > 0 ? (
-            data.summary.map((summary, index) => (
-              <View key={index}>
-                <Text
-                  style={[styles.summaryText, { color: activeColors.accent }]}
-                >
-                  {summary.serviceName.replace(/\b\w/g, (char) =>
-                    char.toUpperCase()
-                  )}
-                  : {summary.total}
-                </Text>
-              </View>
-            ))
-          ) : (
-            <Text style={[styles.summaryText, { color: activeColors.accent }]}>
-              No data available
+      {month && year && (
+        <>
+          {/* Summary */}
+          <View>
+            <Text style={[styles.titleSummary, { color: activeColors.accent }]}>
+              Summary for {monthslable[Number(month) - 1]} {year}
             </Text>
-          )}
-        </View>
-      </View>
 
-      {/* Orders */}
-      {data?.total !== 0 && (
-        <View
-          style={[
-            styles.orderContainer,
-            { backgroundColor: activeColors.secondary },
-          ]}
-        >
-          <FlatList
-            data={data?.orders || null}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View
-                style={[
-                  styles.item,
-                  {
-                    backgroundColor: activeColors.primary,
-                    borderColor: activeColors.tertiary,
-                  },
-                ]}
-              >
-                {/* date */}
-                <View style={styles.dateContainer}>
-                  <Text
-                    style={[styles.dateText, { color: activeColors.accent }]}
-                  >
-                    {new Date(item.date).toUTCString().slice(0, 16)}
-                  </Text>
-                </View>
-
-                {/* status */}
-                <View
-                  style={[
-                    styles.statusContainer,
-                    {
-                      backgroundColor:
-                        item.status === "Waiting for Confirmation"
-                          ? "#FFDD57"
-                          : item.status === "Waiting for Payment"
-                          ? "#FFA07A"
-                          : item.status === "Rejected"
-                          ? "#FF6F61"
-                          : item.status === "Paid"
-                          ? "#98FB98"
-                          : item.status === "Completed"
-                          ? "#37A937"
-                          : activeColors.accent,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.status,
-                      { color: activeColors.primary, textAlign: "center" },
-                    ]}
-                  >
-                    {item.status === undefined ? "Manual" : item.status}
-                  </Text>
-                </View>
-
-                {/* Info */}
-                <View style={styles.infoContainer}>
-                  {/* duration */}
-                  <View style={styles.durationContainer}>
+            <View
+              style={[
+                styles.summaryContainer,
+                { backgroundColor: activeColors.secondary },
+              ]}
+            >
+              {data?.summary && data.summary.length > 0 ? (
+                data.summary.map((summary, index) => (
+                  <View key={index}>
                     <Text
                       style={[
-                        styles.durationText,
+                        styles.summaryText,
                         { color: activeColors.accent },
                       ]}
                     >
-                      {new Date(item.date).toUTCString().split(" ")[4]} -{" "}
-                      {new Date(item.endTime).toUTCString().split(" ")[4]}{" "}
+                      {summary.serviceName.replace(/\b\w/g, (char) =>
+                        char.toUpperCase()
+                      )}
+                      : {summary.total}
                     </Text>
-                    {item.timeDifference && (
-                      <Text
-                        style={[
-                          styles.timeDifferenceText,
-                          { color: activeColors.infoColor },
-                        ]}
-                      >
-                        {item.timeDifference && item.timeDifference > 0
-                          ? `${item.timeDifference} minutes slower than expected`
-                          : item.timeDifference && item.timeDifference < 0
-                          ? `${Math.abs(
-                              item.timeDifference
-                            )} minutes faster than expected`
-                          : ""}
-                      </Text>
-                    )}
                   </View>
+                ))
+              ) : (
+                <Text
+                  style={[styles.summaryText, { color: activeColors.accent }]}
+                >
+                  No data available
+                </Text>
+              )}
+            </View>
+          </View>
 
-                  {/* User Info */}
-                  <View style={styles.userInfoContainer}>
-                    {item.userName ? (
+          {/* Orders */}
+          {data?.total !== 0 && (
+            <View
+              style={[
+                styles.orderContainer,
+                { backgroundColor: activeColors.secondary },
+              ]}
+            >
+              <FlatList
+                data={data?.orders || null}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => (
+                  <View
+                    style={[
+                      styles.item,
+                      {
+                        backgroundColor: activeColors.primary,
+                        borderColor: activeColors.tertiary,
+                      },
+                    ]}
+                  >
+                    {/* date */}
+                    <View style={styles.dateContainer}>
                       <Text
                         style={[
-                          styles.userInfoText,
+                          styles.dateText,
                           { color: activeColors.accent },
                         ]}
                       >
-                        {item.userName}
+                        {new Date(item.date).toUTCString().slice(0, 16)}
                       </Text>
-                    ) : (
-                      <View>
-                        <Text
-                          style={[
-                            styles.userInfoText,
-                            { color: activeColors.accent },
-                          ]}
-                        >
-                          {userInfoRecord[item.userId ?? ""]
-                            ? userInfoRecord[item.userId ?? ""]?.firstName +
-                              " " +
-                              userInfoRecord[item.userId ?? ""]?.lastName
-                            : ""}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.userInfoText,
-                            { color: activeColors.accent },
-                          ]}
-                        >
-                          {userInfoRecord[item.userId ?? ""]?.phone}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
+                    </View>
 
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                    }}
-                  >
+                    {/* status */}
                     <View
-                      style={{
-                        flex: 1,
-                        height: 3,
-                        marginRight: 5,
-                        backgroundColor: activeColors.tertiary,
-                      }}
-                    />
-
-                    {/* Toggle Icon */}
-                    <Pressable
-                      onPress={() => toggleOrderDetail(item._id ?? "")}
+                      style={[
+                        styles.statusContainer,
+                        {
+                          backgroundColor:
+                            // item.status === "Waiting for Confirmation"
+                            //   ? "#FFDD57"
+                            //   : item.status === "Waiting for Payment"
+                            //   ? "#FFA07A"
+                            //   :
+                            item.status === "Rejected"
+                              ? "#FF6F61"
+                              : item.status === "Paid"
+                              ? "#98FB98"
+                              : item.status === "Completed"
+                              ? "#37A937"
+                              : activeColors.accent,
+                        },
+                      ]}
                     >
-                      <Text style={{ color: activeColors.secondary }}>
-                        {viewOrderDetail?.get(item._id ?? "") ? (
-                          <AntDesign
-                            name="caretdown"
-                            size={20}
-                            color={activeColors.secondary}
-                          />
-                        ) : (
-                          <AntDesign
-                            name="caretright"
-                            size={20}
-                            color={activeColors.secondary}
-                          />
-                        )}
+                      <Text
+                        style={[
+                          styles.status,
+                          { color: activeColors.primary, textAlign: "center" },
+                        ]}
+                      >
+                        {item.status === undefined ? "Manual" : item.status}
                       </Text>
-                    </Pressable>
-                  </View>
+                    </View>
 
-                  {viewOrderDetail?.get(item._id ?? "") && (
-                    <>
-                      {/* services & service products */}
-                      <View>
-                        {item.serviceIds.map((serviceId, index) => (
-                          <View key={index}>
-                            {/* service */}
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                marginVertical: 5,
-                              }}
+                    {/* Info */}
+                    <View style={styles.infoContainer}>
+                      {/* duration */}
+                      <View style={styles.durationContainer}>
+                        <Text
+                          style={[
+                            styles.durationText,
+                            { color: activeColors.accent },
+                          ]}
+                        >
+                          {new Date(item.date).toUTCString().split(" ")[4]} -{" "}
+                          {new Date(item.endTime).toUTCString().split(" ")[4]}{" "}
+                        </Text>
+                        {item.timeDifference && (
+                          <Text
+                            style={[
+                              styles.timeDifferenceText,
+                              { color: activeColors.infoColor },
+                            ]}
+                          >
+                            {item.timeDifference && item.timeDifference > 0
+                              ? `${item.timeDifference} minutes slower than expected`
+                              : item.timeDifference && item.timeDifference < 0
+                              ? `${Math.abs(
+                                  item.timeDifference
+                                )} minutes faster than expected`
+                              : ""}
+                          </Text>
+                        )}
+                      </View>
+
+                      {/* User Info */}
+                      <View style={styles.userInfoContainer}>
+                        {item.isManual ? (
+                          <Text
+                            style={[
+                              styles.userInfoText,
+                              { color: activeColors.accent },
+                            ]}
+                          >
+                            {item.userName}
+                          </Text>
+                        ) : (
+                          <View>
+                            <Text
+                              style={[
+                                styles.userInfoText,
+                                { color: activeColors.accent },
+                              ]}
                             >
-                              <Text
-                                style={{
-                                  color: activeColors.accent,
-                                }}
-                              >
-                                {servicesRecord[serviceId]?.name}
-                              </Text>
-                              <Text
-                                style={{
-                                  color: activeColors.accent,
-                                }}
-                              >
-                                {servicesRecord[serviceId]?.duration} min
-                              </Text>
-                              <Text
-                                style={{
-                                  color: activeColors.accent,
-                                }}
-                              >
-                                Rp.{servicesRecord[serviceId]?.price}
-                              </Text>
-                            </View>
+                              {/* {userInfoRecord[item.userId ?? ""]
+                                ? userInfoRecord[item.userId ?? ""]?.firstName +
+                                  " " +
+                                  userInfoRecord[item.userId ?? ""]?.lastName
+                                : ""} */}
+                              {item.userName}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.userInfoText,
+                                { color: activeColors.accent },
+                              ]}
+                            >
+                              {/* {userInfoRecord[item.userId ?? ""]?.phone} */}
+                              {item.userPhone}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
 
-                            {/* service products line */}
-                            {servicesRecord[serviceId]?.serviceProduct &&
-                              servicesRecord[serviceId]?.serviceProduct.length >
-                                0 && (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                        }}
+                      >
+                        <View
+                          style={{
+                            flex: 1,
+                            height: 3,
+                            marginRight: 5,
+                            backgroundColor: activeColors.tertiary,
+                          }}
+                        />
+
+                        {/* Toggle Icon */}
+                        <Pressable
+                          onPress={() => toggleOrderDetail(item._id ?? "")}
+                        >
+                          <Text style={{ color: activeColors.secondary }}>
+                            {viewOrderDetail?.get(item._id ?? "") ? (
+                              <AntDesign
+                                name="caretdown"
+                                size={20}
+                                color={activeColors.secondary}
+                              />
+                            ) : (
+                              <AntDesign
+                                name="caretright"
+                                size={20}
+                                color={activeColors.secondary}
+                              />
+                            )}
+                          </Text>
+                        </Pressable>
+                      </View>
+
+                      {viewOrderDetail?.get(item._id ?? "") && (
+                        <>
+                          {/* services & service products */}
+                          <View>
+                            {item.services.map((service, index) => (
+                              <View key={index}>
+                                {/* service */}
                                 <View
                                   style={{
-                                    flex: 1,
-                                    padding: 1,
-                                    backgroundColor: activeColors.tertiary,
-                                    marginLeft: 30,
-                                    marginVertical: 1,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    marginVertical: 5,
                                   }}
-                                />
-                              )}
-                            {/* service products */}
-                            <View
-                              style={{
-                                flexDirection: "column",
-                                marginVertical: 2,
-                                marginLeft: 30,
-                              }}
-                            >
-                              {servicesRecord[serviceId]?.serviceProduct
-                                ?.filter((productId) => {
-                                  const serviceProduct =
-                                    serviceProductsRecord[productId];
-                                  return (
-                                    item.chosenServiceProductsIds
-                                      ?.find(
-                                        (id) =>
-                                          id.serviceId.toString() ===
-                                          serviceId.toString()
-                                      )
-                                      ?.serviceProductIds.includes(productId) ||
-                                    serviceProduct.isAnOption === false
-                                  );
-                                })
-                                .map((productId, index) => (
-                                  <View
-                                    key={index}
+                                >
+                                  <Text
                                     style={{
-                                      flexDirection: "row",
-                                      justifyContent: "space-between",
-                                      marginVertical: 3,
-                                      paddingLeft: 10,
+                                      color: activeColors.accent,
                                     }}
                                   >
-                                    <Text
-                                      style={{
-                                        color: activeColors.accent,
-                                      }}
-                                    >
-                                      {serviceProductsRecord[productId]?.name}
-                                    </Text>
+                                    {service.name}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      color: activeColors.accent,
+                                    }}
+                                  >
+                                    {service.duration} min
+                                  </Text>
+
+                                  {service.discount && service.discount > 0 ? (
                                     <Text
                                       style={{
                                         color: activeColors.accent,
                                       }}
                                     >
                                       Rp.
-                                      {serviceProductsRecord[productId]
-                                        ?.addtionalPrice ?? 0}
+                                      {((100 - service.discount) *
+                                        service.price) /
+                                        100}{" "}
+                                      ({service.discount}% off)
                                     </Text>
-                                  </View>
-                                ))}
-                            </View>
+                                  ) : (
+                                    <Text
+                                      style={{
+                                        color: activeColors.accent,
+                                      }}
+                                    >
+                                      Rp.{service.price}
+                                    </Text>
+                                  )}
+                                </View>
 
-                            <View
-                              style={{
-                                flex: 1,
-                                padding: 1,
-                                backgroundColor: activeColors.tertiary,
-                              }}
-                            />
+                                {/* service products line */}
+                                {service.serviceProducts &&
+                                  service.serviceProducts.length > 0 && (
+                                    <View
+                                      style={{
+                                        flex: 1,
+                                        padding: 1,
+                                        backgroundColor: activeColors.tertiary,
+                                        marginLeft: 30,
+                                        marginVertical: 1,
+                                      }}
+                                    />
+                                  )}
+
+                                {/* service products */}
+                                <View
+                                  style={{
+                                    flexDirection: "column",
+                                    marginVertical: 2,
+                                    marginLeft: 30,
+                                  }}
+                                >
+                                  {service.serviceProducts?.map(
+                                    (serviceProduct, index) => (
+                                      <View
+                                        key={index}
+                                        style={{
+                                          flexDirection: "row",
+                                          justifyContent: "space-between",
+                                          marginVertical: 3,
+                                          paddingLeft: 10,
+                                        }}
+                                      >
+                                        <Text
+                                          style={{
+                                            color: activeColors.accent,
+                                          }}
+                                        >
+                                          {serviceProduct.name}
+                                        </Text>
+                                        <Text
+                                          style={{
+                                            color: activeColors.accent,
+                                          }}
+                                        >
+                                          Rp.
+                                          {serviceProduct.addtionalPrice ?? 0}
+                                        </Text>
+                                      </View>
+                                    )
+                                  )}
+                                </View>
+
+                                <View
+                                  style={{
+                                    flex: 1,
+                                    padding: 1,
+                                    backgroundColor: activeColors.tertiary,
+                                  }}
+                                />
+                              </View>
+                            ))}
                           </View>
-                        ))}
-                      </View>
 
-                      {/* Estimate Time &Total price */}
-                      <View style={styles.estimateNTotalContainer}>
-                        <View>
-                          <Text
-                            style={[
-                              styles.estimateNTotalText,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            Estimated Time: {item.totalDuration} min
-                          </Text>
-                        </View>
-                        <View>
-                          <Text
-                            style={[
-                              styles.estimateNTotalText,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            Total: Rp.{item.totalPrice}
-                          </Text>
-                        </View>
+                          {/* Estimate Time &Total price */}
+                          <View style={styles.estimateNTotalContainer}>
+                            <View>
+                              <Text
+                                style={[
+                                  styles.estimateNTotalText,
+                                  { color: activeColors.accent },
+                                ]}
+                              >
+                                Estimated Time: {item.totalDuration} min
+                              </Text>
+                            </View>
+                            <View>
+                              <Text
+                                style={[
+                                  styles.estimateNTotalText,
+                                  { color: activeColors.accent },
+                                ]}
+                              >
+                                Total: Rp.{item.totalPrice}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <View style={{ marginTop: 10 }}>
+                            <Text
+                              style={[
+                                styles.workerText,
+                                { color: activeColors.accent },
+                              ]}
+                            >
+                              Worker Name: {item.workerName}
+                            </Text>
+                          </View>
+                        </>
+                      )}
+                    </View>
+
+                    {!item.isManual && (
+                      <View style={{ position: "absolute", top: 5, right: 10 }}>
+                        <Text style={{ color: activeColors.infoColor }}>
+                          Online
+                        </Text>
                       </View>
-                    </>
-                  )}
-                </View>
-              </View>
-            )}
-            onEndReached={handleFetchOrderSummary}
-            onEndReachedThreshold={0.5} // Load more when the user is within 50% of the list's end
-            ListFooterComponent={renderFooter}
-          />
-        </View>
+                    )}
+                  </View>
+                )}
+                onEndReached={handleFetchOrderSummary}
+                onEndReachedThreshold={0.5} // Load more when the user is within 50% of the list's end
+                ListFooterComponent={renderFooter}
+              />
+            </View>
+          )}
+        </>
       )}
     </SafeAreaView>
   );
@@ -698,7 +732,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     borderRadius: 10,
     padding: 20,
-    height: 460,
+    height: 500,
   },
 
   statusContainer: {
@@ -751,6 +785,10 @@ const styles = StyleSheet.create({
   },
   estimateNTotalText: {
     textAlign: "right",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  workerText: {
     fontWeight: "bold",
     fontSize: 14,
   },

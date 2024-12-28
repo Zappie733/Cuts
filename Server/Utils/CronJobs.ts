@@ -3,6 +3,11 @@ import { ORDERS } from "../Models/OrderModel";
 import { sendEmail } from "./UserUtil";
 import { USERS } from "../Models/UserModel";
 import { STORES } from "../Models/StoreModel";
+import {
+  ServiceHistoryObj,
+  ServiceProductHistoryObj,
+} from "../dto/OrderHistory";
+import { ORDERHISTORY } from "../Models/OrderHistoryModel";
 
 // Schedule a cron job
 export const InitializeCronJobs = () => {
@@ -20,9 +25,10 @@ export const InitializeCronJobs = () => {
         createdAt: {
           $lte: currentTimeW5MBehind,
         },
-      }).select(
-        "userId createdAt status storeId isManual serviceIds chosenServiceProductsIds"
-      );
+      });
+      // .select(
+      //   "userId createdAt status storeId isManual serviceIds chosenServiceProductsIds"
+      // )
 
       if (orders.length === 0) {
         console.log("No 'Waiting for Confirmation' orders to process.");
@@ -43,11 +49,11 @@ export const InitializeCronJobs = () => {
 
       for (const order of orders) {
         const user = await USERS.findOne({ _id: order.userId }).select(
-          "email firstName"
+          "email firstName lastName phone"
         );
 
         const store = await STORES.findOne({ _id: order.storeId }).select(
-          "name services serviceProducts"
+          "name services serviceProducts workers"
         );
         console.log(user);
         console.log(store);
@@ -64,21 +70,36 @@ export const InitializeCronJobs = () => {
 
           //just for automatic order, increase the service products back
           if (order.isManual === false) {
-            for (const serviceId of order.serviceIds) {
-              const reducedServices = store.services.map(
-                ({ _id, serviceProduct }) => ({
-                  _id,
-                  serviceProduct,
-                })
-              );
+            const servicesForHistory: ServiceHistoryObj[] = [];
 
-              const service = reducedServices.find(
+            for (const serviceId of order.serviceIds) {
+              // const reducedServices = store.services.map(
+              //   ({ _id, serviceProduct }) => ({
+              //     _id,
+              //     serviceProduct,
+              //   })
+              // );
+
+              // const service = reducedServices.find(
+              //   (service) => service._id?.toString() === serviceId.toString()
+              // );
+
+              const service = store.services.find(
                 (service) => service._id?.toString() === serviceId.toString()
               );
 
               if (!service) {
                 continue;
               }
+
+              servicesForHistory.push({
+                id: service._id,
+                name: service.name,
+                price: service.price,
+                duration: service.duration,
+                discount: service.discount,
+                serviceProducts: [],
+              });
 
               if (service.serviceProduct) {
                 const allServiceProductIds = service.serviceProduct;
@@ -109,12 +130,51 @@ export const InitializeCronJobs = () => {
                       `increase service product ${serviceProduct._id}`
                     );
                     serviceProduct.quantity += 1;
+
+                    const serviceProductsForHistory: ServiceProductHistoryObj =
+                      {
+                        id: serviceProduct._id,
+                        name: serviceProduct.name,
+                        addtionalPrice: serviceProduct.addtionalPrice,
+                      };
+
+                    servicesForHistory[
+                      servicesForHistory.findIndex(
+                        (obj) => obj.id?.toString() === serviceId.toString()
+                      )
+                    ].serviceProducts?.push(serviceProductsForHistory);
                   }
                 }
               }
             }
 
             await store.save();
+
+            const worker = store.workers.find(
+              (worker) => worker._id?.toString() === order.workerId?.toString()
+            );
+            //console.log(worker);
+            const newOrderHistory = new ORDERHISTORY({
+              orderId: order._id,
+              userId: order.userId,
+              userName: user?.firstName + " " + user?.lastName,
+              userPhone: user?.phone,
+              storeId: store._id,
+              services: servicesForHistory,
+              isManual: order.isManual,
+              status: "Rejected",
+              totalPrice: order.totalPrice,
+              totalDuration: order.totalDuration,
+              date: order.date,
+              endTime: order.endTime,
+              hasRating: order.hasRating,
+              workerId: order.workerId,
+              workerName: worker?.firstName + " " + worker?.lastName,
+              rejectedReason:
+                "Auto Rejected (store does not response for more than 5 minutes)",
+            });
+            //console.log("newOrderHistory: ", newOrderHistory);
+            await newOrderHistory.save();
           }
         }
       }
@@ -125,6 +185,7 @@ export const InitializeCronJobs = () => {
       );
     }
   });
+
   //auto reject Waiting for Payment order that has been in the same state for 5 minutes
   cron.schedule("* * * * *", async () => {
     // console.log(
@@ -139,9 +200,10 @@ export const InitializeCronJobs = () => {
         updatedAt: {
           $lte: currentTimeW5MBehind,
         },
-      }).select(
-        "userId updatedAt status storeId isManual serviceIds chosenServiceProductsIds"
-      );
+      });
+      // .select(
+      //   "userId updatedAt status storeId isManual serviceIds chosenServiceProductsIds"
+      // )
 
       if (orders.length === 0) {
         console.log("No 'Waiting for Payment' orders to process.");
@@ -162,11 +224,11 @@ export const InitializeCronJobs = () => {
 
       for (const order of orders) {
         const user = await USERS.findOne({ _id: order.userId }).select(
-          "email firstName"
+          "email firstName lastName phone"
         );
 
         const store = await STORES.findOne({ _id: order.storeId }).select(
-          "name services serviceProducts"
+          "name services serviceProducts workers"
         );
         console.log(user);
         console.log(store);
@@ -183,21 +245,36 @@ export const InitializeCronJobs = () => {
 
           //just for automatic order, increase the service products back
           if (order.isManual === false) {
-            for (const serviceId of order.serviceIds) {
-              const reducedServices = store.services.map(
-                ({ _id, serviceProduct }) => ({
-                  _id,
-                  serviceProduct,
-                })
-              );
+            const servicesForHistory: ServiceHistoryObj[] = [];
 
-              const service = reducedServices.find(
+            for (const serviceId of order.serviceIds) {
+              // const reducedServices = store.services.map(
+              //   ({ _id, serviceProduct }) => ({
+              //     _id,
+              //     serviceProduct,
+              //   })
+              // );
+
+              // const service = reducedServices.find(
+              //   (service) => service._id?.toString() === serviceId.toString()
+              // );
+
+              const service = store.services.find(
                 (service) => service._id?.toString() === serviceId.toString()
               );
 
               if (!service) {
                 continue;
               }
+
+              servicesForHistory.push({
+                id: service._id,
+                name: service.name,
+                price: service.price,
+                duration: service.duration,
+                discount: service.discount,
+                serviceProducts: [],
+              });
 
               if (service.serviceProduct) {
                 const allServiceProductIds = service.serviceProduct;
@@ -228,12 +305,51 @@ export const InitializeCronJobs = () => {
                       `increase service product ${serviceProduct._id}`
                     );
                     serviceProduct.quantity += 1;
+
+                    const serviceProductsForHistory: ServiceProductHistoryObj =
+                      {
+                        id: serviceProduct._id,
+                        name: serviceProduct.name,
+                        addtionalPrice: serviceProduct.addtionalPrice,
+                      };
+
+                    servicesForHistory[
+                      servicesForHistory.findIndex(
+                        (obj) => obj.id?.toString() === serviceId.toString()
+                      )
+                    ].serviceProducts?.push(serviceProductsForHistory);
                   }
                 }
               }
             }
 
             await store.save();
+
+            const worker = store.workers.find(
+              (worker) => worker._id?.toString() === order.workerId?.toString()
+            );
+            //console.log(worker);
+            const newOrderHistory = new ORDERHISTORY({
+              orderId: order._id,
+              userId: order.userId,
+              userName: user?.firstName + " " + user?.lastName,
+              userPhone: user?.phone,
+              storeId: store._id,
+              services: servicesForHistory,
+              isManual: order.isManual,
+              status: "Rejected",
+              totalPrice: order.totalPrice,
+              totalDuration: order.totalDuration,
+              date: order.date,
+              endTime: order.endTime,
+              hasRating: order.hasRating,
+              workerId: order.workerId,
+              workerName: worker?.firstName + " " + worker?.lastName,
+              rejectedReason:
+                "Auto Rejected (user does not pay the order for more than 5 minutes)",
+            });
+            //console.log("newOrderHistory: ", newOrderHistory);
+            await newOrderHistory.save();
           }
         }
       }
