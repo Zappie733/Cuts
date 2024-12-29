@@ -1,6 +1,6 @@
-import { IDocumentProps } from "../ComponentTypes/DocumentTypes";
 import { IImageProps } from "../ComponentTypes/ImageTypes";
 import { StoreObj } from "../StoreTypes/StoreTypes";
+import { LikeObj } from "../UserTypes";
 
 export interface LoginResponse {
   _id: string;
@@ -21,7 +21,7 @@ export interface GetUserProfileResponse {
   role: "admin" | "user" | "store";
   verified: boolean;
   image: IImageProps;
-  likes: string[];
+  likes: LikeObj[];
 }
 
 export interface UpdateUserProfileImageResponse {

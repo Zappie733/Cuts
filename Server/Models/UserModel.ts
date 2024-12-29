@@ -87,10 +87,21 @@ const UserSchema = new Schema(
         ],
       },
     },
-    likes: {
-      type: [Schema.Types.ObjectId],
-      ref: "Gallery",
-    },
+    likes: [
+      {
+        storeId: {
+          type: Schema.Types.ObjectId,
+          ref: "Stores",
+        },
+        imageId: {
+          type: Schema.Types.ObjectId,
+          ref: "Gallery",
+        },
+        imageFiles: {
+          type: [String],
+        },
+      },
+    ],
   },
   {
     toJSON: {

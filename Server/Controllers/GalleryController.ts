@@ -1,5 +1,6 @@
 import { Response, Request } from "express";
 import {
+  GetGalleryByIdResponse,
   GetGalleryByStoreIdResponse,
   GetMostLikesGalleryByStoreIdResponse,
   ResponseObj,
@@ -375,8 +376,8 @@ export const deleteGalleryById = async (req: Request, res: Response) => {
 
       // Remove galleryId from all users' likes arrays
       await USERS.updateMany(
-        { likes: galleryIdParam },
-        { $pull: { likes: galleryIdParam } }
+        { "likes.imageId": galleryIdParam.toString() },
+        { $pull: { likes: { imageId: galleryIdParam.toString() } } }
       );
 
       return res.status(200).json(<ResponseObj>{
@@ -542,25 +543,117 @@ export const likeGalleryById = async (req: Request, res: Response) => {
           message: "Gallery not found",
         });
       }
-
       if (gallery.likes || gallery.likes === 0) {
-        if (user.likes?.includes(galleryIdParam.toString())) {
+        const existingLike = user.likes?.find(
+          (like) => like.imageId.toString() === galleryIdParam.toString()
+        );
+
+        if (existingLike) {
+          // If the user has already liked the gallery, remove the like
           gallery.likes--;
-          user.likes = user.likes.filter(
-            (id) => id.toString() !== galleryIdParam.toString()
+          user.likes = user.likes?.filter(
+            (like) => like.imageId.toString() !== galleryIdParam.toString()
           );
         } else {
+          // If the user hasn't liked the gallery, add the like
           gallery.likes++;
-          user.likes?.push(galleryIdParam);
+          const imageFiles = gallery.images.map((image) => image.file);
+
+          user.likes?.push({
+            storeId: storeIdParam.toString(),
+            imageId: galleryIdParam.toString(),
+            imageFiles,
+          });
         }
       }
-
       await user.save();
       await store.save();
 
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: "Gallery likes updated successfully",
+      });
+    }
+
+    return res.status(401).json(<ResponseObj>{
+      error: true,
+      message: response.message,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getGalleryById = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const user = await USERS.findOne({ _id: payload._id });
+
+      if (!user) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "User not found",
+        });
+      }
+
+      const { id: galleryIdParam, storeId: storeIdParam } = req.params;
+
+      const store = await STORES.findOne({ _id: storeIdParam });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(galleryIdParam)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid gallery id",
+        });
+      }
+
+      const gallery = store.gallery.find((gallery) => {
+        return gallery._id?.toString() === galleryIdParam.toString();
+      });
+
+      if (!gallery) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Gallery not found",
+        });
+      }
+
+      return res.status(200).json(<ResponseObj<GetGalleryByIdResponse>>{
+        error: false,
+        message: "Gallery retrieved successfully",
+        data: {
+          gallery,
+        },
       });
     }
 

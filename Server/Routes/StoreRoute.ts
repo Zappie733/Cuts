@@ -58,6 +58,7 @@ import {
 import {
   addGallery,
   deleteGalleryById,
+  getGalleryById,
   getGalleryByStoreId,
   getMostLikesGalleryByStoreId,
   likeGalleryById,
@@ -149,3 +150,4 @@ StoreRoute.post("/gallery/addGallery", addGallery);
 StoreRoute.delete("/gallery/deleteGalleryById/:id", deleteGalleryById);
 StoreRoute.put("/gallery/updateGallery", updateGallery);
 StoreRoute.patch("/gallery/likeGalleryById/:storeId/:id", likeGalleryById);
+StoreRoute.get("/gallery/getGalleryById/:storeId/:id", getGalleryById);

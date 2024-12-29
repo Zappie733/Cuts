@@ -25,6 +25,7 @@ import {
   AntDesign,
   EvilIcons,
   FontAwesome5,
+  Ionicons,
   MaterialCommunityIcons,
   MaterialIcons,
   Octicons,
@@ -58,6 +59,10 @@ export const SettingsScreen = ({
   const { auth, setAuth, updateAccessToken, refetchAuth } = useContext(Auth);
 
   let { user } = useContext(User);
+  useEffect(() => {
+    console.log(JSON.stringify(user, null, 2));
+  }, [user]);
+
   const { store, refetchData } = useContext(StoresC);
 
   const screenWidth = Dimensions.get("screen").width;
@@ -89,10 +94,6 @@ export const SettingsScreen = ({
     }
 
     setLoading(false);
-  };
-
-  const handleAddStore = () => {
-    navigation.navigate("RegisterStoreScreen");
   };
 
   const [getUserStores, setGetUserStores] =
@@ -425,9 +426,33 @@ export const SettingsScreen = ({
           </Pressable>
         </View>
 
-        {/* theme and logout for user */}
+        {/* liked images, theme and logout for user */}
         {(user.role === "user" || user.role === "admin") && (
           <>
+            {/* Liked Images Button */}
+            <Pressable onPress={() => navigation.navigate("LikedImages")}>
+              <View
+                style={[
+                  styles.likedImagesContainer,
+                  { backgroundColor: activeColors.accent, marginBottom: 20 },
+                ]}
+              >
+                <Ionicons
+                  name="images"
+                  size={24}
+                  color={activeColors.secondary}
+                />
+                <Text
+                  style={[
+                    styles.likedImagesText,
+                    { color: activeColors.secondary },
+                  ]}
+                >
+                  Liked Images
+                </Text>
+              </View>
+            </Pressable>
+
             {/* Theme */}
             <View
               style={[
@@ -613,7 +638,7 @@ export const SettingsScreen = ({
                   styles.addStoreContainer,
                   { backgroundColor: activeColors.accent },
                 ]}
-                onPress={handleAddStore}
+                onPress={() => navigation.navigate("RegisterStoreScreen")}
               >
                 <Text
                   style={{ color: activeColors.secondary, fontWeight: "bold" }}
@@ -814,6 +839,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "300",
     marginBottom: 5,
+  },
+  likedImagesContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 30,
+    borderRadius: 10,
+    paddingVertical: 10,
+  },
+  likedImagesText: {
+    fontSize: 20,
+    marginLeft: 10,
+    fontWeight: "500",
   },
   switchContainer: {
     flexDirection: "row",

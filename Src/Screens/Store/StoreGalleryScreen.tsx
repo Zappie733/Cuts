@@ -60,10 +60,10 @@ export const StoreGalleryScreen = ({
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   const { user, refetchUser } = useContext(User);
   useEffect(() => {
-    console.log(user);
+    console.log(JSON.stringify(user, null, 2));
   }, [user]);
   const [selectedGalleryId, setSelectedGalleryId] = useState("");
-  console.log("selectedGalleryId", selectedGalleryId);
+  // console.log("selectedGalleryId", selectedGalleryId);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -325,7 +325,7 @@ export const StoreGalleryScreen = ({
                   onPress={() => setSelectedGalleryId(gallery._id ?? "")}
                 >
                   <ImageBackground
-                    source={{ uri: gallery.images[0].file }} // Replace with your image URL
+                    source={{ uri: gallery.images[0].file }}
                     style={[
                       styles.gridItem,
                       {
@@ -385,7 +385,7 @@ export const StoreGalleryScreen = ({
                           }}
                         />
 
-                        {/* Created Data and Likes */}
+                        {/* Created Date and Likes */}
                         <View style={styles.dateNLikesContainer}>
                           {/* created date */}
                           <View>
@@ -410,7 +410,9 @@ export const StoreGalleryScreen = ({
                             <Pressable onPress={handleLikeGalleryById}>
                               <AntDesign
                                 name={
-                                  user.likes.includes(gallery._id)
+                                  user.likes?.find(
+                                    (like) => like.imageId === gallery._id
+                                  )
                                     ? "like1"
                                     : "like2"
                                 }
@@ -711,7 +713,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   image: {
-    resizeMode: "contain",
+    resizeMode: "cover",
     width: "100%",
     height: "100%",
   },
