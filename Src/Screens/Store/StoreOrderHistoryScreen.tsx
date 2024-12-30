@@ -333,7 +333,6 @@ export const StoreOrderHistoryScreen = ({
             </View>
           </View>
 
-          {/* Orders */}
           {data?.total !== 0 && (
             <View
               style={[
@@ -731,8 +730,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 30,
     marginBottom: 30,
     borderRadius: 10,
-    padding: 20,
-    height: 500,
+    padding: 10,
+    height: 420,
   },
 
   statusContainer: {

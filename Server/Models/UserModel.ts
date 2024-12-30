@@ -67,6 +67,12 @@ const UserSchema = new Schema(
           type: String,
           enum: ["salon", "barbershop"], // Restrict storeType to "Salon" or "Barbershop"
         },
+        storeDistrict: {
+          type: String,
+        },
+        storeSubDistrict: {
+          type: String,
+        },
         storeLocation: {
           type: String,
         },

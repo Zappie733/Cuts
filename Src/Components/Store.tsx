@@ -61,6 +61,8 @@ export const Store = ({
       role: "store",
       storeType: data.type,
       storeName: data.name,
+      storeDistrict: data.district,
+      storeSubDistrict: data.subDistrict,
       storeLocation: data.location,
       storeImages: data.images,
       storeDocuments: data.documents,
@@ -249,6 +251,13 @@ export const Store = ({
           </Text>
           <Text style={[styles.text, { color: activeColors.accent }]}>
             <Text style={{ fontWeight: "400" }}>Status:</Text> {data.status}
+          </Text>
+          <Text style={[styles.text, { color: activeColors.accent }]}>
+            <Text style={{ fontWeight: "400" }}>District:</Text> {data.district}
+          </Text>
+          <Text style={[styles.text, { color: activeColors.accent }]}>
+            <Text style={{ fontWeight: "400" }}>Sub-District:</Text>{" "}
+            {data.subDistrict}
           </Text>
           <Text
             style={[styles.text, { color: activeColors.accent }]}
@@ -520,6 +529,8 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   infoContainer: {
     flexDirection: "column",

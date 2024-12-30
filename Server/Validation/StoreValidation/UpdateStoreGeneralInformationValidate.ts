@@ -26,6 +26,8 @@ export const UpdateStoreGeneralInformationValidate = (
       .min(1)
       .required()
       .label("Images"),
+    district: Joi.string().required().label("District"),
+    subDistrict: Joi.string().required().label("Subdistrict"),
     location: Joi.string().required().label("Location"),
     openHour: Joi.number().min(0).max(23).required().label("Open Hour"),
     openMinute: Joi.number().min(0).max(59).required().label("Open Minute"),

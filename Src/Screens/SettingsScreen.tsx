@@ -59,9 +59,9 @@ export const SettingsScreen = ({
   const { auth, setAuth, updateAccessToken, refetchAuth } = useContext(Auth);
 
   let { user } = useContext(User);
-  useEffect(() => {
-    console.log(JSON.stringify(user, null, 2));
-  }, [user]);
+  // useEffect(() => {
+  //   console.log(JSON.stringify(user, null, 2));
+  // }, [user]);
 
   const { store, refetchData } = useContext(StoresC);
 
@@ -343,6 +343,28 @@ export const SettingsScreen = ({
                   ]}
                 >
                   <Text style={styles.storeGeneralInfoTextLabel}>
+                    District:
+                  </Text>{" "}
+                  {store.district}
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>
+                    Sub-District:
+                  </Text>{" "}
+                  {store.subDistrict}
+                </Text>
+                <Text
+                  style={[
+                    styles.storeGeneralInfoText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  <Text style={styles.storeGeneralInfoTextLabel}>
                     Location:
                   </Text>{" "}
                   {store.location}
@@ -426,33 +448,35 @@ export const SettingsScreen = ({
           </Pressable>
         </View>
 
-        {/* liked images, theme and logout for user */}
-        {(user.role === "user" || user.role === "admin") && (
-          <>
-            {/* Liked Images Button */}
-            <Pressable onPress={() => navigation.navigate("LikedImages")}>
-              <View
+        {/* liked images */}
+        {user.role === "user" && (
+          <Pressable onPress={() => navigation.navigate("LikedImages")}>
+            <View
+              style={[
+                styles.likedImagesContainer,
+                { backgroundColor: activeColors.accent, marginBottom: 20 },
+              ]}
+            >
+              <Ionicons
+                name="images"
+                size={24}
+                color={activeColors.secondary}
+              />
+              <Text
                 style={[
-                  styles.likedImagesContainer,
-                  { backgroundColor: activeColors.accent, marginBottom: 20 },
+                  styles.likedImagesText,
+                  { color: activeColors.secondary },
                 ]}
               >
-                <Ionicons
-                  name="images"
-                  size={24}
-                  color={activeColors.secondary}
-                />
-                <Text
-                  style={[
-                    styles.likedImagesText,
-                    { color: activeColors.secondary },
-                  ]}
-                >
-                  Liked Images
-                </Text>
-              </View>
-            </Pressable>
+                Liked Images
+              </Text>
+            </View>
+          </Pressable>
+        )}
 
+        {/*  theme and logout for user */}
+        {(user.role === "user" || user.role === "admin") && (
+          <>
             {/* Theme */}
             <View
               style={[

@@ -345,6 +345,14 @@ const StoreSchema = new Schema(
       required: true,
       default: "Waiting for Approval",
     },
+    district: {
+      type: String,
+      required: true,
+    },
+    subDistrict: {
+      type: String,
+      required: true,
+    },
     location: {
       type: String,
       required: true,
@@ -435,6 +443,10 @@ const StoreSchema = new Schema(
       type: Number,
       required: true,
       default: 10,
+    },
+    isDeletedFromRejectedStatus: {
+      type: Boolean,
+      default: false,
     },
   },
   {

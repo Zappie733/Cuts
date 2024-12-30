@@ -115,7 +115,7 @@ export const deleteStore = async ({
 export const getStoresByStatus = async ({
   auth,
   updateAccessToken,
-  params,
+  params, //limit, offset, status, search, type
 }: ApiRequestProps<GetStoresByStatusParam>): Promise<
   IResponseProps<StoresByStatusResponse>
 > => {
@@ -128,6 +128,7 @@ export const getStoresByStatus = async ({
       offset: params?.offset,
       status: params?.status,
       search: params?.search,
+      type: params?.type,
     },
   };
 

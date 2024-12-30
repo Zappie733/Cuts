@@ -76,6 +76,8 @@ export const RegisterStoreScreen = ({
     storeImages: [],
     storeName: "",
     storeType: "",
+    storeDistrict: "",
+    storeSubDistrict: "",
     storeLocation: "",
     storeDocuments: [],
   };
@@ -483,7 +485,8 @@ export const RegisterStoreScreen = ({
               ]}
             >
               • <Text style={{ fontWeight: "bold" }}>Rejected</Text> (Admin
-              rejected your store registration, you can modify and resubmit)
+              rejected your store registration, you must review the store first
+              to make a new one with the same email)
             </Text>
             <Text
               style={[
@@ -832,6 +835,31 @@ export const RegisterStoreScreen = ({
                     iconName="shopping-store"
                     iconSource="Fontisto"
                   />
+                  {/* Store District Input */}
+                  <Input
+                    key="registerStoreDistrict"
+                    context="District"
+                    placeholder="Enter Store District"
+                    value={storeRegisterFormData.storeDistrict}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeDistrict")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                  />
+                  {/* Store Sub-District Input */}
+                  <Input
+                    key="registerStoreSubDistrict"
+                    context="Sub-District"
+                    placeholder="Enter Store Sub-District"
+                    value={storeRegisterFormData.storeSubDistrict}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeSubDistrict")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                  />
+
                   {/* Store Location Input */}
                   <Input
                     key="registerStoreLocation"
@@ -973,6 +1001,32 @@ export const RegisterStoreScreen = ({
                     }
                     iconName="shopping-store"
                     iconSource="Fontisto"
+                    isDisabled={true}
+                  />
+                  {/* Store District Input */}
+                  <Input
+                    key="registerStoreReviewDistrict"
+                    context="District"
+                    placeholder="Enter Store District"
+                    value={storeRegisterFormData.storeDistrict}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeDistrict")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                    isDisabled={true}
+                  />
+                  {/* Store Sub-District Input */}
+                  <Input
+                    key="registerStoreReviewSubDistrict"
+                    context="Sub-District"
+                    placeholder="Enter Store Sub-District"
+                    value={storeRegisterFormData.storeSubDistrict}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeSubDistrict")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
                     isDisabled={true}
                   />
                   {/* Store Location Input */}
@@ -1216,76 +1270,70 @@ export const RegisterStoreScreen = ({
                   {/* Hold */}
                   {status === "Hold" && (
                     <>
-                      {user.role === "admin" && (
-                        <>
-                          {/* UnHold */}
-                          <Pressable
-                            onPress={() =>
-                              Alert.alert(
-                                "Confirmation",
-                                "Are you sure you want to UNHOLD this store?",
-                                [
-                                  {
-                                    text: "Yes",
-                                    onPress: () => handleUnHoldStore(),
-                                  },
-                                  { text: "No" },
-                                ],
-                                { cancelable: true }
-                              )
-                            }
-                          >
-                            <Text
-                              style={[
-                                styles.registerButtonContainer,
-                                {
-                                  color: activeColors.secondary,
-                                  backgroundColor: activeColors.accent,
-                                  width: (screenWidth * 2) / 3 + 50,
-                                },
-                              ]}
-                            >
-                              UnHold Store
-                            </Text>
-                          </Pressable>
-                        </>
-                      )}
+                      {/* Little Text */}
+                      <Text
+                        style={[styles.text2, { color: activeColors.accent }]}
+                      >
+                        Hold Reasons
+                      </Text>
 
-                      {user.role === "user" && (
-                        <>
-                          {/* Little Text */}
-                          <Text
-                            style={[
-                              styles.text2,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            Hold Reasons
-                          </Text>
-
-                          <View
-                            style={[
-                              styles.reasonContainer,
-                              {
-                                backgroundColor: activeColors.secondary,
-                                borderColor: activeColors.tertiary,
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.reason,
-                                { color: activeColors.accent },
-                              ]}
-                              numberOfLines={100}
-                            >
-                              {reason}
-                            </Text>
-                          </View>
-                        </>
-                      )}
+                      <View
+                        style={[
+                          styles.reasonContainer,
+                          {
+                            backgroundColor: activeColors.secondary,
+                            borderColor: activeColors.tertiary,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.reason,
+                            { color: activeColors.accent },
+                          ]}
+                          numberOfLines={100}
+                        >
+                          {reason}
+                        </Text>
+                      </View>
                     </>
                   )}
+
+                  {user.role === "admin" && status === "Hold" && (
+                    <>
+                      {/* UnHold */}
+                      <Pressable
+                        onPress={() =>
+                          Alert.alert(
+                            "Confirmation",
+                            "Are you sure you want to UNHOLD this store?",
+                            [
+                              {
+                                text: "Yes",
+                                onPress: () => handleUnHoldStore(),
+                              },
+                              { text: "No" },
+                            ],
+                            { cancelable: true }
+                          )
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.registerButtonContainer,
+                            {
+                              color: activeColors.secondary,
+                              backgroundColor: activeColors.accent,
+                              width: (screenWidth * 2) / 3 + 50,
+                            },
+                          ]}
+                        >
+                          UnHold Store
+                        </Text>
+                      </Pressable>
+                    </>
+                  )}
+
                   {/* Rejected */}
                   {status === "Rejected" && (
                     <>

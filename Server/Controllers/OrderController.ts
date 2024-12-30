@@ -1422,9 +1422,7 @@ export const completeOrder = async (req: Request, res: Response) => {
 
       if (orderHistory) {
         orderHistory.status = "Completed";
-        orderHistory.timeDifference = Math.ceil(
-          (currentTime.getTime() - order.endTime.getTime()) / (1000 * 60)
-        );
+        orderHistory.timeDifference = order.timeDifference;
         orderHistory.endTime = currentTime;
 
         await orderHistory.save();

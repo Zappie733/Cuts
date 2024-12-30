@@ -59,6 +59,8 @@ export const StoreProfileScreen = ({
   const defaultStoreFormData: UpdateStoreGeneralInformationData = {
     name: store.name,
     images: store.images,
+    district: store.district,
+    subDistrict: store.subDistrict,
     location: store.location,
     openHour: store.openHour,
     openMinute: store.openMinute,
@@ -70,7 +72,7 @@ export const StoreProfileScreen = ({
   // console.log(JSON.stringify(defaultStoreFormData, null, 2));
   const [storeFormData, setStoreFormData] =
     useState<UpdateStoreGeneralInformationData>(defaultStoreFormData);
-  // console.log(JSON.stringify(storeFormData, null, 2));
+  console.log(JSON.stringify(storeFormData, null, 2));
   const handleTextChange = <T extends keyof UpdateStoreGeneralInformationData>(
     text: UpdateStoreGeneralInformationData[T],
     fieldname: T
@@ -80,6 +82,8 @@ export const StoreProfileScreen = ({
   };
 
   const [storeNameEdit, setStoreNameEdit] = useState(false);
+  const [storeDistrictEdit, setStoreDistrictEdit] = useState(false);
+  const [storeSubDistrictEdit, setStoreSubDistrictEdit] = useState(false);
   const [storeLocationEdit, setStoreLocationEdit] = useState(false);
   const storeCanChooseWorkerOptions = [
     { label: "Yes", value: "true" },
@@ -293,6 +297,28 @@ export const StoreProfileScreen = ({
               updateValue={(text: string) => handleTextChange(text, "name")}
               isEditable={storeNameEdit}
               setEditable={setStoreNameEdit}
+            />
+            {/* district Input */}
+            <Input
+              key="storeDistrict"
+              context="District"
+              placeholder="Enter Your Store District"
+              value={storeFormData.district}
+              updateValue={(text: string) => handleTextChange(text, "district")}
+              isEditable={storeDistrictEdit}
+              setEditable={setStoreDistrictEdit}
+            />
+            {/* subDistict Input */}
+            <Input
+              key="storeSubDistrict"
+              context="Sub-District"
+              placeholder="Enter Your Store Sub-District"
+              value={storeFormData.subDistrict}
+              updateValue={(text: string) =>
+                handleTextChange(text, "subDistrict")
+              }
+              isEditable={storeSubDistrictEdit}
+              setEditable={setStoreSubDistrictEdit}
             />
             {/* location Input */}
             <Input

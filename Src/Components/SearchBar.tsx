@@ -1,5 +1,5 @@
-import { StyleSheet, Text, TextInput, View } from "react-native";
-import React, { useContext } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import React, { useContext, useEffect } from "react";
 import { ISearchBarProps } from "../Types/ComponentTypes/SearchBarTypes";
 import { colors } from "../Config/Theme";
 import { EvilIcons } from "@expo/vector-icons";
@@ -9,6 +9,7 @@ export const SearchBar = ({
   placeHolder,
   input,
   onSearch,
+  onPress,
 }: ISearchBarProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
@@ -19,23 +20,24 @@ export const SearchBar = ({
         styles.container,
         {
           backgroundColor: activeColors.secondary,
-          borderColor: activeColors.secondary,
+          borderColor: activeColors.tertiary,
         },
       ]}
     >
-      <View>
+      <View style={{ flex: 1 }}>
         <TextInput
           placeholder={placeHolder}
           onChangeText={onSearch}
           value={input}
           style={[styles.input, { color: activeColors.accent }]}
           placeholderTextColor={activeColors.accent}
+          onSubmitEditing={onPress}
         />
       </View>
 
-      <View>
-        <EvilIcons name="search" size={30} color={activeColors.accent} />
-      </View>
+      <Pressable onPress={onPress}>
+        <EvilIcons name="search" size={28} color={activeColors.accent} />
+      </Pressable>
     </View>
   );
 };

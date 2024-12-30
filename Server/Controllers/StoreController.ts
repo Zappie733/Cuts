@@ -81,6 +81,8 @@ export const registerStore = async (req: Request, res: Response) => {
         password,
         role,
         storeImages,
+        storeDistrict,
+        storeSubDistrict,
         storeLocation,
         storeName,
         storeType,
@@ -96,7 +98,10 @@ export const registerStore = async (req: Request, res: Response) => {
         });
 
       //Check if store name exist
-      const isStoreNameExist = await STORES.findOne({ name: storeName });
+      const isStoreNameExist = await STORES.findOne({
+        name: storeName,
+        isDeletedFromRejectedStatus: false,
+      });
       if (isStoreNameExist)
         return res.status(409).json(<ResponseObj>{
           error: true,
@@ -110,6 +115,8 @@ export const registerStore = async (req: Request, res: Response) => {
       const pendingStoreData: PendingStoreObj = {
         storeImages,
         storeName,
+        storeDistrict,
+        storeSubDistrict,
         storeLocation,
         storeType,
         storeDocuments,
@@ -191,6 +198,8 @@ export const verifyStore = async (req: Request, res: Response) => {
         const {
           storeImages,
           storeName,
+          storeDistrict,
+          storeSubDistrict,
           storeLocation,
           storeType,
           storeDocuments,
@@ -203,6 +212,8 @@ export const verifyStore = async (req: Request, res: Response) => {
           images: uploadedImages,
           name: storeName,
           type: storeType,
+          district: storeDistrict,
+          subDistrict: storeSubDistrict,
           location: storeLocation,
           documents: uploadedDocuments,
           openHour: 9,
@@ -310,9 +321,9 @@ export const getStoresByUserId = async (req: Request, res: Response) => {
         };
 
         for (const user of users) {
-          const store = await STORES.findOne({ userId: user.id }).select(
-            "-workers -services -serviceProducts"
-          );
+          const store = await STORES.findOne({
+            userId: user.id,
+          }).select("-workers -services -serviceProducts");
 
           if (store) {
             responseData.stores.push(store);
@@ -393,17 +404,22 @@ export const deleteStore = async (req: Request, res: Response) => {
         const store = await STORES.findOne({ userId: userStore.id });
 
         if (store) {
-          const imagekit = new ImageKit({
-            publicKey: IMAGEKIT_PUBLIC_KEY,
-            privateKey: IMAGEKIT_PRIVATE_KEY,
-            urlEndpoint: IMAGEKIT_BASEURL,
-          });
+          if (store.status === "Rejected") {
+            store.isDeletedFromRejectedStatus = true;
+            await store.save();
+          } else {
+            const imagekit = new ImageKit({
+              publicKey: IMAGEKIT_PUBLIC_KEY,
+              privateKey: IMAGEKIT_PRIVATE_KEY,
+              urlEndpoint: IMAGEKIT_BASEURL,
+            });
 
-          await imagekit.deleteFolder("Stores/" + store.id);
+            await imagekit.deleteFolder("Stores/" + store.id);
 
-          //delete store
-          // await STORES.findOneAndDelete({ userId: userStore.id });
-          await store.deleteOne();
+            //delete store
+            // await STORES.findOneAndDelete({ userId: userStore.id });
+            await store.deleteOne();
+          }
 
           //delete userTokens
           const userTokens = await USERTOKENS.find({ userId: userStore.id });
@@ -462,7 +478,7 @@ export const getStoresByStatus = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
-      const { limit, offset, status, search } = req.query;
+      const { limit, offset, status, search, type } = req.query;
 
       let query: any = {};
 
@@ -482,13 +498,28 @@ export const getStoresByStatus = async (req: Request, res: Response) => {
           query.status = status;
         }
       }
-      console.log(search);
+      // console.log(search);
+      // if (search) {
+      //   query.name = { $regex: search, $options: "i" };
+      // }
       if (search) {
-        query.name = { $regex: search, $options: "i" };
+        query.$or = [
+          { name: { $regex: search, $options: "i" } },
+          { district: { $regex: search, $options: "i" } },
+          { subDistrict: { $regex: search, $options: "i" } },
+        ];
       }
 
+      if (type !== undefined) {
+        query.type = type;
+      }
+
+      console.log(JSON.stringify(query, null, 2));
+
       const stores = await STORES.find(query)
-        .select("-workers -services -serviceProducts")
+        .select(
+          "-workers -services -serviceProducts -salesProducts -storePromotions -gallery -toleranceTime -canChooseWorker -approvedBy -rejectedBy -onHoldBy -unHoldBy -approvedDate -rejectedDate -onHoldDate -unHoldDate"
+        )
         .limit(Number(limit))
         .skip(Number(offset));
 
@@ -1102,6 +1133,8 @@ export const updateStoreGeneralInformation = async (
       const {
         name,
         images,
+        district,
+        subDistrict,
         location,
         openHour,
         openMinute,
@@ -1111,7 +1144,10 @@ export const updateStoreGeneralInformation = async (
         toleranceTime,
       } = <UpdateStoreGeneralInformationRequestObj>req.body;
 
-      const storeNameExist = await STORES.findOne({ name: name });
+      const storeNameExist = await STORES.findOne({
+        name: name,
+        isDeletedFromRejectedStatus: false,
+      });
 
       if (
         storeNameExist &&
@@ -1138,6 +1174,8 @@ export const updateStoreGeneralInformation = async (
       }
 
       store.name = name;
+      store.district = district;
+      store.subDistrict = subDistrict;
       store.location = location;
       store.openHour = openHour;
       store.openMinute = openMinute;

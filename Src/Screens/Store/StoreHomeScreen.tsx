@@ -515,6 +515,7 @@ export const StoreHomeScreen = ({
             <View style={styles.checkBoxContainer}>
               <CheckBox
                 label="Onsite Future Booking?"
+                value={showDateTimePicker}
                 onPress={(value: boolean) => setShowDateTimePicker(value)}
               />
             </View>
