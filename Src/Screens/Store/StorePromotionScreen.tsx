@@ -37,6 +37,7 @@ import { SelectSingleImage } from "../../Components/Image";
 import { IImageProps } from "../../Types/ComponentTypes/ImageTypes";
 import { Input } from "../../Components/Input";
 import { DateTimePickerComponent } from "../../Components/DateTimePicker";
+import { CheckBox } from "../../Components/CheckBox";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -124,6 +125,7 @@ export const StorePromotionScreen = ({
     },
     startDate: null,
     endDate: null,
+    showImageOnly: false,
   };
 
   const [addData, setAddData] = useState(defaultAddData);
@@ -178,6 +180,7 @@ export const StorePromotionScreen = ({
     },
     startDate: null,
     endDate: null,
+    showImageOnly: false,
   };
 
   const [updateData, setUpdateData] = useState(defaultUpdateData);
@@ -213,6 +216,10 @@ export const StorePromotionScreen = ({
       image: store.storePromotions.find(
         (storePromotion) => storePromotion._id === storePromotionId
       )?.image ?? { file: "" },
+      showImageOnly:
+        store.storePromotions.find(
+          (storePromotion) => storePromotion._id === storePromotionId
+        )?.showImageOnly ?? false,
     };
     console.log("forEditData", currentData);
     setUpdateData(currentData);
@@ -311,30 +318,36 @@ export const StorePromotionScreen = ({
                     {
                       backgroundColor:
                         theme.mode === "dark"
-                          ? "rgba(0,0,0,0.4)"
+                          ? "rgba(0,0,0,0.3)"
                           : "rgba(255,255,255,0.1)",
                     },
                   ]}
                 >
-                  <Text style={[styles.text, { color: activeColors.accent }]}>
-                    {storePromotion.name}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.startEndText,
-                      { color: activeColors.accent },
-                    ]}
-                  >
-                    Start: {dateFormat(storePromotion.startDate)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.startEndText,
-                      { color: activeColors.accent },
-                    ]}
-                  >
-                    End: {dateFormat(storePromotion.endDate)}
-                  </Text>
+                  {storePromotion.showImageOnly === false && (
+                    <>
+                      <Text
+                        style={[styles.text, { color: activeColors.accent }]}
+                      >
+                        {storePromotion.name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.startEndText,
+                          { color: activeColors.accent },
+                        ]}
+                      >
+                        Start: {dateFormat(storePromotion.startDate)}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.startEndText,
+                          { color: activeColors.accent },
+                        ]}
+                      >
+                        End: {dateFormat(storePromotion.endDate)}
+                      </Text>
+                    </>
+                  )}
                 </View>
 
                 {/* Delete Icon */}
@@ -536,6 +549,23 @@ export const StorePromotionScreen = ({
                   }}
                 />
 
+                {/* Show Only Image */}
+                <View style={styles.showOnlyImageContainer}>
+                  <CheckBox
+                    label="Show Image Only"
+                    value={
+                      isAddForm
+                        ? addData.showImageOnly
+                        : updateData.showImageOnly
+                    }
+                    onPress={(value: boolean) => {
+                      isAddForm
+                        ? handleAddTextChange(value, "showImageOnly")
+                        : handleUpdateTextChange(value, "showImageOnly");
+                    }}
+                  />
+                </View>
+
                 {/* create store promotion */}
                 <Pressable
                   style={[
@@ -555,9 +585,7 @@ export const StorePromotionScreen = ({
                       fontSize: 16,
                     }}
                   >
-                    {isAddForm
-                      ? "Add Service Product"
-                      : "Update Service Product"}
+                    {isAddForm ? "Add Store Promo" : "Update Store Promo"}
                   </Text>
                 </Pressable>
               </View>
@@ -658,5 +686,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 50,
     paddingHorizontal: 50,
+  },
+  showOnlyImageContainer: {
+    marginVertical: 10,
+    paddingLeft: 10,
   },
 });

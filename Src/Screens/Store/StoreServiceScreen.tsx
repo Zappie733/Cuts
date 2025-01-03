@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     marginVertical: 10,
-    marginHorizontal: 10,
+    // marginHorizontal: 10,
   },
   modalInfoPriceNDuration: {
     flexDirection: "column",

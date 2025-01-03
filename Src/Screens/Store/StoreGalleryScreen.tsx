@@ -296,7 +296,7 @@ export const StoreGalleryScreen = ({
             <Text style={[styles.title, { color: activeColors.accent }]}>
               Gallery
             </Text>
-            {/* add salesProduct product button */}
+            {/* add gallery product button */}
             <Pressable
               style={styles.addButtonContainer}
               onPress={() => setIsAddForm(true)}
@@ -371,7 +371,7 @@ export const StoreGalleryScreen = ({
                         />
 
                         {/* image */}
-                        <View style={{ width: "100%", height: 400 }}>
+                        <View style={{ width: "100%", height: 300 }}>
                           <ImageSlider
                             images={gallery.images.map((item) => item.file)}
                           />

@@ -22,6 +22,7 @@ export const UpdateStorePromotionValidate = (
     })
       .required()
       .label("Image"),
+    showImageOnly: Joi.boolean().required().label("Show Image Only"),
   });
 
   return schema.validate(data);

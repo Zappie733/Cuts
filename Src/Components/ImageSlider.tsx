@@ -48,7 +48,7 @@ export const ImageSlider = ({ images }: IImageSliderProps) => {
             <Image
               key={index}
               source={{ uri: prepareUri(uri) }}
-              style={styles.image}
+              style={[styles.image, { backgroundColor: "black" }]}
             />
           ))
         ) : (
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   image: {
-    resizeMode: "contain",
+    resizeMode: "cover",
     width: "auto",
     height: "100%",
     borderRadius: 10,

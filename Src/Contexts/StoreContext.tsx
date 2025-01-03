@@ -16,7 +16,11 @@ import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { IStoreContext } from "../Types/ContextTypes/StoreContextTypes";
 import { StoreObj } from "../Types/StoreTypes/StoreTypes";
-import { getStoreByUserId } from "../Middlewares/StoreMiddleware/StoreMiddleware";
+import {
+  getStoreById,
+  getStoreByUserId,
+} from "../Middlewares/StoreMiddleware/StoreMiddleware";
+import { apiCallHandler } from "../Middlewares/util";
 
 const defaultContext: IStoreContext = {
   store: {
@@ -57,6 +61,7 @@ const defaultContext: IStoreContext = {
   },
   setStore: () => {}, // Placeholder function
   refetchData: () => {},
+  refetchStoreById: () => {},
 };
 
 export const Store = createContext(defaultContext);
@@ -161,8 +166,31 @@ export const StoreContext = ({ children }: { children: ReactNode }) => {
     };
   }, [auth]);
 
+  const fetchStoreById = async (storeId: string) => {
+    const response = await apiCallHandler({
+      apiCall: () =>
+        getStoreById({ auth, updateAccessToken, params: { storeId } }),
+      auth,
+      setAuth,
+      navigation,
+    });
+
+    if (response.status >= 200 && response.status < 400 && response.data) {
+      setStore(response.data);
+    } else {
+      console.log(response.status, response.message);
+    }
+  };
+
   return (
-    <Store.Provider value={{ store, setStore, refetchData: fetchStore }}>
+    <Store.Provider
+      value={{
+        store,
+        setStore,
+        refetchData: fetchStore,
+        refetchStoreById: fetchStoreById,
+      }}
+    >
       {children}
     </Store.Provider>
   );

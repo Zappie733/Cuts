@@ -246,7 +246,7 @@ export const LikedImagesScreen = ({
                     />
 
                     {/* image */}
-                    <View style={{ width: "100%", height: 400 }}>
+                    <View style={{ width: "100%", height: 300 }}>
                       <ImageSlider images={likedObj.imageFiles} />
                     </View>
 

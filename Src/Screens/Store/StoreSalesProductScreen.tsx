@@ -471,7 +471,7 @@ export const StoreSalesProductScreen = ({
                           {/* price */}
                           <Text
                             style={[
-                              styles.modalInfoText,
+                              styles.modalInfoPrice,
                               { color: activeColors.accent },
                             ]}
                           >
@@ -488,42 +488,52 @@ export const StoreSalesProductScreen = ({
                         >
                           <Text
                             style={[
-                              styles.modalInfoLinkText,
-                              { color: activeColors.accent },
+                              styles.modalInfoLinkTitle,
+                              {
+                                color: activeColors.infoColor,
+                              },
                             ]}
                           >
                             Buy links
                           </Text>
                           {salesProduct.links.map((link) => (
                             <View
-                              style={{ flexDirection: "row" }}
+                              style={[
+                                styles.modalLinkItemContainer,
+                                { borderColor: activeColors.tertiary },
+                              ]}
                               key={link.label}
                             >
-                              <Text
-                                style={[
-                                  styles.modalInfoLinkText,
-                                  {
-                                    color: activeColors.accent,
-                                    marginLeft: 10,
-                                  },
-                                ]}
-                              >
-                                {labelFormat(link.label ? link.label : "")}
-                                {": "}
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.modalInfoLinkText,
-                                  {
-                                    color: activeColors.accent,
-                                    marginLeft: 5,
-                                    textDecorationLine: "underline",
-                                    width: "70%",
-                                  },
-                                ]}
-                              >
-                                {link.link ? link.link : ""}
-                              </Text>
+                              <View style={{ width: "30%" }}>
+                                <Text
+                                  style={[
+                                    styles.modalInfoLinkText,
+                                    {
+                                      color: activeColors.infoColor,
+                                      marginLeft: 10,
+                                    },
+                                  ]}
+                                >
+                                  {labelFormat(link.label ? link.label : "")}
+                                  {": "}
+                                </Text>
+                              </View>
+
+                              <View style={{ width: "70%" }}>
+                                <Text
+                                  style={[
+                                    styles.modalInfoLinkText,
+                                    {
+                                      color: activeColors.accent,
+                                      marginLeft: 5,
+                                      textDecorationLine: "underline",
+                                      width: "70%",
+                                    },
+                                  ]}
+                                >
+                                  {link.link ? link.link : ""}
+                                </Text>
+                              </View>
                             </View>
                           ))}
                           {salesProduct.links.length === 0 && (
@@ -872,7 +882,7 @@ export const StoreSalesProductScreen = ({
                       fontSize: 16,
                     }}
                   >
-                    {isAddForm ? "Add Service" : "Update Service"}
+                    {isAddForm ? "Add Sales Product" : "Update Sales Product"}
                   </Text>
                 </Pressable>
               </View>
@@ -972,18 +982,31 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     marginVertical: 10,
-    marginHorizontal: 10,
+    // marginHorizontal: 10,
   },
   modalInfo: {
     flexDirection: "column",
     alignItems: "center",
   },
-  modalInfoText: {
+  modalInfoPrice: {
     fontSize: 18,
     fontWeight: "bold",
   },
+  modalInfoLinkTitle: {
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 18,
+  },
   modalInfoLinkText: {
     fontSize: 16,
+  },
+  modalLinkItemContainer: {
+    marginVertical: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 10,
+    borderBottomWidth: 1,
   },
 
   formContainer: {

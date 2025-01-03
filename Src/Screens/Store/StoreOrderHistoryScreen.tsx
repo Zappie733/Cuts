@@ -47,6 +47,22 @@ export const StoreOrderHistoryScreen = ({
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
+  const priceFormat = (price: number) => {
+    let priceStr = price.toString();
+    let newStr = "";
+    let lastIndex = 3;
+    while (priceStr.length > lastIndex) {
+      newStr =
+        priceStr.slice(0, priceStr.length - lastIndex) +
+        "." +
+        priceStr.slice(-lastIndex);
+
+      lastIndex += 3;
+    }
+    if (newStr === "") return priceStr;
+    return newStr;
+  };
+
   const currentYear = new Date().getFullYear();
   const years = Array.from(
     { length: currentYear + 1 - new Date(store.approvedDate).getFullYear() }, // +1 so atleast it has the same year as currentYear
@@ -538,10 +554,12 @@ export const StoreOrderHistoryScreen = ({
                                         color: activeColors.accent,
                                       }}
                                     >
-                                      Rp.
-                                      {((100 - service.discount) *
-                                        service.price) /
-                                        100}{" "}
+                                      Rp
+                                      {priceFormat(
+                                        ((100 - service.discount) *
+                                          service.price) /
+                                          100
+                                      )}{" "}
                                       ({service.discount}% off)
                                     </Text>
                                   ) : (
@@ -550,7 +568,7 @@ export const StoreOrderHistoryScreen = ({
                                         color: activeColors.accent,
                                       }}
                                     >
-                                      Rp.{service.price}
+                                      Rp{priceFormat(service.price)}
                                     </Text>
                                   )}
                                 </View>
@@ -600,8 +618,10 @@ export const StoreOrderHistoryScreen = ({
                                             color: activeColors.accent,
                                           }}
                                         >
-                                          Rp.
-                                          {serviceProduct.addtionalPrice ?? 0}
+                                          Rp
+                                          {priceFormat(
+                                            serviceProduct.addtionalPrice ?? 0
+                                          )}
                                         </Text>
                                       </View>
                                     )
@@ -638,7 +658,7 @@ export const StoreOrderHistoryScreen = ({
                                   { color: activeColors.accent },
                                 ]}
                               >
-                                Total: Rp.{item.totalPrice}
+                                Total: Rp{priceFormat(item.totalPrice)}
                               </Text>
                             </View>
                           </View>

@@ -17,6 +17,7 @@ import { StoreHomeScreen } from "../Screens/Store/StoreHomeScreen";
 import { StoreScheduleScreen } from "../Screens/Store/StoreScheduleScreen";
 import { Theme } from "../Contexts/ThemeContext";
 import { Auth } from "../Contexts/AuthContext";
+import { OrderScreen } from "../Screens/OrderScreen";
 
 export type TabsStackParamsObj = {
   Home: undefined;
@@ -25,6 +26,8 @@ export type TabsStackParamsObj = {
   AdminStoreManagement: undefined;
 
   StoreSchedule: undefined;
+
+  Order: undefined;
 };
 
 const TabsStack = createBottomTabNavigator<TabsStackParamsObj>();
@@ -76,7 +79,7 @@ export const TabsNavigator = () => {
             return (
               <Fontisto name={iconName} size={iconSize} color={iconColor} />
             );
-          } else if (route.name === "StoreSchedule") {
+          } else if (route.name === "StoreSchedule" || route.name === "Order") {
             iconName = focused ? "clipboard-list" : "clipboard-list-outline";
             return (
               <MaterialCommunityIcons
@@ -119,6 +122,11 @@ export const TabsNavigator = () => {
             component={HomeScreen}
             options={{ unmountOnBlur: true }}
           />
+          <TabsStack.Screen
+            name="Order"
+            component={OrderScreen}
+            options={{ unmountOnBlur: true }}
+          />
         </>
       )}
       {role === "user" && (
@@ -127,6 +135,11 @@ export const TabsNavigator = () => {
           <TabsStack.Screen
             name="Home"
             component={HomeScreen}
+            options={{ unmountOnBlur: true }}
+          />
+          <TabsStack.Screen
+            name="Order"
+            component={OrderScreen}
             options={{ unmountOnBlur: true }}
           />
           <TabsStack.Screen

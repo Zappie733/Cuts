@@ -223,9 +223,9 @@ export const addStorePromotion = async (req: Request, res: Response) => {
         role: response.data?.role,
       };
 
-      const { name, image, startDate, endDate } = <AddStorePromotionRequestObj>(
-        req.body
-      );
+      const { name, image, startDate, endDate, showImageOnly } = <
+        AddStorePromotionRequestObj
+      >req.body;
 
       const store = await STORES.findOne({ userId: payload._id });
 
@@ -271,6 +271,7 @@ export const addStorePromotion = async (req: Request, res: Response) => {
         image: uploadedImage,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
+        showImageOnly,
       };
 
       store.storePromotions.push(newStorePromotion);
@@ -451,7 +452,7 @@ export const updateStorePromotion = async (req: Request, res: Response) => {
           .json(<ResponseObj>{ error: true, message: "Store not found" });
       }
 
-      const { promotionId, name, startDate, endDate, image } = <
+      const { promotionId, name, startDate, endDate, image, showImageOnly } = <
         UpdateStorePromotionRequestObj
       >req.body;
 
@@ -490,6 +491,7 @@ export const updateStorePromotion = async (req: Request, res: Response) => {
       storePromotion.name = name;
       storePromotion.startDate = new Date(startDate);
       storePromotion.endDate = new Date(endDate);
+      storePromotion.showImageOnly = showImageOnly;
 
       await store.save();
 

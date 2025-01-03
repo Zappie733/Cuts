@@ -487,32 +487,57 @@ export const getRatingSummaryByStoreId = async (
           .json(<ResponseObj>{ error: true, message: "Store not found" });
       }
 
-      const ratings = await RATINGS.find({ storeId: storeIdParam });
+      const query: Record<string, any> = {
+        storeId: storeIdParam,
+      };
+
+      const serviceId = req.query.serviceId as string;
+
+      if (serviceId !== undefined) {
+        if (!mongoose.Types.ObjectId.isValid(serviceId)) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message: "Invalid Service ID",
+          });
+        }
+        const service = store.services.find(
+          (service) => service._id?.toString() === serviceId.toString()
+        );
+        if (!service) {
+          return res
+            .status(404)
+            .json(<ResponseObj>{ error: true, message: "Service not found" });
+        }
+
+        query.serviceId = serviceId;
+      }
+
+      const ratings = await RATINGS.find(query);
 
       const totalRatings = ratings.reduce((total, rating) => {
         return total + (rating.rating || 0);
       }, 0);
 
       const responseData: GetRatingSummaryByStoreIdResponse = {
-        totalRating: await RATINGS.countDocuments({ storeId: storeIdParam }),
+        totalRating: await RATINGS.countDocuments(query),
         totalRating1: await RATINGS.countDocuments({
-          storeId: storeIdParam,
+          ...query,
           rating: 1,
         }),
         totalRating2: await RATINGS.countDocuments({
-          storeId: storeIdParam,
+          ...query,
           rating: 2,
         }),
         totalRating3: await RATINGS.countDocuments({
-          storeId: storeIdParam,
+          ...query,
           rating: 3,
         }),
         totalRating4: await RATINGS.countDocuments({
-          storeId: storeIdParam,
+          ...query,
           rating: 4,
         }),
         totalRating5: await RATINGS.countDocuments({
-          storeId: storeIdParam,
+          ...query,
           rating: 5,
         }),
         averageRating: ratings.length > 0 ? totalRatings / ratings.length : 0,

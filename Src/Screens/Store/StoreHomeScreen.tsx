@@ -230,6 +230,11 @@ export const StoreHomeScreen = ({
           ? (value as chosenServiceProductObj[])
           : orderFormData.chosenServiceProductsIds;
 
+      // Filter out chosenServiceProductsIds for removed serviceIds
+      const filteredServiceProductsIds = updatedServiceProductsIds?.filter(
+        (obj) => updatedServiceIds.includes(obj.serviceId)
+      );
+
       // Calculate totals for selected services
       const selectedServices = services.filter((service) =>
         updatedServiceIds.includes(service._id ?? "")
@@ -247,7 +252,7 @@ export const StoreHomeScreen = ({
       // Calculate totals for selected service products
       let selectedServiceProducts: string[] = [];
 
-      updatedServiceProductsIds?.map((obj) => {
+      filteredServiceProductsIds?.forEach((obj) => {
         selectedServiceProducts.push(...obj.serviceProductIds);
       });
 
@@ -258,22 +263,13 @@ export const StoreHomeScreen = ({
       });
 
       // Update state with recalculated values`
-      if (updatedServiceIds.length === 0) {
-        setOrderFormData((prevData) => ({
-          ...prevData,
-          totalPrice,
-          totalDuration,
-          [field]: value,
-          chosenServiceProductsIds: [],
-        }));
-      } else {
-        setOrderFormData((prevData) => ({
-          ...prevData,
-          totalPrice,
-          totalDuration,
-          [field]: value,
-        }));
-      }
+      setOrderFormData((prevData) => ({
+        ...prevData,
+        totalPrice,
+        totalDuration,
+        [field]: value,
+        chosenServiceProductsIds: filteredServiceProductsIds,
+      }));
     } else {
       // For other fields, just update the state
       setOrderFormData((prevData) => ({
@@ -410,7 +406,7 @@ export const StoreHomeScreen = ({
             </View>
 
             {/* service products */}
-            {orderFormData.serviceIds.map((serviceId) => {
+            {orderFormData.serviceIds.map((serviceId, index) => {
               const service = services.find((s) => s._id === serviceId);
 
               const serviceProducts = service?.serviceProduct
@@ -440,7 +436,10 @@ export const StoreHomeScreen = ({
                 return (
                   <View
                     key={serviceId}
-                    style={[styles.serviceProductInputContainer]}
+                    style={[
+                      styles.serviceProductInputContainer,
+                      { zIndex: 99 - index },
+                    ]}
                   >
                     <MultiSelectDropdownPicker
                       key={"serviceProductsIdsOrder" + serviceId}
@@ -988,7 +987,6 @@ const styles = StyleSheet.create({
   },
   serviceProductInputContainer: {
     width: (screenWidth * 2) / 3 + 50,
-    zIndex: 99,
     marginVertical: 10,
   },
   createOrderButton: {
@@ -1000,7 +998,7 @@ const styles = StyleSheet.create({
   },
   workerInputContainer: {
     width: (screenWidth * 2) / 3 + 50,
-    zIndex: 98,
+    zIndex: 10,
     marginVertical: 10,
   },
 

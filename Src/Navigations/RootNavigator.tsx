@@ -25,6 +25,8 @@ import { StoreRatingScreen } from "../Screens/Store/StoreRatingScreen";
 import { Auth } from "../Contexts/AuthContext";
 import { User } from "../Contexts/UserContext";
 import { LikedImagesScreen } from "../Screens/LikedImagesScreen";
+import { DetailStoreScreen } from "../Screens/DetailStoreScreen";
+import { StoreScheduleScreen } from "../Screens/Store/StoreScheduleScreen";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;
@@ -58,9 +60,11 @@ export type RootStackParamsObj = {
   StorePromotions: undefined;
   StoreGallery: undefined;
   StoreOrderHistory: undefined;
-  StoreRatings: undefined;
+  StoreRatings: { serviceId: string } | undefined;
 
   LikedImages: undefined;
+  DetailStore: undefined;
+  StoreSchedule: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsObj>();
@@ -101,6 +105,12 @@ export const RootNavigator = () => {
             component={DocumentDetailsScreen}
           />
           <RootStack.Screen name="LikedImages" component={LikedImagesScreen} />
+          <RootStack.Screen name="DetailStore" component={DetailStoreScreen} />
+          <RootStack.Screen name="StoreRatings" component={StoreRatingScreen} />
+          <RootStack.Screen
+            name="StoreSchedule"
+            component={StoreScheduleScreen}
+          />
         </>
       ) : auth._id !== "" && user.role === "store" ? (
         <>

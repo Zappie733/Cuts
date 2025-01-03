@@ -361,27 +361,30 @@ export const InitializeCronJobs = () => {
     }
   });
 
-  //set all worker isOnDuty property into false every midnight
-  cron.schedule("0 0 * * *", async () => {
+  // Cron job to close the store and set all workers' isOnDuty property to false if store is past close time
+  cron.schedule("0,30 * * * *", async () => {
+    //run at the 0th and 30th minute of every hour
     try {
       console.log(
-        "Starting cron job to set all workers' isOnDuty property to false."
+        "Running cron job to close store and update workers' status."
       );
 
-      // Use MongoDB's updateMany to update all workers in all stores
-      const result = await STORES.updateMany(
-        { "workers.isOnDuty": true }, // Only update if isOnDuty is true (optional, for optimization)
-        { $set: { "workers.$[].isOnDuty": false } } // $[] updates all elements in the array
-      );
+      const currentTime = new Date();
+      const stores = await STORES.find({
+        closeHour: { $lte: currentTime.getHours() },
+        closeMinute: { $lte: currentTime.getMinutes() },
+      });
 
-      console.log(
-        `Cron job completed. Matched documents: ${result.matchedCount}, Modified documents: ${result.modifiedCount}`
-      );
+      for (const store of stores) {
+        if (store.isOpen) {
+          store.isOpen = false;
+          store.workers.forEach((worker) => (worker.isOnDuty = false));
+          await store.save();
+          console.log(`Store ${store.name} closed and workers updated.`);
+        }
+      }
     } catch (error) {
-      console.error(
-        "Error during cron job execution (set all worker isOnDuty property into false every midnight):",
-        error
-      );
+      console.error("Error during cron job execution:", error);
     }
   });
 };

@@ -24,11 +24,15 @@ import { SearchBar } from "../Components/SearchBar";
 import { AntDesign } from "@expo/vector-icons";
 import { StoresByStatusResponse } from "../Types/ResponseTypes/StoreResponse";
 import { apiCallHandler } from "../Middlewares/util";
-import { getStoresByStatus } from "../Middlewares/StoreMiddleware/StoreMiddleware";
+import {
+  getStoreById,
+  getStoresByStatus,
+} from "../Middlewares/StoreMiddleware/StoreMiddleware";
 import { GetRatingSummaryByStoreIdResponse } from "../Types/ResponseTypes/RatingResponse";
 import { getRatingSummaryByStoreId } from "../Middlewares/RatingMiddleware";
 import { set } from "mongoose";
 import { CheckBox } from "../Components/CheckBox";
+import { Store } from "../Contexts/StoreContext";
 
 const screenWidth = Dimensions.get("screen").width;
 const PAGE_LIMIT = 5;
@@ -43,6 +47,8 @@ export const HomeScreen = ({
   // const [loading, setLoading] = useState(false);
 
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
+
+  const { refetchStoreById } = useContext(Store);
 
   const handleGoBack = () => {
     navigation.goBack();
@@ -189,6 +195,14 @@ export const HomeScreen = ({
     getStoreRatingInfo();
   }, [data]);
 
+  const handleNavigateToStoreDetail = async (storeId: string) => {
+    refetchStoreById(storeId);
+
+    setTimeout(() => {
+      navigation.navigate("DetailStore");
+    }, 200);
+  };
+
   return (
     <SafeAreaView
       style={[
@@ -259,86 +273,90 @@ export const HomeScreen = ({
             data={data?.stores || null}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <ImageBackground
-                source={{ uri: item.images[0].file }} // Replace with your image URL
-                style={[
-                  styles.card,
-                  {
-                    borderColor: activeColors.tertiary,
-                  },
-                ]}
-                imageStyle={styles.image} // Optional for customizing the image
+              <Pressable
+                onPress={() => handleNavigateToStoreDetail(item._id ?? "")}
               >
-                <View
+                <ImageBackground
+                  source={{ uri: item.images[0].file }} // Replace with your image URL
                   style={[
-                    styles.item,
+                    styles.card,
                     {
                       borderColor: activeColors.tertiary,
-                      backgroundColor:
-                        theme.mode === "dark"
-                          ? "rgba(0,0,0,0.6)"
-                          : "rgba(255,255,255,0.6)",
                     },
                   ]}
+                  imageStyle={styles.image} // Optional for customizing the image
                 >
-                  {/* image */}
                   <View
                     style={[
-                      styles.itemImageContainer,
-                      { backgroundColor: activeColors.secondary },
+                      styles.item,
+                      {
+                        borderColor: activeColors.tertiary,
+                        backgroundColor:
+                          theme.mode === "dark"
+                            ? "rgba(0,0,0,0.6)"
+                            : "rgba(255,255,255,0.6)",
+                      },
                     ]}
                   >
-                    <Image
-                      source={{ uri: item.images[0].file }}
-                      style={styles.itemImage}
-                    />
+                    {/* image */}
+                    <View
+                      style={[
+                        styles.itemImageContainer,
+                        { backgroundColor: activeColors.secondary },
+                      ]}
+                    >
+                      <Image
+                        source={{ uri: item.images[0].file }}
+                        style={styles.itemImage}
+                      />
+                    </View>
+
+                    <View style={styles.itemContentContainer}>
+                      {/* title */}
+                      <View>
+                        <Text
+                          style={[
+                            styles.itemTitle,
+                            { color: activeColors.accent },
+                          ]}
+                        >
+                          {item.name}
+                        </Text>
+                      </View>
+
+                      {/* rating */}
+                      <View style={styles.itemRatingContainer}>
+                        <AntDesign name="star" size={30} color="yellow" />
+                        <Text
+                          style={[
+                            styles.itemRatingText,
+                            {
+                              color: activeColors.accent,
+                            },
+                          ]}
+                        >
+                          {storeRatingRecord[
+                            item._id ?? ""
+                          ]?.averageRating.toFixed(2)}{" "}
+                          / 5
+                        </Text>
+                      </View>
+
+                      {/* District And Sub District */}
+                      <View>
+                        <Text
+                          style={[
+                            styles.itemDistrictNSubDistrict,
+                            { color: activeColors.accent },
+                          ]}
+                        >
+                          {item.district}, {item.subDistrict}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-
-                  <View style={styles.itemContentContainer}>
-                    {/* title */}
-                    <View>
-                      <Text
-                        style={[
-                          styles.itemTitle,
-                          { color: activeColors.accent },
-                        ]}
-                      >
-                        {item.name}
-                      </Text>
-                    </View>
-
-                    {/* rating */}
-                    <View style={styles.itemRatingContainer}>
-                      <AntDesign name="star" size={30} color="yellow" />
-                      <Text
-                        style={[
-                          styles.itemRatingText,
-                          {
-                            color: activeColors.accent,
-                          },
-                        ]}
-                      >
-                        {storeRatingRecord[
-                          item._id ?? ""
-                        ]?.averageRating.toFixed(2)}{" "}
-                        / 5
-                      </Text>
-                    </View>
-
-                    {/* District And Sub District */}
-                    <View>
-                      <Text
-                        style={[
-                          styles.itemDistrictNSubDistrict,
-                          { color: activeColors.accent },
-                        ]}
-                      >
-                        {item.district}, {item.subDistrict}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </ImageBackground>
+                </ImageBackground>
+              </Pressable>
             )}
             onEndReached={handleFetchStores}
             onEndReachedThreshold={0.5} // Load more when the user is within 50% of the list's end
@@ -453,7 +471,7 @@ const styles = StyleSheet.create({
   // },
 
   searchBarNFilterContainer: {
-    marginHorizontal: 30,
+    marginHorizontal: 20,
     borderRadius: 20,
     shadowOffset: { width: 0, height: 2 },
     marginBottom: 10,
@@ -482,7 +500,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: "center", // Center text
     overflow: "hidden", // Ensures border radius is applied to the background image
-    marginBottom: 10,
+    marginVertical: 7,
   },
   image: {
     borderRadius: 10, // Ensure the image follows the View's border radius

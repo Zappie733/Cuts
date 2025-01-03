@@ -31,6 +31,24 @@ export const PerRating = ({
         >
           <Text></Text>
         </View>
+
+        <View
+          style={{
+            position: "absolute",
+            width: "100%",
+          }}
+        >
+          <Text
+            style={{
+              color: activeColors.infoColor,
+              textAlign: "center",
+              fontWeight: "500",
+              fontSize: 15,
+            }}
+          >
+            {totalPerRating && (totalPerRating / totalRating) * 100}%
+          </Text>
+        </View>
       </View>
     </View>
   );

@@ -312,7 +312,13 @@ export const SettingsScreen = ({
                 {store.name}
               </Text>
               {/* image */}
-              <View style={{ width: "100%", height: 200, padding: 10 }}>
+              <View
+                style={{
+                  width: "100%",
+                  height: 200,
+                  padding: 10,
+                }}
+              >
                 <ImageSlider images={store.images.map((item) => item.file)} />
               </View>
 
@@ -838,7 +844,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 30,
     borderWidth: 2,
     alignItems: "center",
-    marginVertical: 20,
+    marginBottom: 20,
   },
   image: {
     width: 100,
@@ -920,7 +926,7 @@ const styles = StyleSheet.create({
   storeContainer: {
     flexDirection: "column",
     alignItems: "center",
-    paddingBottom: 100,
+    paddingBottom: 50,
   },
   title: {
     fontSize: 25,

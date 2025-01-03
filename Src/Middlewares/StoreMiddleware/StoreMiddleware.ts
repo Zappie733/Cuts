@@ -383,3 +383,29 @@ export const getStoreByUserId = async ({
     message: result.message,
   };
 };
+
+export const getStoreById = async ({
+  auth,
+  updateAccessToken,
+  params, //storeId
+}: ApiRequestProps): Promise<IResponseProps<StoreObj>> => {
+  // console.log("getStoreById Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/store/getStoreById/${params?.storeId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<StoreObj>(apiCallWithTokenProps);
+
+  return {
+    status: result.status,
+    data: result.data,
+    message: result.message,
+  };
+};

@@ -18,7 +18,6 @@ const OrderHistorySchema = new Schema(
     },
     userPhone: {
       type: String,
-      required: true,
     },
     storeId: {
       type: Schema.Types.ObjectId,

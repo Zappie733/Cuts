@@ -250,6 +250,10 @@ export const StorePromotionSchema = new Schema(
       type: Date,
       required: true,
     },
+    showImageOnly: {
+      type: Boolean,
+      required: true,
+    },
   },
   {
     toJSON: {

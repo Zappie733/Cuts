@@ -198,7 +198,7 @@ export const addOrder = async (req: Request, res: Response) => {
               "Waiting for Confirmation",
               "Waiting for Payment",
               "Paid",
-              "Completed",
+              // "Completed",
             ],
           },
           $or: [
@@ -224,7 +224,7 @@ export const addOrder = async (req: Request, res: Response) => {
               "Waiting for Confirmation",
               "Waiting for Payment",
               "Paid",
-              "Completed",
+              // "Completed",
             ],
           },
           $or: [

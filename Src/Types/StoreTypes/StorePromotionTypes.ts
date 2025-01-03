@@ -6,6 +6,7 @@ export interface StorePromotionObj {
   image: IImageProps;
   startDate: Date;
   endDate: Date;
+  showImageOnly: boolean;
 }
 
 export interface AddStorePromotionData {
@@ -13,6 +14,7 @@ export interface AddStorePromotionData {
   image: IImageProps;
   startDate: Date | null;
   endDate: Date | null;
+  showImageOnly: boolean;
 }
 
 export interface UpdateStorePromotionData {
@@ -21,4 +23,5 @@ export interface UpdateStorePromotionData {
   startDate: Date | null;
   endDate: Date | null;
   image: IImageProps;
+  showImageOnly: boolean;
 }

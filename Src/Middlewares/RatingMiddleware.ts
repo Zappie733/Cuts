@@ -166,13 +166,16 @@ export const getRatingByOrderId = async ({
 export const getRatingSummaryByStoreId = async ({
   auth,
   updateAccessToken,
-  params, //storeId
+  params, //storeId, serviceId
 }: ApiRequestProps): Promise<
   IResponseProps<GetRatingSummaryByStoreIdResponse>
 > => {
   // console.log("getRatingSummaryByStoreId Process");
   const apiOptions: ApiOptions = {
     method: "GET",
+    queryParams: {
+      serviceId: params?.serviceId,
+    },
   };
 
   const apiCallWithTokenProps: ApiCallWithTokenProps = {

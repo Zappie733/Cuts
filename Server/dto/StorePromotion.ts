@@ -6,6 +6,7 @@ export interface StorePromotionObj {
   image: ImageRequestObj;
   startDate: Date;
   endDate: Date;
+  showImageOnly: boolean;
 }
 
 export interface AddStorePromotionRequestObj {
@@ -13,6 +14,7 @@ export interface AddStorePromotionRequestObj {
   image: ImageRequestObj;
   startDate: Date;
   endDate: Date;
+  showImageOnly: boolean;
 }
 
 export interface UpdateStorePromotionRequestObj {
@@ -21,4 +23,5 @@ export interface UpdateStorePromotionRequestObj {
   startDate: Date;
   endDate: Date;
   image: ImageRequestObj;
+  showImageOnly: boolean;
 }
