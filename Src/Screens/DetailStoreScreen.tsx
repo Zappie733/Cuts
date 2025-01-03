@@ -44,6 +44,7 @@ import ImageViewing from "react-native-image-viewing";
 import { ImageSource } from "react-native-image-viewing/dist/@types";
 import { set } from "mongoose";
 import { AddOrderData, chosenServiceProductObj } from "../Types/OrderTypes";
+import { Orders } from "../Contexts/OrderContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -59,7 +60,16 @@ export const DetailStoreScreen = ({
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   const { store, setStore, refetchStoreById } = useContext(Store);
   const { user, refetchUser } = useContext(User);
+  const { orders, setOrders } = useContext(Orders);
   // console.log(JSON.stringify(user, null, 2));
+  console.log("orders", JSON.stringify(orders, null, 2));
+
+  useEffect(() => {
+    if (!orders) return;
+    setOrderData(
+      orders.find((order) => order.storeId === store._id) ?? defaultOrderData
+    );
+  }, [orders]);
 
   const handleGoBack = () => {
     const defaultStore: StoreObj = {
@@ -99,6 +109,23 @@ export const DetailStoreScreen = ({
       toleranceTime: 0,
     };
     setStore(defaultStore);
+
+    const existingOrder = orders.find(
+      (order) => order.storeId === orderData.storeId
+    );
+    if (JSON.stringify(orderData) !== JSON.stringify(defaultOrderData)) {
+      if (existingOrder) {
+        const newOrders = orders.map((order) =>
+          order.storeId === orderData.storeId ? orderData : order
+        );
+        setOrders(newOrders);
+      } else {
+        setOrders([...orders, orderData]);
+      }
+    } else {
+      setOrders(orders.filter((order) => order.storeId !== orderData.storeId));
+    }
+
     navigation.goBack();
   };
 
@@ -227,7 +254,12 @@ export const DetailStoreScreen = ({
         );
       })
       .forEach((service) => {
-        const chosenServiceProductObjTemp: chosenServiceProductObj = {
+        const chosenServiceProductObjTemp: chosenServiceProductObj = orders
+          .find((order) => order.storeId === store._id)
+          ?.chosenServiceProductsIds?.find(
+            (chosenServiceProductObj) =>
+              chosenServiceProductObj.serviceId === service._id
+          ) || {
           serviceId: service._id ?? "",
           serviceProductIds: [],
         };
@@ -286,6 +318,7 @@ export const DetailStoreScreen = ({
     if (field === "serviceIds" || field === "chosenServiceProductsIds") {
       let totalPrice = 0;
       let totalDuration = 0;
+      console.log("field:", field);
       console.log("value:", value);
       // Use updated value for recalculation
       const updatedServiceIds =
@@ -322,6 +355,7 @@ export const DetailStoreScreen = ({
       const filteredServiceProductsIds = updatedServiceProductsIds?.filter(
         (obj) => updatedServiceIds.includes(obj.serviceId)
       );
+      console.log("filteredServiceProductsIds", filteredServiceProductsIds);
 
       // Calculate totals for selected services
       const selectedServices = store.services.filter((service) =>
@@ -350,6 +384,7 @@ export const DetailStoreScreen = ({
             ?.addtionalPrice || 0;
       });
 
+      console.log("selectedServiceProducts", selectedServiceProducts);
       // Update state with recalculated values`
       setOrderData((prevData) => ({
         ...prevData,
@@ -1178,11 +1213,6 @@ export const DetailStoreScreen = ({
                                   >
                                     <Pressable
                                       onPress={() => {
-                                        handleAddOrRemoveServiceProduct(
-                                          service._id ?? "",
-                                          serviceProduct._id ?? ""
-                                        );
-
                                         const existingItem =
                                           orderData.chosenServiceProductsIds?.find(
                                             (id) =>
@@ -1242,6 +1272,11 @@ export const DetailStoreScreen = ({
                                         handleOrderTextChange(
                                           newChosenServiceProductsIds,
                                           "chosenServiceProductsIds"
+                                        );
+
+                                        handleAddOrRemoveServiceProduct(
+                                          service._id ?? "",
+                                          serviceProduct._id ?? ""
                                         );
                                       }}
                                       style={{
@@ -1653,11 +1688,6 @@ export const DetailStoreScreen = ({
                               },
                             ]}
                             onPress={() => {
-                              handleAddOrRemoveServiceProduct(
-                                selectedServiceId,
-                                serviceProduct._id ?? ""
-                              );
-
                               const existingItem =
                                 orderData.chosenServiceProductsIds?.find(
                                   (id) =>
@@ -1721,6 +1751,11 @@ export const DetailStoreScreen = ({
                               handleOrderTextChange(
                                 newChosenServiceProductsIds,
                                 "chosenServiceProductsIds"
+                              );
+
+                              handleAddOrRemoveServiceProduct(
+                                selectedServiceId,
+                                serviceProduct._id ?? ""
                               );
                             }}
                             disabled={

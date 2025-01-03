@@ -15,6 +15,7 @@ import { Store } from "../Contexts/StoreContext";
 import { StoreObj } from "../Types/StoreTypes/StoreTypes";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
+import { Orders } from "../Contexts/OrderContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -29,6 +30,8 @@ export const OrderScreen = ({
 
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   const { store, setStore } = useContext(Store);
+  const { orders, setOrders } = useContext(Orders);
+  console.log("orders", JSON.stringify(orders, null, 2));
 
   return (
     <SafeAreaView

@@ -7,6 +7,7 @@ import { enableScreens } from "react-native-screens";
 import { StoreContext } from "./Src/Contexts/StoreContext";
 import { AuthContext } from "./Src/Contexts/AuthContext";
 import { ThemeContext } from "./Src/Contexts/ThemeContext";
+import { OrderContext } from "./Src/Contexts/OrderContext";
 
 export default function App() {
   enableScreens();
@@ -16,7 +17,9 @@ export default function App() {
         <NavigationContainer>
           <StoreContext>
             <UserContext>
-              <RootNavigator />
+              <OrderContext>
+                <RootNavigator />
+              </OrderContext>
             </UserContext>
           </StoreContext>
         </NavigationContainer>
