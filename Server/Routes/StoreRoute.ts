@@ -3,6 +3,7 @@ import {
   activeStore,
   approveStore,
   deleteStore,
+  getStoreById,
   getStoreByUserId,
   getStoresByStatus,
   getStoresByUserId,
@@ -58,6 +59,7 @@ import {
 import {
   addGallery,
   deleteGalleryById,
+  getGalleryById,
   getGalleryByStoreId,
   getMostLikesGalleryByStoreId,
   likeGalleryById,
@@ -85,6 +87,7 @@ StoreRoute.patch(
 );
 StoreRoute.patch("/updateStoreOpenCloseStatus", updateStoreOpenCloseStatus);
 StoreRoute.get("/getStoreByUserId", getStoreByUserId);
+StoreRoute.get("/getStoreById/:id", getStoreById);
 
 //Worker
 StoreRoute.get("/worker/getWorkersByStoreId/:id", getWorkersByStoreId);
@@ -150,6 +153,7 @@ StoreRoute.get(
 StoreRoute.post("/gallery/addGallery", addGallery);
 StoreRoute.delete("/gallery/deleteGalleryById/:id", deleteGalleryById);
 StoreRoute.put("/gallery/updateGallery", updateGallery);
-StoreRoute.patch("/gallery/likeGalleryById/:id", likeGalleryById);
+StoreRoute.patch("/gallery/likeGalleryById/:storeId/:id", likeGalleryById);
+StoreRoute.get("/gallery/getGalleryById/:storeId/:id", getGalleryById);
 
 StoreRoute.get("/getClosestStore", getClosestStore)

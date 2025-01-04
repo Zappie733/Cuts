@@ -18,7 +18,16 @@ export const AddSalesProductValidate = (data: AddSalesProductRequestObj) => {
       .min(1)
       .required()
       .label("Images"),
-    links: Joi.array().items(Joi.string()).required().label("Links"),
+    links: Joi.array()
+      .items(
+        Joi.object({
+          label: Joi.string().required(),
+          link: Joi.string().required(),
+        })
+      )
+      .min(1)
+      .required()
+      .label("Links"),
     price: Joi.number().required().label("Price"),
   });
 

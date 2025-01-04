@@ -17,7 +17,7 @@ export interface AddServiceProductData {
   quantity: number;
   alertQuantity: number;
   description?: string;
-  isAnOption: boolean;
+  isAnOption: boolean | null;
   addtionalPrice?: number;
   image: IImageProps;
 }
@@ -28,7 +28,7 @@ export interface UpdateServiceProductData {
   quantity: number;
   alertQuantity: number;
   description?: string;
-  isAnOption: boolean;
+  isAnOption: boolean | null;
   addtionalPrice?: number;
   image: IImageProps;
 }

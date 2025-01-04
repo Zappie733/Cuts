@@ -9,10 +9,9 @@ import {
 } from "react-native";
 import { Entypo, Feather, Fontisto } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { DropdownPickerProps } from "../Types/ComponentTypes/DropdownPickerTypes";
-import { set } from "mongoose";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const DropdownPicker = ({
   options,
@@ -148,7 +147,10 @@ export const DropdownPicker = ({
             { backgroundColor: activeColors.accent },
           ]}
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
+          >
             {options.map((item) => (
               <TouchableOpacity
                 key={item.value.toString()}
@@ -157,13 +159,19 @@ export const DropdownPicker = ({
                   selectedValue === item.value && {
                     backgroundColor: activeColors.tertiary,
                   },
+                  {
+                    height: isInput === true ? 66 : 52,
+                    borderColor: activeColors.secondary,
+                  },
                 ]}
                 onPress={() => handleSelect(item.value)}
               >
                 <Text
                   style={[
                     styles.dropdownItemText,
-                    { color: activeColors.secondary },
+                    {
+                      color: activeColors.secondary,
+                    },
                   ]}
                 >
                   {item.label}
@@ -180,6 +188,7 @@ export const DropdownPicker = ({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
+    zIndex: 1,
   },
   dropdownButton: {
     borderRadius: 18,
@@ -216,9 +225,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   dropdownItem: {
-    height: 62,
     justifyContent: "center",
     paddingHorizontal: 15,
+    borderBottomWidth: 1,
   },
   dropdownItemText: {
     fontSize: 15,

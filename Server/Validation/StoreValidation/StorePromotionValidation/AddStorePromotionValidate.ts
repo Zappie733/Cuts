@@ -17,6 +17,7 @@ export const AddStorePromotionValidate = (
       .label("Image"),
     startDate: Joi.date().required().label("Start Date"),
     endDate: Joi.date().required().label("End Date"),
+    showImageOnly: Joi.boolean().required().label("Show Image Only"),
   });
 
   return schema.validate(data);

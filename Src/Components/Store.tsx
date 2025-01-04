@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -10,7 +11,6 @@ import {
   View,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
-import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
 import {
   DeleteStoreData,
@@ -27,6 +27,10 @@ import { Input } from "./Input";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { loginUser, logoutUser } from "../Middlewares/UserMiddleware";
 import { LoginData } from "../Types/UserTypes";
+import { Theme } from "../Contexts/ThemeContext";
+import { Auth } from "../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
+import { apiCallHandler } from "../Middlewares/util";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -37,6 +41,9 @@ export const Store = ({
 }: IStoreComponentProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
+
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   const { user } = useContext(User);
 
@@ -54,6 +61,8 @@ export const Store = ({
       role: "store",
       storeType: data.type,
       storeName: data.name,
+      storeDistrict: data.district,
+      storeSubDistrict: data.subDistrict,
       storeLocation: data.location,
       // storeLocationName: data.location?.address,
       // storeLocationCoord: `${data.location?.coordinates?.coordinates}}`,
@@ -87,37 +96,20 @@ export const Store = ({
   };
 
   const handleDelete = async () => {
-    console.log("delete process");
-    const response = await deleteStore({
+    setLoading(true);
+    // console.log("delete process");
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        deleteStore({
+          auth,
+          updateAccessToken,
+          data: deleteStoreFormData,
+        }),
       auth,
-      updateAccessToken,
-      data: deleteStoreFormData,
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -129,6 +121,8 @@ export const Store = ({
     } else {
       Alert.alert("Deletion error", response.message);
     }
+
+    setLoading(false);
   };
 
   const [isLoginModal, setIsLoginModal] = useState(false);
@@ -151,11 +145,11 @@ export const Store = ({
   };
 
   const handleLogin = async () => {
-    console.log("Login Process");
+    setLoading(true);
+    // console.log("Login Process");
     const result: IResponseProps<LoginResponse> = await loginUser(
       loginStoreFormData
     );
-    console.log(JSON.stringify(result, null, 2));
 
     if (result.status >= 200 && result.status < 400) {
       const logoutResult: IResponseProps = await logoutUser(auth.refreshToken);
@@ -195,6 +189,8 @@ export const Store = ({
     } else {
       Alert.alert("Login Error", result.message);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -207,6 +203,13 @@ export const Store = ({
         },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       {/* Store Name */}
       <Text
         style={[
@@ -252,6 +255,13 @@ export const Store = ({
             <Text style={{ fontWeight: "400" }}>Status:</Text> {data.status}
           </Text>
           <View>
+            <Text style={[styles.text, { color: activeColors.accent }]}>
+              <Text style={{ fontWeight: "400" }}>District:</Text> {data.district}
+            </Text>
+            <Text style={[styles.text, { color: activeColors.accent }]}>
+              <Text style={{ fontWeight: "400" }}>Sub-District:</Text>{" "}
+              {data.subDistrict}
+            </Text>
             <Text
               style={[styles.text, { color: activeColors.accent }]}
               numberOfLines={3}
@@ -323,14 +333,15 @@ export const Store = ({
       </Pressable>
 
       {/* open/close */}
-      {data.isOpen === true && (
-        <View style={styles.oc}>
-          <Image
-            source={require("../../assets/open.png")}
-            style={{ width: 50, height: 50 }}
-          />
-        </View>
-      )}
+      {data.isOpen === true &&
+        (data.status === "Active" || data.status === "InActive") && (
+          <View style={styles.oc}>
+            <Image
+              source={require("../../assets/open.png")}
+              style={{ width: 50, height: 50 }}
+            />
+          </View>
+        )}
       {data.isOpen === false &&
         (data.status === "Active" || data.status === "InActive") && (
           <View style={styles.oc}>
@@ -504,6 +515,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
   storeName: {
     fontSize: 22,
     fontWeight: "400",
@@ -521,6 +538,8 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     padding: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   infoContainer: {
     flexDirection: "column",

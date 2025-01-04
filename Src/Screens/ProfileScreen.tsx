@@ -1,6 +1,8 @@
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
+  Modal,
   Platform,
   Pressable,
   SafeAreaView,
@@ -12,17 +14,16 @@ import {
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
-import { Auth, Theme, User, UserContext } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { Header } from "../Components/Header";
-import { SelectImage } from "../Components/Image";
+import { SelectProfileImage } from "../Components/Image";
 import { Input } from "../Components/Input";
-import { logoutUser, updateUserProfile } from "../Middlewares/UserMiddleware";
-import { IResponseProps } from "../Types/ResponseTypes";
-import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
-import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
-import { CommonActions } from "@react-navigation/native";
+import { updateUserProfile } from "../Middlewares/UserMiddleware";
 import { ProfileData } from "../Types/UserTypes";
+import { Theme } from "../Contexts/ThemeContext";
+import { Auth } from "../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
+import { apiCallHandler } from "../Middlewares/util";
 
 export const ProfileScreen = ({
   navigation,
@@ -30,6 +31,8 @@ export const ProfileScreen = ({
 }: RootStackScreenProps<"Profile">) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
 
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
   const { user, setUser } = useContext(User);
@@ -75,38 +78,19 @@ export const ProfileScreen = ({
 
   const handleUpdateUser = async () => {
     if (isChanges) {
-      const response = await updateUserProfile({
+      setLoading(true);
+
+      const response = await apiCallHandler({
+        apiCall: () =>
+          updateUserProfile({
+            auth,
+            updateAccessToken,
+            data: userFormData,
+          }),
         auth,
-        updateAccessToken,
-        data: userFormData,
+        setAuth,
+        navigation,
       });
-
-      if (response.status === 402) {
-        Alert.alert("Session Expired", response.message);
-        const result: IResponseProps = await logoutUser(auth.refreshToken);
-        console.log(JSON.stringify(result, null, 2));
-
-        if (result.status >= 200 && result.status < 400) {
-          await removeDataFromAsyncStorage("auth");
-          const defaultAuth: IAuthObj = {
-            _id: "",
-            refreshToken: "",
-            accessToken: "",
-          };
-          setAuth(defaultAuth);
-
-          // setUserData(defaultUserData);
-          // Resetting the navigation stack
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: "Welcome" }],
-            })
-          );
-        } else {
-          Alert.alert("Logout Error", result.message);
-        }
-      }
 
       if (response.status >= 200 && response.status < 400) {
         Alert.alert("Success", response.message);
@@ -117,6 +101,8 @@ export const ProfileScreen = ({
       } else {
         Alert.alert("Update Failed", response.message);
       }
+
+      setLoading(false);
     }
   };
 
@@ -127,6 +113,13 @@ export const ProfileScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       <Header goBack={handleGoBack} />
 
       <ScrollView
@@ -145,7 +138,7 @@ export const ProfileScreen = ({
             Your Profile
           </Text>
 
-          <SelectImage userImage={user.image?.file ?? ""} />
+          <SelectProfileImage userImage={user.image?.file ?? ""} />
 
           {/* Inputs */}
           <View style={{ marginTop: 20 }}>
@@ -231,6 +224,12 @@ const styles = StyleSheet.create({
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
     flex: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   scrollContainer: {
     justifyContent: "center",

@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -17,7 +18,6 @@ import {
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
-import { Auth, Theme, User } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { Header } from "../Components/Header";
 import { AntDesign, FontAwesome6 } from "@expo/vector-icons";
@@ -35,16 +35,16 @@ import {
   rejectStore,
   unHoldStore,
 } from "../Middlewares/StoreMiddleware/StoreMiddleware";
-import { IResponseProps } from "../Types/ResponseTypes";
-import { removeDataFromAsyncStorage } from "../Config/AsyncStorage";
-import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import ImageViewing from "react-native-image-viewing";
 import { DropdownPicker } from "../Components/DropdownPicker";
 import {
   DeleteStoreData,
   RegistrationStoreData
 } from "../Types/StoreTypes/StoreTypes";
-import { logoutUser } from "../Middlewares/UserMiddleware";
+import { Theme } from "../Contexts/ThemeContext";
+import { User } from "../Contexts/UserContext";
+import { Auth } from "../Contexts/AuthContext";
+import { apiCallHandler } from "../Middlewares/util";
 
 import { extractLatLng } from "../../Server/Utils/LocationUtils";
 
@@ -58,6 +58,8 @@ export const RegisterStoreScreen = ({
 }: RootStackScreenProps<"RegisterStoreScreen">) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
 
   const { user } = useContext(User);
   const { auth, updateAccessToken, setAuth } = useContext(Auth);
@@ -92,6 +94,8 @@ export const RegisterStoreScreen = ({
     storeName: "",
     storeType: "",
     storeLocation: defaultLocation,
+    storeDistrict: "",
+    storeSubDistrict: "",
     storeDocuments: [],
   };
   const [storeRegisterFormData, setStoreRegisterFormData] =
@@ -181,37 +185,20 @@ export const RegisterStoreScreen = ({
     });
   };
   const handleRegisterStore = async () => {
-    console.log("Register Store On Process");
-    const response = await registerStore({
+    setLoading(true);
+    // console.log("Register Store On Process");
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        registerStore({
+          auth,
+          updateAccessToken,
+          data: storeRegisterFormData,
+        }),
       auth,
-      updateAccessToken,  
-      data: storeRegisterFormData,
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -220,6 +207,8 @@ export const RegisterStoreScreen = ({
     } else {
       Alert.alert("Registration Store error", response.message);
     }
+
+    setLoading(false);
   };
 
   //Utils
@@ -255,37 +244,20 @@ export const RegisterStoreScreen = ({
     setDeleteStoreFormData({ ...deleteStoreFormData, [fieldname]: text });
   };
   const handleFinishedReviewing = async () => {
-    console.log("Done Review Process");
-    const response = await deleteStore({
+    setLoading(true);
+    // console.log("Done Review Process");
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        deleteStore({
+          auth,
+          updateAccessToken,
+          data: deleteStoreFormData,
+        }),
       auth,
-      updateAccessToken,
-      data: deleteStoreFormData,
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -294,41 +266,26 @@ export const RegisterStoreScreen = ({
     } else {
       Alert.alert("Deletion error", response.message);
     }
+
+    setLoading(false);
   };
 
   //Approve Store (admin)
   const handleApproveStore = async () => {
-    console.log("Approve Store");
-    const response = await approveStore({
+    setLoading(true);
+    // console.log("Approve Store");
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        approveStore({
+          auth,
+          updateAccessToken,
+          params: { storeId },
+        }),
       auth,
-      updateAccessToken,
-      params: { storeId },
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -349,6 +306,8 @@ export const RegisterStoreScreen = ({
     } else {
       Alert.alert("Approval Store Error", response.message);
     }
+
+    setLoading(false);
   };
 
   //Reject Store (admin)
@@ -363,40 +322,23 @@ export const RegisterStoreScreen = ({
     setReason(formattedText); // Set the updated text
   };
   const handleRejectStore = async () => {
-    console.log("Reject Store");
-    const response = await rejectStore({
+    setLoading(true);
+    // console.log("Reject Store");
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        rejectStore({
+          auth,
+          updateAccessToken,
+          data: {
+            storeId,
+            rejectedReason: reason,
+          },
+        }),
       auth,
-      updateAccessToken,
-      data: {
-        storeId,
-        rejectedReason: reason,
-      },
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -414,45 +356,30 @@ export const RegisterStoreScreen = ({
     } else {
       Alert.alert("Reject Store Error", response.message);
     }
+
+    setLoading(false);
   };
 
   //Hold Store (admin)
   const [isHold, setIsHold] = useState(false);
   const handleHoldStore = async () => {
-    console.log("Hold Store");
-    const response = await holdStore({
+    setLoading(true);
+    // console.log("Hold Store");
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        holdStore({
+          auth,
+          updateAccessToken,
+          data: {
+            storeId,
+            onHoldReason: reason,
+          },
+        }),
       auth,
-      updateAccessToken,
-      data: {
-        storeId,
-        onHoldReason: reason,
-      },
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",  
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -470,41 +397,26 @@ export const RegisterStoreScreen = ({
     } else {
       Alert.alert("Hold Store Error", response.message);
     }
+
+    setLoading(false);
   };
 
   //Unhold Store (admin)
   const handleUnHoldStore = async () => {
-    console.log("Unhold Store");
-    const response = await unHoldStore({
+    setLoading(true);
+    // console.log("Unhold Store");
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        unHoldStore({
+          auth,
+          updateAccessToken,
+          params: { storeId },
+        }),
       auth,
-      updateAccessToken,
-      params: { storeId },
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
@@ -522,6 +434,8 @@ export const RegisterStoreScreen = ({
     } else {
       Alert.alert("UnHold Store Error", response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -542,6 +456,13 @@ export const RegisterStoreScreen = ({
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.primary }]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       {/* Modal for Information */}
       <Modal
         animationType="fade"
@@ -628,7 +549,8 @@ export const RegisterStoreScreen = ({
               ]}
             >
               • <Text style={{ fontWeight: "bold" }}>Rejected</Text> (Admin
-              rejected your store registration, you can modify and resubmit)
+              rejected your store registration, you must review the store first
+              to make a new one with the same email)
             </Text>
             <Text
               style={[
@@ -978,6 +900,43 @@ export const RegisterStoreScreen = ({
                     />
                   </View>
 
+                  {/* Store Name Input */}
+                  <Input
+                    key="registerStoreName"
+                    context="Name"
+                    placeholder="Enter Store Name"
+                    value={storeRegisterFormData.storeName}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeName")
+                    }
+                    iconName="shopping-store"
+                    iconSource="Fontisto"
+                  />
+                  {/* Store District Input */}
+                  <Input
+                    key="registerStoreDistrict"
+                    context="District"
+                    placeholder="Enter Store District"
+                    value={storeRegisterFormData.storeDistrict}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeDistrict")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                  />
+                  {/* Store Sub-District Input */}
+                  <Input
+                    key="registerStoreSubDistrict"
+                    context="Sub-District"
+                    placeholder="Enter Store Sub-District"
+                    value={storeRegisterFormData.storeSubDistrict}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeSubDistrict")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                  />
+
                   {/* Store Location Input */}
                   <Input
                     key="registerStoreLocationName"
@@ -1130,6 +1089,32 @@ export const RegisterStoreScreen = ({
                     }
                     iconName="shopping-store"
                     iconSource="Fontisto"
+                    isDisabled={true}
+                  />
+                  {/* Store District Input */}
+                  <Input
+                    key="registerStoreReviewDistrict"
+                    context="District"
+                    placeholder="Enter Store District"
+                    value={storeRegisterFormData.storeDistrict}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeDistrict")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                    isDisabled={true}
+                  />
+                  {/* Store Sub-District Input */}
+                  <Input
+                    key="registerStoreReviewSubDistrict"
+                    context="Sub-District"
+                    placeholder="Enter Store Sub-District"
+                    value={storeRegisterFormData.storeSubDistrict}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeSubDistrict")
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
                     isDisabled={true}
                   />
                   {/* Store Location Input */}
@@ -1373,76 +1358,70 @@ export const RegisterStoreScreen = ({
                   {/* Hold */}
                   {status === "Hold" && (
                     <>
-                      {user.role === "admin" && (
-                        <>
-                          {/* UnHold */}
-                          <Pressable
-                            onPress={() =>
-                              Alert.alert(
-                                "Confirmation",
-                                "Are you sure you want to UNHOLD this store?",
-                                [
-                                  {
-                                    text: "Yes",
-                                    onPress: () => handleUnHoldStore(),
-                                  },
-                                  { text: "No" },
-                                ],
-                                { cancelable: true }
-                              )
-                            }
-                          >
-                            <Text
-                              style={[
-                                styles.registerButtonContainer,
-                                {
-                                  color: activeColors.secondary,
-                                  backgroundColor: activeColors.accent,
-                                  width: (screenWidth * 2) / 3 + 50,
-                                },
-                              ]}
-                            >
-                              UnHold Store
-                            </Text>
-                          </Pressable>
-                        </>
-                      )}
+                      {/* Little Text */}
+                      <Text
+                        style={[styles.text2, { color: activeColors.accent }]}
+                      >
+                        Hold Reasons
+                      </Text>
 
-                      {user.role === "user" && (
-                        <>
-                          {/* Little Text */}
-                          <Text
-                            style={[
-                              styles.text2,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            Hold Reasons
-                          </Text>
-
-                          <View
-                            style={[
-                              styles.reasonContainer,
-                              {
-                                backgroundColor: activeColors.secondary,
-                                borderColor: activeColors.tertiary,
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.reason,
-                                { color: activeColors.accent },
-                              ]}
-                              numberOfLines={100}
-                            >
-                              {reason}
-                            </Text>
-                          </View>
-                        </>
-                      )}
+                      <View
+                        style={[
+                          styles.reasonContainer,
+                          {
+                            backgroundColor: activeColors.secondary,
+                            borderColor: activeColors.tertiary,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.reason,
+                            { color: activeColors.accent },
+                          ]}
+                          numberOfLines={100}
+                        >
+                          {reason}
+                        </Text>
+                      </View>
                     </>
                   )}
+
+                  {user.role === "admin" && status === "Hold" && (
+                    <>
+                      {/* UnHold */}
+                      <Pressable
+                        onPress={() =>
+                          Alert.alert(
+                            "Confirmation",
+                            "Are you sure you want to UNHOLD this store?",
+                            [
+                              {
+                                text: "Yes",
+                                onPress: () => handleUnHoldStore(),
+                              },
+                              { text: "No" },
+                            ],
+                            { cancelable: true }
+                          )
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.registerButtonContainer,
+                            {
+                              color: activeColors.secondary,
+                              backgroundColor: activeColors.accent,
+                              width: (screenWidth * 2) / 3 + 50,
+                            },
+                          ]}
+                        >
+                          UnHold Store
+                        </Text>
+                      </Pressable>
+                    </>
+                  )}
+
                   {/* Rejected */}
                   {status === "Rejected" && (
                     <>
@@ -1537,6 +1516,12 @@ const styles = StyleSheet.create({
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
     flex: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 
   modalOverlay: {

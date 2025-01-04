@@ -20,6 +20,11 @@ import {
 } from "../Response/OrderResponse";
 import { RejectOrderValidate } from "../Validation/OrderValidation/RejectOrderValidate";
 import { sendEmail } from "../Utils/UserUtil";
+import { ORDERHISTORY } from "../Models/OrderHistoryModel";
+import {
+  ServiceHistoryObj,
+  ServiceProductHistoryObj,
+} from "../dto/OrderHistory";
 
 export const addOrder = async (req: Request, res: Response) => {
   try {
@@ -96,13 +101,29 @@ export const addOrder = async (req: Request, res: Response) => {
       console.log("startTime.getHours(): ", startTime.getHours());
       console.log("startTime.getUTCHours(): ", startTime.getUTCHours());
 
+      const startTimeMinutes =
+        startTime.getUTCHours() * 60 + startTime.getUTCMinutes();
+      const endTimeMinutes =
+        endTime.getUTCHours() * 60 +
+        endTime.getUTCMinutes() +
+        (endTime.getUTCDate() > startTime.getUTCDate() ? 1440 : 0);
+      const openTimeMinutes = store.openHour * 60 + store.openMinute;
+      const closeTimeMinutes = store.closeHour * 60 + store.closeMinute;
+      console.log("startTimeMinutes", startTimeMinutes);
+      console.log("endTimeMinutes", endTimeMinutes);
+      console.log("openTimeMinutes", openTimeMinutes);
+      console.log("closeTimeMinutes", closeTimeMinutes);
+
       //check whether the shop is still open
       if (
-        startTime.getUTCHours() * 60 + startTime.getUTCMinutes() <
-          store.openHour * 60 + store.openMinute ||
-        endTime.getUTCHours() * 60 + endTime.getUTCMinutes() >
-          store.closeHour * 60 + store.closeMinute ||
-        store.isOpen === false
+        // startTime.getUTCHours() * 60 + startTime.getUTCMinutes() <
+        //   store.openHour * 60 + store.openMinute ||
+        // endTime.getUTCHours() * 60 + endTime.getUTCMinutes() >
+        //   store.closeHour * 60 + store.closeMinute ||
+        // store.isOpen === false
+        store.isOpen === false || // Store is closed
+        startTimeMinutes < openTimeMinutes || // Start time is before opening
+        endTimeMinutes > closeTimeMinutes // End time is after closing
       ) {
         return res.status(400).json(<ResponseObj>{
           error: true,
@@ -177,7 +198,7 @@ export const addOrder = async (req: Request, res: Response) => {
               "Waiting for Confirmation",
               "Waiting for Payment",
               "Paid",
-              "Completed",
+              // "Completed",
             ],
           },
           $or: [
@@ -203,7 +224,7 @@ export const addOrder = async (req: Request, res: Response) => {
               "Waiting for Confirmation",
               "Waiting for Payment",
               "Paid",
-              "Completed",
+              // "Completed",
             ],
           },
           $or: [
@@ -230,7 +251,7 @@ export const addOrder = async (req: Request, res: Response) => {
           return res.status(400).json(<ResponseObj>{
             error: true,
             message:
-              "Sorry your order failed, All the workers are busy at your order time.",
+              "Sorry your order failed, All the workers are busy/not available at your order time.",
           });
         }
 
@@ -272,6 +293,7 @@ export const addOrder = async (req: Request, res: Response) => {
       //user store untuk send email alert quantity email
       const user = await USERS.findOne({ _id: store.userId });
 
+      const servicesForHistory: ServiceHistoryObj[] = [];
       //check whether all the needed services are available
       for (const serviceId of serviceIds) {
         if (!mongoose.Types.ObjectId.isValid(serviceId)) {
@@ -290,6 +312,15 @@ export const addOrder = async (req: Request, res: Response) => {
             message: "Service not found " + serviceId,
           });
         }
+
+        servicesForHistory.push({
+          id: service._id,
+          name: service.name,
+          price: service.price,
+          duration: service.duration,
+          discount: service.discount,
+          serviceProducts: [],
+        });
 
         if (service.serviceProduct) {
           const allServiceProductIds = service.serviceProduct;
@@ -345,6 +376,18 @@ export const addOrder = async (req: Request, res: Response) => {
                   }
                 }
               }
+
+              const serviceProductsForHistory: ServiceProductHistoryObj = {
+                id: serviceProduct._id,
+                name: serviceProduct.name,
+                addtionalPrice: serviceProduct.addtionalPrice,
+              };
+
+              servicesForHistory[
+                servicesForHistory.findIndex(
+                  (obj) => obj.id?.toString() === serviceId.toString()
+                )
+              ].serviceProducts?.push(serviceProductsForHistory);
             }
           }
         }
@@ -367,6 +410,34 @@ export const addOrder = async (req: Request, res: Response) => {
         });
 
         await newOrder.save();
+
+        const workerForHistory = store.workers.find((worker) => {
+          if (workerId) {
+            return worker?._id?.toString() === workerId.toString();
+          }
+
+          return (
+            worker?._id?.toString() === longestAvailableWorkerId?.toString()
+          );
+        });
+
+        const newOrderHistory = new ORDERHISTORY({
+          orderId: newOrder._id,
+          userName,
+          storeId: store._id,
+          services: servicesForHistory,
+          isManual,
+          totalPrice,
+          totalDuration,
+          date: startTime,
+          endTime: endTime,
+          hasRating: false,
+          workerId: workerId ? workerId : longestAvailableWorkerId,
+          workerName:
+            workerForHistory?.firstName + " " + workerForHistory?.lastName,
+        });
+
+        await newOrderHistory.save();
 
         return res.status(200).json(<ResponseObj>{
           error: false,
@@ -539,8 +610,10 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
           });
         } else {
           const startDate = new Date(year, month - 1, 1); // Start of the month
+          startDate.setHours(startDate.getHours() + 7);
           const endDate = new Date(year, month, 1); // Start of the next month
-
+          endDate.setHours(endDate.getHours() + 7);
+          // console.log("startDate: ", startDate, "endDate: ", endDate);
           query.date = {
             $gte: startDate,
             $lt: endDate,
@@ -565,7 +638,7 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
 
       query.status = { $in: ["Paid", undefined, "Completed", "Rejected"] };
 
-      const orders = await ORDERS.find(query)
+      const orders = await ORDERHISTORY.find(query)
         .sort({ date: 1 }) //asc
         .limit(Number(limit))
         .skip(Number(offset));
@@ -577,23 +650,34 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
       };
 
       responseData.orders = orders;
-      responseData.total = await ORDERS.countDocuments(query);
+      responseData.total = await ORDERHISTORY.countDocuments(query);
+
+      const summaryOrders = await ORDERHISTORY.find(query).sort({ date: 1 }); //asc
 
       const summaryMap: { [key: string]: number } = {};
-      for (const order of orders) {
-        for (const serviceId of order.serviceIds) {
-          const service = store.services.find(
-            (serviceData) =>
-              serviceData._id?.toString() === serviceId.toString()
-          );
+      for (const order of summaryOrders) {
+        // for (const serviceId of order.serviceIds) {
+        //   const service = store.services.find(
+        //     (serviceData) =>
+        //       serviceData._id?.toString() === serviceId.toString()
+        //   );
 
-          if (service) {
-            const serviceName = service.name;
-            if (summaryMap[serviceName]) {
-              summaryMap[serviceName]++;
-            } else {
-              summaryMap[serviceName] = 1;
-            }
+        //   if (service) {
+        //     const serviceName = service.name;
+        //     if (summaryMap[serviceName]) {
+        //       summaryMap[serviceName]++;
+        //     } else {
+        //       summaryMap[serviceName] = 1;
+        //     }
+        //   }
+        // }
+
+        for (const service of order.services) {
+          const serviceName = service.name;
+          if (summaryMap[serviceName]) {
+            summaryMap[serviceName]++;
+          } else {
+            summaryMap[serviceName] = 1;
           }
         }
       }
@@ -924,6 +1008,8 @@ export const rejectOrder = async (req: Request, res: Response) => {
           });
         }
 
+        const servicesForHistory: ServiceHistoryObj[] = [];
+
         for (const serviceId of order.serviceIds) {
           const service = store.services.find(
             (service) => service._id?.toString() === serviceId.toString()
@@ -935,6 +1021,15 @@ export const rejectOrder = async (req: Request, res: Response) => {
             });
           }
 
+          servicesForHistory.push({
+            id: service._id,
+            name: service.name,
+            price: service.price,
+            duration: service.duration,
+            discount: service.discount,
+            serviceProducts: [],
+          });
+
           if (service.serviceProduct) {
             const allServiceProductIds = service.serviceProduct;
             console.log("All Service Products Ids: " + allServiceProductIds);
@@ -944,6 +1039,7 @@ export const rejectOrder = async (req: Request, res: Response) => {
                 (serviceProduct) =>
                   serviceProduct._id?.toString() === serviceProductId.toString()
               );
+
               if (
                 serviceProduct &&
                 (serviceProduct.isAnOption === false ||
@@ -963,12 +1059,49 @@ export const rejectOrder = async (req: Request, res: Response) => {
                 }
                 console.log("increase quantity of " + serviceProductId);
                 serviceProduct.quantity += 1;
+
+                const serviceProductsForHistory: ServiceProductHistoryObj = {
+                  id: serviceProduct._id,
+                  name: serviceProduct.name,
+                  addtionalPrice: serviceProduct.addtionalPrice,
+                };
+
+                servicesForHistory[
+                  servicesForHistory.findIndex(
+                    (obj) => obj.id?.toString() === serviceId.toString()
+                  )
+                ].serviceProducts?.push(serviceProductsForHistory);
               }
             }
           }
         }
 
         await store.save();
+
+        const worker = store.workers.find(
+          (worker) => worker._id?.toString() === order.workerId?.toString()
+        );
+
+        const newOrderHistory = new ORDERHISTORY({
+          orderId: order._id,
+          userId: order.userId,
+          userName: user?.firstName + " " + user?.lastName,
+          userPhone: user?.phone,
+          storeId: store._id,
+          services: servicesForHistory,
+          isManual: order.isManual,
+          status: order.status,
+          totalPrice: order.totalPrice,
+          totalDuration: order.totalDuration,
+          date: order.date,
+          endTime: order.endTime,
+          hasRating: order.hasRating,
+          workerId: order.workerId,
+          workerName: worker?.firstName + " " + worker?.lastName,
+          rejectedReason: order.rejectedReason,
+        });
+
+        await newOrderHistory.save();
       }
 
       return res.status(200).json(<ResponseObj>{
@@ -1078,7 +1211,9 @@ export const payOrder = async (req: Request, res: Response) => {
           });
         }
 
-        const user = await USERS.findOne({ _id: store.userId });
+        const userStore = await USERS.findOne({ _id: store.userId });
+
+        const servicesForHistory: ServiceHistoryObj[] = [];
 
         for (const serviceId of order.serviceIds) {
           const service = store.services.find(
@@ -1090,6 +1225,15 @@ export const payOrder = async (req: Request, res: Response) => {
               message: "Service not found " + serviceId,
             });
           }
+
+          servicesForHistory.push({
+            id: service._id,
+            name: service.name,
+            price: service.price,
+            duration: service.duration,
+            discount: service.discount,
+            serviceProducts: [],
+          });
 
           if (service.serviceProduct) {
             const allServiceProductIds = service.serviceProduct;
@@ -1123,10 +1267,10 @@ export const payOrder = async (req: Request, res: Response) => {
                   !serviceProduct.isAlerted &&
                   serviceProduct.quantity <= serviceProduct.alertQuantity
                 ) {
-                  if (user) {
+                  if (userStore) {
                     await sendEmail(
                       "serviceProductQuantityAlert",
-                      user.email,
+                      userStore.email,
                       `${store.name}, Service Product Quantity Alert`,
                       `We just want to inform that your service product (${serviceProduct.name}) quantity is about to get out of stock.`,
                       `owner of ${store.name}`
@@ -1135,12 +1279,48 @@ export const payOrder = async (req: Request, res: Response) => {
                     serviceProduct.isAlerted = true;
                   }
                 }
+
+                const serviceProductsForHistory: ServiceProductHistoryObj = {
+                  id: serviceProduct._id,
+                  name: serviceProduct.name,
+                  addtionalPrice: serviceProduct.addtionalPrice,
+                };
+
+                servicesForHistory[
+                  servicesForHistory.findIndex(
+                    (obj) => obj.id?.toString() === serviceId.toString()
+                  )
+                ].serviceProducts?.push(serviceProductsForHistory);
               }
             }
           }
         }
 
         await store.save();
+
+        const worker = store.workers.find(
+          (worker) => worker._id?.toString() === order.workerId?.toString()
+        );
+
+        const newOrderHistory = new ORDERHISTORY({
+          orderId: order._id,
+          userId: order.userId,
+          userName: user?.firstName + " " + user?.lastName,
+          userPhone: user?.phone,
+          storeId: store._id,
+          services: servicesForHistory,
+          isManual: order.isManual,
+          status: order.status,
+          totalPrice: order.totalPrice,
+          totalDuration: order.totalDuration,
+          date: order.date,
+          endTime: order.endTime,
+          hasRating: order.hasRating,
+          workerId: order.workerId,
+          workerName: worker?.firstName + " " + worker?.lastName,
+        });
+
+        await newOrderHistory.save();
       }
 
       return res.status(200).json(<ResponseObj>{
@@ -1235,6 +1415,18 @@ export const completeOrder = async (req: Request, res: Response) => {
       order.endTime = currentTime;
 
       await order.save();
+
+      const orderHistory = await ORDERHISTORY.findOne({
+        orderId: order._id,
+      });
+
+      if (orderHistory) {
+        orderHistory.status = "Completed";
+        orderHistory.timeDifference = order.timeDifference;
+        orderHistory.endTime = currentTime;
+
+        await orderHistory.save();
+      }
 
       return res.status(200).json(<ResponseObj>{
         error: false,

@@ -80,6 +80,7 @@ export const getStoreOrderHistory = async ({
   params, //limit, offset, month, year
 }: ApiRequestProps): Promise<IResponseProps<GetStoreOrderHistoryResponse>> => {
   // console.log("getStoreOrderHistory Process");
+  // console.log(params);
   const apiOptions: ApiOptions = {
     method: "GET",
     queryParams: {
@@ -100,7 +101,7 @@ export const getStoreOrderHistory = async ({
   const result = await apiCallWithToken<GetStoreOrderHistoryResponse>(
     apiCallWithTokenProps
   );
-
+  // console.log(JSON.stringify(result, null, 2));
   return {
     status: result.status,
     data: result.data,

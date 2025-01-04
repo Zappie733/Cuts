@@ -9,12 +9,24 @@ import { TabsNavigator, TabsStackParamsObj } from "./TabNavigator";
 import { LoginScreen } from "../Screens/LoginScreen";
 import { WelcomeScreen } from "../Screens/WelcomeScreen";
 import { RegisterScreen } from "../Screens/RegisterScreen";
-import { Auth, User } from "../Contexts";
 import { ProfileScreen } from "../Screens/ProfileScreen";
 import { RegisterStoreScreen } from "../Screens/RegisterStoreScreen";
 import { DocumentDetailsScreen } from "../Screens/DocumentDetailsScreen";
 import { RegistrationStoreData } from "../Types/StoreTypes/StoreTypes";
 import { StoreProfileScreen } from "../Screens/Store/StoreProfileScreen";
+import { StoreServiceScreen } from "../Screens/Store/StoreServiceScreen";
+import { StoreServiceProductScreen } from "../Screens/Store/StoreServiceProductScreen";
+import { StoreSalesProductScreen } from "../Screens/Store/StoreSalesProductScreen";
+import { StoreWorkerScreen } from "../Screens/Store/StoreWorkerScreen";
+import { StorePromotionScreen } from "../Screens/Store/StorePromotionScreen";
+import { StoreGalleryScreen } from "../Screens/Store/StoreGalleryScreen";
+import { StoreOrderHistoryScreen } from "../Screens/Store/StoreOrderHistoryScreen";
+import { StoreRatingScreen } from "../Screens/Store/StoreRatingScreen";
+import { Auth } from "../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
+import { LikedImagesScreen } from "../Screens/LikedImagesScreen";
+import { DetailStoreScreen } from "../Screens/DetailStoreScreen";
+import { StoreScheduleScreen } from "../Screens/Store/StoreScheduleScreen";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;
@@ -41,6 +53,18 @@ export type RootStackParamsObj = {
     fileName: string;
   };
   StoreProfile: undefined;
+  StoreServices: undefined;
+  StoreServiceProducts: undefined;
+  StoreSalesProducts: undefined;
+  StoreWorkers: undefined;
+  StorePromotions: undefined;
+  StoreGallery: undefined;
+  StoreOrderHistory: undefined;
+  StoreRatings: { serviceId: string } | undefined;
+
+  LikedImages: undefined;
+  DetailStore: undefined;
+  StoreSchedule: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsObj>();
@@ -61,7 +85,7 @@ export const RootNavigator = () => {
     >
       {auth._id === "" ? (
         <>
-          {console.log("root nav guest")}
+          {/* {console.log("root nav guest")} */}
           <RootStack.Screen name="Welcome" component={WelcomeScreen} />
           <RootStack.Screen name="LoginScreen" component={LoginScreen} />
           <RootStack.Screen name="RegisterScreen" component={RegisterScreen} />
@@ -69,7 +93,7 @@ export const RootNavigator = () => {
         </>
       ) : auth._id !== "" && user.role === "user" ? (
         <>
-          {console.log("root nav user")}
+          {/* {console.log("root nav user")} */}
           <RootStack.Screen name="TabsStack" component={TabsNavigator} />
           <RootStack.Screen name="Profile" component={ProfileScreen} />
           <RootStack.Screen
@@ -80,19 +104,52 @@ export const RootNavigator = () => {
             name="DocumentDetailsScreen"
             component={DocumentDetailsScreen}
           />
+          <RootStack.Screen name="LikedImages" component={LikedImagesScreen} />
+          <RootStack.Screen name="DetailStore" component={DetailStoreScreen} />
+          <RootStack.Screen name="StoreRatings" component={StoreRatingScreen} />
+          <RootStack.Screen
+            name="StoreSchedule"
+            component={StoreScheduleScreen}
+          />
         </>
       ) : auth._id !== "" && user.role === "store" ? (
         <>
-          {console.log("root nav store")}
+          {/* {console.log("root nav store")} */}
           <RootStack.Screen name="TabsStack" component={TabsNavigator} />
           <RootStack.Screen
             name="StoreProfile"
             component={StoreProfileScreen}
           />
+          <RootStack.Screen
+            name="StoreServices"
+            component={StoreServiceScreen}
+          />
+          <RootStack.Screen
+            name="StoreServiceProducts"
+            component={StoreServiceProductScreen}
+          />
+          <RootStack.Screen
+            name="StoreSalesProducts"
+            component={StoreSalesProductScreen}
+          />
+          <RootStack.Screen name="StoreWorkers" component={StoreWorkerScreen} />
+          <RootStack.Screen
+            name="StorePromotions"
+            component={StorePromotionScreen}
+          />
+          <RootStack.Screen
+            name="StoreGallery"
+            component={StoreGalleryScreen}
+          />
+          <RootStack.Screen
+            name="StoreOrderHistory"
+            component={StoreOrderHistoryScreen}
+          />
+          <RootStack.Screen name="StoreRatings" component={StoreRatingScreen} />
         </>
       ) : (
         <>
-          {console.log("root nav admin")}
+          {/* {console.log("root nav admin")} */}
           <RootStack.Screen name="TabsStack" component={TabsNavigator} />
           <RootStack.Screen name="Profile" component={ProfileScreen} />
           <RootStack.Screen

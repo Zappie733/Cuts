@@ -6,6 +6,7 @@ export interface GalleryObj {
   caption: string;
   likes?: number;
   date: Date;
+  isPublic: boolean;
 }
 
 export interface AddGalleryRequestObj {
@@ -16,6 +17,5 @@ export interface AddGalleryRequestObj {
 export interface UpdateGalleryRequestObj {
   galleryId: string;
   caption: string;
+  isPublic: boolean;
 }
-
-//semua yang ada likenya tidak boleh update image hanya data saja, karena takut adanya penyalahgunaan

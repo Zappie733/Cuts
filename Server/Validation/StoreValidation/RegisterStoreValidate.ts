@@ -53,6 +53,8 @@ export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
     storeName: Joi.string().required().label("Store Name"),
 
     storeLocation: Joi.required().label("Store Location"),
+    storeDistrict: Joi.string().required().label("Store District"),
+    storeSubDistrict: Joi.string().required().label("Store Sub District"),
     storeDocuments: Joi.array()
       .items(
         Joi.object({

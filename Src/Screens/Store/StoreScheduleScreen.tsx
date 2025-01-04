@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Modal,
@@ -14,9 +15,8 @@ import {
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
-import { StatusBar as ExpoStatusBar } from "expo-status-bar";
+import ExpoStatusBar from "expo-status-bar/build/ExpoStatusBar";
 import {
   completeOrder,
   confirmOrder,
@@ -34,18 +34,48 @@ import { GetUserInfoForOrderByIdResponse } from "../../Types/ResponseTypes";
 import { AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { WorkerObj } from "../../Types/StoreTypes/WorkerTypes";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
+import { RootStackScreenProps } from "../../Navigations/RootNavigator";
+import { Header } from "../../Components/Header";
+import { User } from "../../Contexts/UserContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
 export const StoreScheduleScreen = ({
   navigation,
   route,
-}: TabsStackScreenProps<"StoreSchedule">) => {
+}:
+  | TabsStackScreenProps<"StoreSchedule">
+  | RootStackScreenProps<"StoreSchedule">) => {
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const { store } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
+  const { user } = useContext(User);
+
+  const priceFormat = (price: number) => {
+    let priceStr = price.toString();
+    let newStr = "";
+    let lastIndex = 3;
+    while (priceStr.length > lastIndex) {
+      newStr =
+        priceStr.slice(0, priceStr.length - lastIndex) +
+        "." +
+        priceStr.slice(-lastIndex);
+
+      lastIndex += 3;
+    }
+    if (newStr === "") return priceStr;
+    return newStr;
+  };
 
   const [orderSchedule, setOrderSchedule] =
     useState<GetOrderforScheduleResponse>();
@@ -78,7 +108,7 @@ export const StoreScheduleScreen = ({
   const getStoreWorkers = () => {
     const workersRecordTemp: Record<string, WorkerObj> = {};
     store.workers.forEach((worker) => {
-      if (worker.role === "admin") return;
+      if (worker.role === "admin" || worker.role === "others") return;
 
       workersRecordTemp[worker._id ?? ""] = worker;
     });
@@ -106,6 +136,8 @@ export const StoreScheduleScreen = ({
   };
 
   const handleFetchOrderSchedule = async () => {
+    // setLoading(true); //ga enak kalau tiap 20detik ada loader
+
     const response = await apiCallHandler({
       apiCall: () =>
         getOrderforSchedule({
@@ -130,6 +162,8 @@ export const StoreScheduleScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    // setLoading(false);
   };
 
   const year = new Date().getFullYear();
@@ -166,10 +200,12 @@ export const StoreScheduleScreen = ({
 
     const grouped: Record<number, OrderObj[]> = {};
     const orders = orderSchedule.orders;
-
     dates.forEach((day) => {
       const matchingOrders = orders.filter((order) => {
-        const orderDate = new Date(order.date).getDate();
+        const orderDate = new Date(
+          new Date(order.date).getTime() - 7 * 60 * 60 * 1000
+        ).getDate();
+
         return orderDate === day;
       });
       grouped[day] = matchingOrders;
@@ -179,6 +215,8 @@ export const StoreScheduleScreen = ({
   };
 
   const handleConfirmOrder = async (orderId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         confirmOrder({
@@ -197,11 +235,16 @@ export const StoreScheduleScreen = ({
       Alert.alert("Success", response.message);
       handleFetchOrderSchedule();
     } else if (response) {
-      console.log(response.status, response.message);
+      // console.log(response.status, response.message);
+      Alert.alert("Error", response.message);
     }
+
+    setLoading(false);
   };
 
   const handleRejectOrder = async (orderId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         rejectOrder({
@@ -224,11 +267,16 @@ export const StoreScheduleScreen = ({
       setReason("");
       setIsModalVisible(false);
     } else if (response) {
-      console.log(response.status, response.message);
+      // console.log(response.status, response.message);
+      Alert.alert("Error", response.message);
     }
+
+    setLoading(false);
   };
 
   const fetchUserInfoForOrderById = async (userId: string) => {
+    // setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         getUserInfoForOrderById({
@@ -253,6 +301,8 @@ export const StoreScheduleScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    // setLoading(false);
   };
 
   const getUserInfoRecord = async () => {
@@ -288,6 +338,8 @@ export const StoreScheduleScreen = ({
   };
 
   const handleCompleteOrder = async (orderId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         completeOrder({
@@ -306,8 +358,10 @@ export const StoreScheduleScreen = ({
       Alert.alert("Success", response.message);
       handleFetchOrderSchedule();
     } else if (response) {
-      console.log(response.status, response.message);
+      Alert.alert("Error", response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -330,19 +384,19 @@ export const StoreScheduleScreen = ({
         const interval = setInterval(() => {
           console.log("refetching order schedule");
           handleFetchOrderSchedule();
-        }, 20000); // 20000 ms = 20 seconds
+        }, 15000); // 15000 ms = 15 seconds
 
         // Cleanup interval on unmount
         return () => clearInterval(interval);
       }
-    }, [store])
+    }, [store, auth])
   );
 
   useEffect(() => {
     if (!orderSchedule) return;
     groupOrdersByDate();
     getUserInfoRecord();
-  }, [orderSchedule]);
+  }, [orderSchedule, auth]);
 
   return (
     <SafeAreaView
@@ -351,554 +405,687 @@ export const StoreScheduleScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
-      <Text style={[styles.title, { color: activeColors.accent }]}>
-        {month} - {year}
-      </Text>
-      <Text style={[styles.title, { color: activeColors.accent }]}>
-        Schedule
-      </Text>
+      <ExpoStatusBar
+        hidden={false}
+        style={theme.mode === "dark" ? "light" : "dark"}
+        backgroundColor={activeColors.primary}
+      />
 
-      {/* dates */}
-      <View style={styles.datesContainer}>
-        {dates.map((date, index) => {
-          const waitingOrdersCount = groupedOrders[date]?.filter(
-            (order) => order.status === "Waiting for Confirmation"
-          ).length;
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
 
-          return (
-            <Pressable
-              key={index}
-              style={[
-                styles.dateButton,
-                {
-                  backgroundColor:
-                    selectedDate === date
-                      ? activeColors.tertiary
-                      : activeColors.secondary,
-                  borderColor:
-                    selectedDate === date
-                      ? activeColors.tertiary
-                      : activeColors.secondary,
-                },
-              ]}
-              onPress={() => setSelectedDate(date)}
-            >
-              <Text
-                style={{
-                  color:
-                    selectedDate === date
-                      ? activeColors.primary
-                      : activeColors.accent,
-                  fontWeight: selectedDate === date ? "600" : "normal",
-                }}
+      {user.role === "user" && <Header goBack={handleGoBack} />}
+
+      <View style={{ paddingHorizontal: 20, flex: 1 }}>
+        <Text style={[styles.title, { color: activeColors.accent }]}>
+          Schedule
+        </Text>
+        <Text style={[styles.dateTitle, { color: activeColors.accent }]}>
+          {month} - {year}
+        </Text>
+
+        {/* dates */}
+        <View style={styles.datesContainer}>
+          {dates.map((date, index) => {
+            const waitingOrdersCount = groupedOrders[date]?.filter(
+              (order) => order.status === "Waiting for Confirmation"
+            ).length;
+
+            return (
+              <Pressable
+                key={index}
+                style={[
+                  styles.dateButton,
+                  {
+                    backgroundColor:
+                      selectedDate === date
+                        ? activeColors.tertiary
+                        : activeColors.secondary,
+                    borderColor:
+                      selectedDate === date
+                        ? activeColors.tertiary
+                        : activeColors.secondary,
+                  },
+                ]}
+                onPress={() => setSelectedDate(date)}
               >
-                {date.toString()}
-              </Text>
-
-              {/* Notification Icon */}
-              {waitingOrdersCount > 0 && (
-                <View
+                <Text
                   style={{
-                    position: "absolute",
-                    top: -5,
-                    right: -5,
-                    backgroundColor: "red",
-                    borderRadius: 10,
-                    height: 20,
-                    width: 20,
-                    justifyContent: "center",
-                    alignItems: "center",
+                    color:
+                      selectedDate === date
+                        ? activeColors.primary
+                        : activeColors.accent,
+                    fontWeight: selectedDate === date ? "600" : "normal",
                   }}
                 >
-                  <Text
+                  {date.toString()}
+                </Text>
+
+                {/* Notification Icon */}
+                {waitingOrdersCount > 0 && (
+                  <View
                     style={{
-                      color: "white",
-                      fontSize: 12,
-                      fontWeight: "bold",
+                      position: "absolute",
+                      top: -5,
+                      right: -5,
+                      backgroundColor: "red",
+                      borderRadius: 10,
+                      height: 20,
+                      width: 20,
+                      justifyContent: "center",
+                      alignItems: "center",
                     }}
                   >
-                    {waitingOrdersCount}
-                  </Text>
-                </View>
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 12,
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {waitingOrdersCount}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
 
-      {/* workers tab */}
-      <View>
-        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-          {Object.keys(workersRecord).map((workerId, index) => (
-            <Pressable
-              key={index}
-              style={[
-                styles.workerButton,
-                {
-                  backgroundColor:
-                    workersRecord[workerId].isOnDuty === false
-                      ? activeColors.disabledColor
-                      : selectedWorker === workerId
-                      ? activeColors.tertiary
-                      : activeColors.secondary,
-                  borderColor:
-                    workersRecord[workerId].isOnDuty === false
-                      ? activeColors.disabledColor
-                      : selectedWorker === workerId
-                      ? activeColors.tertiary
-                      : activeColors.secondary,
-                },
-              ]}
-              onPress={() => setSelectedWorker(workerId)}
-              // disabled={workersRecord[workerId].isOnDuty === false}
-            >
+        {/* workers tab */}
+        <View>
+          {workersRecord && Object.keys(workersRecord).length === 0 && (
+            <View>
               <Text
                 style={{
-                  color:
-                    workersRecord[workerId].isOnDuty === false
-                      ? activeColors.accent
-                      : selectedWorker === workerId
-                      ? activeColors.primary
-                      : activeColors.accent,
-                  fontWeight: selectedWorker === workerId ? "600" : "normal",
+                  color: activeColors.accent,
+                  textAlign: "center",
+                  fontSize: 16,
                 }}
               >
-                {workersRecord[workerId].firstName +
-                  " " +
-                  workersRecord[workerId].lastName}
+                No workers found
               </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </View>
+            </View>
+          )}
+          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+            {Object.keys(workersRecord).map((workerId, index) => (
+              <Pressable
+                key={index}
+                style={[
+                  styles.workerButton,
+                  {
+                    backgroundColor:
+                      workersRecord[workerId].isOnDuty === false
+                        ? activeColors.disabledColor
+                        : selectedWorker === workerId
+                        ? activeColors.tertiary
+                        : activeColors.secondary,
+                    borderColor:
+                      workersRecord[workerId].isOnDuty === false
+                        ? activeColors.disabledColor
+                        : selectedWorker === workerId
+                        ? activeColors.tertiary
+                        : activeColors.secondary,
+                  },
+                ]}
+                onPress={() => setSelectedWorker(workerId)}
+                // disabled={workersRecord[workerId].isOnDuty === false}
+              >
+                <Text
+                  style={{
+                    color:
+                      workersRecord[workerId].isOnDuty === false
+                        ? activeColors.accent
+                        : selectedWorker === workerId
+                        ? activeColors.primary
+                        : activeColors.accent,
+                    fontWeight: selectedWorker === workerId ? "600" : "normal",
+                  }}
+                >
+                  {workersRecord[workerId].firstName +
+                    " " +
+                    workersRecord[workerId].lastName}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
 
-      {/* orders */}
-      <View
-        style={[
-          styles.orderContainer,
-          { backgroundColor: activeColors.secondary },
-        ]}
-      >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {selectedDate !== undefined && groupedOrders[selectedDate]?.length ? (
-            groupedOrders[selectedDate].filter(
-              (order) => order.workerId === selectedWorker
-            ).length ? (
-              groupedOrders[selectedDate]
-                .filter((order) => order.workerId === selectedWorker)
-                .map((order) => (
-                  <View
-                    key={order._id}
-                    style={[
-                      styles.order,
-                      {
-                        backgroundColor: activeColors.primary,
-                        borderColor: activeColors.tertiary,
-                      },
-                    ]}
-                  >
-                    {/* status */}
+        {/* orders */}
+        <View
+          style={[
+            styles.orderContainer,
+            {
+              backgroundColor: activeColors.secondary,
+              marginBottom: user.role === "user" ? 20 : 100,
+            },
+          ]}
+        >
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {selectedDate !== undefined &&
+            groupedOrders[selectedDate]?.length ? (
+              groupedOrders[selectedDate].filter(
+                (order) => order.workerId === selectedWorker
+              ).length ? (
+                groupedOrders[selectedDate]
+                  .filter((order) => order.workerId === selectedWorker)
+                  .map((order) => (
                     <View
+                      key={order._id}
                       style={[
-                        styles.statusContainer,
+                        styles.order,
                         {
-                          backgroundColor:
-                            order.status === "Waiting for Confirmation"
-                              ? "#FFDD57"
-                              : order.status === "Waiting for Payment"
-                              ? "#FFA07A"
-                              : order.status === "Rejected"
-                              ? "#FF6F61"
-                              : order.status === "Paid"
-                              ? "#98FB98"
-                              : order.status === "Completed"
-                              ? "#37A937"
-                              : activeColors.accent,
+                          backgroundColor: activeColors.primary,
+                          borderColor: activeColors.tertiary,
                         },
                       ]}
                     >
-                      <Text
+                      {/* status */}
+                      <View
                         style={[
-                          styles.status,
-                          { color: activeColors.primary, textAlign: "center" },
+                          styles.statusContainer,
+                          {
+                            backgroundColor:
+                              order.status === "Waiting for Confirmation"
+                                ? "#FFDD57"
+                                : order.status === "Waiting for Payment"
+                                ? "#FFA07A"
+                                : order.status === "Rejected"
+                                ? "#FF6F61"
+                                : order.status === "Paid"
+                                ? "#98FB98"
+                                : order.status === "Completed"
+                                ? "#37A937"
+                                : activeColors.accent,
+                          },
                         ]}
                       >
-                        {order.status === undefined ? "Manual" : order.status}
-                      </Text>
-                    </View>
-
-                    {/* Info */}
-                    <View style={styles.infoContainer}>
-                      {/* duration */}
-                      <View style={styles.durationContainer}>
                         <Text
                           style={[
-                            styles.durationText,
-                            { color: activeColors.accent },
+                            styles.status,
+                            {
+                              color: activeColors.primary,
+                              textAlign: "center",
+                            },
                           ]}
                         >
-                          {new Date(order.date).toUTCString().split(" ")[4]} -{" "}
-                          {new Date(order.endTime).toUTCString().split(" ")[4]}{" "}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.timeDifferenceText,
-                            { color: activeColors.infoColor },
-                          ]}
-                        >
-                          {order.timeDifference && order.timeDifference > 0
-                            ? `${order.timeDifference} minutes slower than expected`
-                            : order.timeDifference && order.timeDifference < 0
-                            ? `${Math.abs(
-                                order.timeDifference
-                              )} minutes faster than expected`
-                            : ""}
+                          {order.status === undefined
+                            ? "Onsite Order"
+                            : order.status}
                         </Text>
                       </View>
 
-                      {/* User Info */}
-                      <View style={styles.userInfoContainer}>
-                        {order.userName ? (
-                          <Text
-                            style={[
-                              styles.userInfoText,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            {order.userName}
-                          </Text>
-                        ) : (
-                          <View>
+                      {/* Info */}
+                      <View style={styles.infoContainer}>
+                        {/* Online flag */}
+                        {!order.isManual && (
+                          <View style={{ marginBottom: 3 }}>
                             <Text
-                              style={[
-                                styles.userInfoText,
-                                { color: activeColors.accent },
-                              ]}
+                              style={{
+                                color: activeColors.infoColor,
+                                textAlign: "center",
+                                fontSize: 18,
+                                fontWeight: "300",
+                              }}
                             >
-                              {userInfoRecord[order.userId ?? ""]
-                                ? userInfoRecord[order.userId ?? ""]
-                                    ?.firstName +
-                                  " " +
-                                  userInfoRecord[order.userId ?? ""]?.lastName
-                                : ""}
-                            </Text>
-                            <Text
-                              style={[
-                                styles.userInfoText,
-                                { color: activeColors.accent },
-                              ]}
-                            >
-                              {userInfoRecord[order.userId ?? ""]?.phone}
+                              Online Order
                             </Text>
                           </View>
                         )}
-                      </View>
 
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                        }}
-                      >
-                        <View
-                          style={{
-                            flex: 1,
-                            height: 3,
-                            marginRight: 5,
-                            backgroundColor: activeColors.tertiary,
-                          }}
-                        />
-                        {/* Toggle Icon */}
-
-                        <Pressable
-                          onPress={() => toggleOrderDetail(order._id ?? "")}
-                        >
-                          <Text style={{ color: activeColors.secondary }}>
-                            {viewOrderDetail?.get(order._id ?? "") ? (
-                              <AntDesign
-                                name="caretdown"
-                                size={20}
-                                color={activeColors.secondary}
-                              />
-                            ) : (
-                              <AntDesign
-                                name="caretright"
-                                size={20}
-                                color={activeColors.secondary}
-                              />
-                            )}
+                        {/* duration */}
+                        <View style={styles.durationContainer}>
+                          <Text
+                            style={[
+                              styles.durationText,
+                              { color: activeColors.accent },
+                            ]}
+                          >
+                            {new Date(order.date).toUTCString().split(" ")[4]} -{" "}
+                            {
+                              new Date(order.endTime)
+                                .toUTCString()
+                                .split(" ")[4]
+                            }{" "}
                           </Text>
-                        </Pressable>
-                      </View>
 
-                      {viewOrderDetail?.get(order._id ?? "") && (
-                        <>
-                          {/* services & service products */}
-                          <View>
-                            {order.serviceIds.map((serviceId, index) => (
-                              <View key={index}>
-                                {/* service */}
-                                <View
-                                  style={{
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    marginVertical: 5,
-                                  }}
+                          {/* service only for user*/}
+                          {user.role === "user" && (
+                            <View
+                              style={[
+                                styles.serviceContainer,
+                                { borderColor: activeColors.tertiary },
+                              ]}
+                            >
+                              {/* <Text
+                                style={[
+                                  styles.serviceText,
+                                  { color: activeColors.accent },
+                                ]}
+                              >
+                                Services:{""}
+                              </Text> */}
+
+                              {order.serviceIds.map((serviceId) => (
+                                <Text
+                                  key={serviceId}
+                                  style={[
+                                    styles.serviceText,
+                                    { color: activeColors.accent },
+                                  ]}
                                 >
-                                  <Text
-                                    style={{
-                                      color: activeColors.accent,
-                                    }}
-                                  >
-                                    {servicesRecord[serviceId].name}
-                                  </Text>
-                                  <Text
-                                    style={{
-                                      color: activeColors.accent,
-                                    }}
-                                  >
-                                    {servicesRecord[serviceId].duration} min
-                                  </Text>
-                                  <Text
-                                    style={{
-                                      color: activeColors.accent,
-                                    }}
-                                  >
-                                    Rp.{servicesRecord[serviceId].price}
-                                  </Text>
-                                </View>
+                                  - {servicesRecord[serviceId].name}
+                                </Text>
+                              ))}
+                            </View>
+                          )}
 
-                                {/* service products line */}
-                                {servicesRecord[serviceId]?.serviceProduct &&
-                                  servicesRecord[serviceId]?.serviceProduct
-                                    .length > 0 && (
-                                    <View
+                          {/* time difference */}
+                          {order.timeDifference && (
+                            <Text
+                              style={[
+                                styles.timeDifferenceText,
+                                { color: activeColors.infoColor },
+                              ]}
+                            >
+                              {order.timeDifference && order.timeDifference > 0
+                                ? `${order.timeDifference} minutes slower than expected`
+                                : order.timeDifference &&
+                                  order.timeDifference < 0
+                                ? `${Math.abs(
+                                    order.timeDifference
+                                  )} minutes faster than expected`
+                                : ""}
+                            </Text>
+                          )}
+                        </View>
+
+                        {/* User Info */}
+                        {user.role === "store" && (
+                          <View style={styles.userInfoContainer}>
+                            {order.userName ? (
+                              <Text
+                                style={[
+                                  styles.userInfoText,
+                                  { color: activeColors.accent },
+                                ]}
+                              >
+                                {order.userName}
+                              </Text>
+                            ) : (
+                              <View>
+                                <Text
+                                  style={[
+                                    styles.userInfoText,
+                                    { color: activeColors.accent },
+                                  ]}
+                                >
+                                  {userInfoRecord[order.userId ?? ""]
+                                    ? userInfoRecord[order.userId ?? ""]
+                                        ?.firstName +
+                                      " " +
+                                      userInfoRecord[order.userId ?? ""]
+                                        ?.lastName
+                                    : ""}
+                                </Text>
+                                <Text
+                                  style={[
+                                    styles.userInfoText,
+                                    { color: activeColors.accent },
+                                  ]}
+                                >
+                                  {userInfoRecord[order.userId ?? ""]?.phone}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        )}
+
+                        {/* Toggle Icon */}
+                        {user.role === "store" && (
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                            }}
+                          >
+                            <View
+                              style={{
+                                flex: 1,
+                                height: 3,
+                                marginRight: 5,
+                                backgroundColor: activeColors.tertiary,
+                              }}
+                            />
+                            <Pressable
+                              onPress={() => toggleOrderDetail(order._id ?? "")}
+                            >
+                              <Text style={{ color: activeColors.secondary }}>
+                                {viewOrderDetail?.get(order._id ?? "") ? (
+                                  <AntDesign
+                                    name="caretdown"
+                                    size={20}
+                                    color={activeColors.secondary}
+                                  />
+                                ) : (
+                                  <AntDesign
+                                    name="caretright"
+                                    size={20}
+                                    color={activeColors.secondary}
+                                  />
+                                )}
+                              </Text>
+                            </Pressable>
+                          </View>
+                        )}
+
+                        {viewOrderDetail?.get(order._id ?? "") && (
+                          <>
+                            {/* services & service products */}
+                            <View>
+                              {order.serviceIds.map((serviceId, index) => (
+                                <View key={index}>
+                                  {/* service */}
+                                  <View
+                                    style={{
+                                      flexDirection: "row",
+                                      justifyContent: "space-between",
+                                      marginVertical: 5,
+                                    }}
+                                  >
+                                    <Text
                                       style={{
-                                        flex: 1,
-                                        padding: 1,
-                                        backgroundColor: activeColors.tertiary,
-                                        marginLeft: 30,
-                                        marginVertical: 1,
+                                        color: activeColors.accent,
                                       }}
-                                    />
-                                  )}
-                                {/* service products */}
-                                <View
-                                  style={{
-                                    flexDirection: "column",
-                                    marginVertical: 2,
-                                    marginLeft: 30,
-                                  }}
-                                >
-                                  {servicesRecord[serviceId].serviceProduct
-                                    ?.filter((productId) => {
-                                      const serviceProduct =
-                                        serviceProductsRecord[productId];
-                                      return (
-                                        order.chosenServiceProductsIds
-                                          ?.find(
-                                            (id) =>
-                                              id.serviceId.toString() ===
-                                              serviceId.toString()
-                                          )
-                                          ?.serviceProductIds.includes(
-                                            productId
-                                          ) ||
-                                        serviceProduct.isAnOption === false
-                                      );
-                                    })
-                                    .map((productId, index) => (
-                                      <View
-                                        key={index}
+                                    >
+                                      {servicesRecord[serviceId]?.name}
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        color: activeColors.accent,
+                                      }}
+                                    >
+                                      {servicesRecord[serviceId]?.duration} min
+                                    </Text>
+
+                                    {servicesRecord[serviceId]?.discount &&
+                                    servicesRecord[serviceId]?.discount > 0 ? (
+                                      <Text
                                         style={{
-                                          flexDirection: "row",
-                                          justifyContent: "space-between",
-                                          marginVertical: 3,
+                                          color: activeColors.accent,
                                         }}
                                       >
-                                        <Text
+                                        Rp
+                                        {priceFormat(
+                                          ((100 -
+                                            servicesRecord[serviceId]
+                                              ?.discount) *
+                                            servicesRecord[serviceId]?.price) /
+                                            100
+                                        )}{" "}
+                                        ({servicesRecord[serviceId]?.discount}%
+                                        off)
+                                      </Text>
+                                    ) : (
+                                      <Text
+                                        style={{
+                                          color: activeColors.accent,
+                                        }}
+                                      >
+                                        Rp
+                                        {priceFormat(
+                                          servicesRecord[serviceId]?.price
+                                        )}
+                                      </Text>
+                                    )}
+                                  </View>
+
+                                  {/* service products line */}
+                                  {servicesRecord[serviceId]?.serviceProduct &&
+                                    servicesRecord[serviceId]?.serviceProduct
+                                      .length > 0 && (
+                                      <View
+                                        style={{
+                                          flex: 1,
+                                          padding: 1,
+                                          backgroundColor:
+                                            activeColors.tertiary,
+                                          marginLeft: 30,
+                                          marginVertical: 1,
+                                        }}
+                                      />
+                                    )}
+                                  {/* service products */}
+                                  <View
+                                    style={{
+                                      flexDirection: "column",
+                                      marginVertical: 2,
+                                      marginLeft: 30,
+                                    }}
+                                  >
+                                    {servicesRecord[serviceId].serviceProduct
+                                      ?.filter((productId) => {
+                                        const serviceProduct =
+                                          serviceProductsRecord[productId];
+                                        return (
+                                          order.chosenServiceProductsIds
+                                            ?.find(
+                                              (id) =>
+                                                id.serviceId.toString() ===
+                                                serviceId.toString()
+                                            )
+                                            ?.serviceProductIds.includes(
+                                              productId
+                                            ) ||
+                                          serviceProduct.isAnOption === false
+                                        );
+                                      })
+                                      .map((productId, index) => (
+                                        <View
+                                          key={index}
                                           style={{
-                                            color: activeColors.accent,
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
+                                            marginVertical: 3,
+                                            paddingLeft: 10,
                                           }}
                                         >
-                                          {
-                                            serviceProductsRecord[productId]
-                                              .name
-                                          }
-                                        </Text>
-                                        <Text
-                                          style={{
-                                            color: activeColors.accent,
-                                          }}
-                                        >
-                                          Rp.
-                                          {serviceProductsRecord[productId]
-                                            .addtionalPrice ?? 0}
-                                        </Text>
-                                      </View>
-                                    ))}
+                                          <Text
+                                            style={{
+                                              color: activeColors.accent,
+                                            }}
+                                          >
+                                            {
+                                              serviceProductsRecord[productId]
+                                                ?.name
+                                            }
+                                          </Text>
+                                          <Text
+                                            style={{
+                                              color: activeColors.accent,
+                                            }}
+                                          >
+                                            Rp
+                                            {priceFormat(
+                                              serviceProductsRecord[productId]
+                                                ?.addtionalPrice ?? 0
+                                            )}
+                                          </Text>
+                                        </View>
+                                      ))}
+                                  </View>
+
+                                  <View
+                                    style={{
+                                      flex: 1,
+                                      padding: 1,
+                                      backgroundColor: activeColors.tertiary,
+                                    }}
+                                  />
                                 </View>
+                              ))}
+                            </View>
 
-                                <View
-                                  style={{
-                                    flex: 1,
-                                    padding: 1,
-                                    backgroundColor: activeColors.tertiary,
-                                  }}
-                                />
+                            {/* Estimate Time &Total price */}
+                            <View style={styles.estimateNTotalContainer}>
+                              <View>
+                                <Text
+                                  style={[
+                                    styles.estimateNTotalText,
+                                    { color: activeColors.accent },
+                                  ]}
+                                >
+                                  Estimated Time: {order.totalDuration} min
+                                </Text>
                               </View>
-                            ))}
-                          </View>
+                              <View>
+                                <Text
+                                  style={[
+                                    styles.estimateNTotalText,
+                                    { color: activeColors.accent },
+                                  ]}
+                                >
+                                  Total: Rp{priceFormat(order.totalPrice)}
+                                </Text>
+                              </View>
+                            </View>
+                          </>
+                        )}
+                      </View>
 
-                          {/* Estimate Time &Total price */}
-                          <View style={styles.estimateNTotalContainer}>
-                            <View>
+                      {/* actions */}
+                      {user.role === "store" &&
+                        order.status === "Waiting for Confirmation" && (
+                          <View style={styles.actionsContainer}>
+                            <Pressable
+                              style={[
+                                styles.actionButton,
+                                {
+                                  backgroundColor: activeColors.accent,
+                                  borderColor: "green",
+                                },
+                              ]}
+                              onPress={() =>
+                                Alert.alert(
+                                  "Confirm Order",
+                                  "Are you sure to confirm this order?",
+                                  [
+                                    {
+                                      text: "OK",
+                                      onPress: () =>
+                                        handleConfirmOrder(order._id ?? ""),
+                                    },
+                                    {
+                                      text: "Cancel",
+                                      style: "cancel",
+                                      onPress: () =>
+                                        console.log("Cancel Pressed"),
+                                    },
+                                  ]
+                                )
+                              }
+                            >
                               <Text
                                 style={[
-                                  styles.estimateNTotalText,
-                                  { color: activeColors.accent },
+                                  styles.actionButtonText,
+                                  { color: activeColors.secondary },
                                 ]}
                               >
-                                Estimated Time: {order.totalDuration} min
+                                Confirm
                               </Text>
-                            </View>
-                            <View>
+                            </Pressable>
+                            <Pressable
+                              style={[
+                                styles.actionButton,
+                                {
+                                  backgroundColor: activeColors.accent,
+                                  borderColor: "red",
+                                },
+                              ]}
+                              onPress={() => {
+                                setIsModalVisible(true);
+                                setRejectOrderId(order._id ?? "");
+                              }}
+                            >
                               <Text
                                 style={[
-                                  styles.estimateNTotalText,
-                                  { color: activeColors.accent },
+                                  styles.actionButtonText,
+                                  { color: activeColors.secondary },
                                 ]}
                               >
-                                Total: Rp.{order.totalPrice}
+                                Reject
                               </Text>
-                            </View>
+                            </Pressable>
                           </View>
-                        </>
-                      )}
+                        )}
+
+                      {user.role === "store" &&
+                        (order.status === "Paid" ||
+                          order.status === undefined) && (
+                          <View style={styles.actionsContainer}>
+                            <Pressable
+                              style={[
+                                styles.actionButton,
+                                {
+                                  backgroundColor: activeColors.accent,
+                                  borderColor: "green",
+                                },
+                              ]}
+                              onPress={() =>
+                                Alert.alert(
+                                  "Complete Order",
+                                  "Are you sure to complete this order?",
+                                  [
+                                    {
+                                      text: "OK",
+                                      onPress: () =>
+                                        handleCompleteOrder(order._id ?? ""),
+                                    },
+                                    {
+                                      text: "Cancel",
+                                      style: "cancel",
+                                      onPress: () =>
+                                        console.log("Cancel Pressed"),
+                                    },
+                                  ]
+                                )
+                              }
+                            >
+                              <Text
+                                style={[
+                                  styles.actionButtonText,
+                                  { color: activeColors.secondary },
+                                ]}
+                              >
+                                Complete
+                              </Text>
+                            </Pressable>
+                          </View>
+                        )}
                     </View>
-
-                    {/* actions */}
-                    {order.status === "Waiting for Confirmation" && (
-                      <View style={styles.actionsContainer}>
-                        <Pressable
-                          style={[
-                            styles.actionButton,
-                            {
-                              backgroundColor: activeColors.accent,
-                              borderColor: "green",
-                            },
-                          ]}
-                          onPress={() =>
-                            Alert.alert(
-                              "Confirm Order",
-                              "Are you sure to confirm this order?",
-                              [
-                                {
-                                  text: "OK",
-                                  onPress: () =>
-                                    handleConfirmOrder(order._id ?? ""),
-                                },
-                                {
-                                  text: "Cancel",
-                                  style: "cancel",
-                                  onPress: () => console.log("Cancel Pressed"),
-                                },
-                              ]
-                            )
-                          }
-                        >
-                          <Text
-                            style={[
-                              styles.actionButtonText,
-                              { color: activeColors.secondary },
-                            ]}
-                          >
-                            Confirm
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          style={[
-                            styles.actionButton,
-                            {
-                              backgroundColor: activeColors.accent,
-                              borderColor: "red",
-                            },
-                          ]}
-                          onPress={() => {
-                            setIsModalVisible(true);
-                            setRejectOrderId(order._id ?? "");
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.actionButtonText,
-                              { color: activeColors.secondary },
-                            ]}
-                          >
-                            Reject
-                          </Text>
-                        </Pressable>
-                      </View>
-                    )}
-
-                    {(order.status === "Paid" ||
-                      order.status === undefined) && (
-                      <View style={styles.actionsContainer}>
-                        <Pressable
-                          style={[
-                            styles.actionButton,
-                            {
-                              backgroundColor: activeColors.accent,
-                              borderColor: "green",
-                            },
-                          ]}
-                          onPress={() =>
-                            Alert.alert(
-                              "Complete Order",
-                              "Are you sure to complete this order?",
-                              [
-                                {
-                                  text: "OK",
-                                  onPress: () =>
-                                    handleCompleteOrder(order._id ?? ""),
-                                },
-                                {
-                                  text: "Cancel",
-                                  style: "cancel",
-                                  onPress: () => console.log("Cancel Pressed"),
-                                },
-                              ]
-                            )
-                          }
-                        >
-                          <Text
-                            style={[
-                              styles.actionButtonText,
-                              { color: activeColors.secondary },
-                            ]}
-                          >
-                            Complete
-                          </Text>
-                        </Pressable>
-                      </View>
-                    )}
-                  </View>
-                ))
+                  ))
+              ) : (
+                <Text
+                  style={{ textAlign: "center", color: activeColors.accent }}
+                >
+                  No orders for{" "}
+                  {workersRecord[selectedWorker ?? ""].firstName +
+                    " " +
+                    workersRecord[selectedWorker ?? ""].lastName}
+                  .
+                </Text>
+              )
             ) : (
               <Text style={{ textAlign: "center", color: activeColors.accent }}>
-                No orders for{" "}
-                {workersRecord[selectedWorker ?? ""].firstName +
-                  " " +
-                  workersRecord[selectedWorker ?? ""].lastName}
-                .
+                No orders for this date.
               </Text>
-            )
-          ) : (
-            <Text style={{ textAlign: "center", color: activeColors.accent }}>
-              No orders for this date.
-            </Text>
-          )}
-        </ScrollView>
+            )}
+          </ScrollView>
+        </View>
       </View>
 
       <Modal
@@ -1010,11 +1197,22 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
-    paddingHorizontal: 20,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   title: {
+    fontSize: 30,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  dateTitle: {
     fontSize: 25,
     textAlign: "center",
+    fontWeight: "400",
   },
   datesContainer: {
     flexDirection: "row",
@@ -1044,7 +1242,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     padding: 20,
     borderRadius: 10,
-    marginBottom: 100,
   },
   order: {
     marginBottom: 10,
@@ -1157,5 +1354,19 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+
+  serviceContainer: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 5,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    paddingVertical: 5,
+  },
+  serviceText: {
+    fontWeight: "600",
+    fontSize: 16,
   },
 });

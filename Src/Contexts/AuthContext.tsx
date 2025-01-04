@@ -22,6 +22,7 @@ const defaultContext: IAuthContext = {
   setAuth: () => {},
   getRefreshTokenPayload: () => null,
   updateAccessToken: () => {},
+  refetchAuth: () => {},
 };
 export const Auth = createContext(defaultContext);
 
@@ -90,15 +91,37 @@ export const AuthContext = ({ children }: { children: ReactNode }) => {
   };
 
   const updateAccessToken = (newAccessToken: string) => {
+    console.log("UPDATE ACCESS TOKEN");
+    console.log("NEW ACCESS TOKEN: ", newAccessToken);
     setAuth((prevAuth) => ({
       ...prevAuth,
       accessToken: newAccessToken,
     }));
   };
 
+  const refetchAuth = async () => {
+    console.log("REFETCH AUTH");
+
+    try {
+      const auth = await getDataFromAsyncStorage("auth");
+
+      if (auth !== null) {
+        setAuth(auth);
+      }
+    } catch (e) {
+      console.error("Failed to refetch auth:", e);
+    }
+  };
+
   return (
     <Auth.Provider
-      value={{ auth, setAuth, getRefreshTokenPayload, updateAccessToken }}
+      value={{
+        auth,
+        setAuth,
+        getRefreshTokenPayload,
+        updateAccessToken,
+        refetchAuth,
+      }}
     >
       {children}
     </Auth.Provider>

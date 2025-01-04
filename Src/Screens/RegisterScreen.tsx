@@ -13,6 +13,7 @@ import {
   Keyboard,
   Alert,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Header } from "../Components/Header";
@@ -39,6 +40,8 @@ export const RegisterScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const [isModalVisible, setModalVisible] = useState(false);
 
   const handleBenefit = () => {
@@ -64,7 +67,9 @@ export const RegisterScreen = ({
   const [hidePassword, setHidePassword] = useState(true);
 
   const handleRegister = async () => {
-    console.log("Register Process");
+    // console.log("Register Process");
+    setLoading(true);
+
     const result: IResponseProps = await registerUser(userRegisterFormData);
     console.log(JSON.stringify(result, null, 2));
 
@@ -79,6 +84,8 @@ export const RegisterScreen = ({
     } else {
       Alert.alert("Registration Error", result.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -94,6 +101,13 @@ export const RegisterScreen = ({
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.primary }]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       <Header goBack={handleGoBack} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -332,6 +346,12 @@ const styles = StyleSheet.create({
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
     flex: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   registerContainer: {
     flex: 1,

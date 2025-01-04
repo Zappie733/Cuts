@@ -67,6 +67,12 @@ const UserSchema = new Schema(
           type: String,
           enum: ["salon", "barbershop"], // Restrict storeType to "Salon" or "Barbershop"
         },
+        storeDistrict: {
+          type: String,
+        },
+        storeSubDistrict: {
+          type: String,
+        },
         storeLocation: {
           address: {
             type: String,
@@ -98,6 +104,21 @@ const UserSchema = new Schema(
         ],
       },
     },
+    likes: [
+      {
+        storeId: {
+          type: Schema.Types.ObjectId,
+          ref: "Stores",
+        },
+        imageId: {
+          type: Schema.Types.ObjectId,
+          ref: "Gallery",
+        },
+        imageFiles: {
+          type: [String],
+        },
+      },
+    ],
   },
   {
     toJSON: {

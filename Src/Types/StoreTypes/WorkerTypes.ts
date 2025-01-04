@@ -12,17 +12,18 @@ export interface WorkerObj {
   firstName: string;
   lastName: string;
   age: number;
-  role: "admin" | "worker"; //admin adalah org yang diperaya di barber tersebut untuk mengelola bisnis seperti menerima atau menolak pesanan dan melakukan absensi pekerja
+  role: "admin" | "worker" | "others"; //admin adalah org yang diperaya di barber tersebut untuk mengelola bisnis seperti menerima atau menolak pesanan dan melakukan absensi pekerja
   isOnDuty?: boolean;
   history?: HistoryObj[];
   image: IImageProps;
+  joinDate: Date;
 }
 
 export interface RegisterWorkerData {
   firstName: string;
   lastName: string;
   age: number;
-  role: "admin" | "worker";
+  role: "admin" | "worker" | "others" | null;
   image: IImageProps;
 }
 
@@ -31,7 +32,7 @@ export interface UpdateWorkerData {
   firstName: string;
   lastName: string;
   age: number;
-  role: "admin" | "worker";
+  role: "admin" | "worker" | "others" | null;
   image: IImageProps;
 }
 

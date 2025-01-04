@@ -1,4 +1,4 @@
-import { ImageRequestObj, StoreObj } from "../dto";
+import { ImageRequestObj, LikeObj, StoreObj } from "../dto";
 
 export interface LoginDataResponse {
   _id: string;
@@ -15,6 +15,7 @@ export interface UserProfileResponse {
   role: "admin" | "user" | "store";
   verified: boolean;
   image: ImageRequestObj;
+  likes: LikeObj[];
 }
 
 export interface GetNewAccessTokenResponse {

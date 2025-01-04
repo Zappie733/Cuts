@@ -12,3 +12,8 @@ export interface SelectImagesProps {
   imagesData?: IImageProps[];
   handleSetImages: (images: IImageProps[]) => void;
 }
+
+export interface SelectSingleImageProps {
+  imageData?: IImageProps;
+  handleSetImage: (image: IImageProps | null) => void;
+}

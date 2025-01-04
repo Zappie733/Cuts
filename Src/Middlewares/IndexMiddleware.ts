@@ -97,14 +97,16 @@ export const apiCallWithToken = async <T>({
         };
       }
 
-      console.log("New access token retrieved.");
       if (result.data) {
+        console.log("New access token retrieved:", result.data.accessToken);
         accessToken = result.data.accessToken;
-        updateAccessToken(accessToken);
+        updateAccessToken(result.data.accessToken);
       }
 
       try {
+        console.log("Retrying request with new access token.");
         const retryResponse = await makeRequest(accessToken);
+        console.log("Retry response:", retryResponse.status);
         return {
           status: retryResponse.status,
           data: retryResponse.data.data as T,

@@ -1,5 +1,11 @@
 import { IImageProps } from "./ComponentTypes/ImageTypes";
 
+export interface LikeObj {
+  storeId: string;
+  imageId: string;
+  imageFiles: string[];
+}
+
 export interface IUserObj {
   _id: string;
   firstName: string;
@@ -10,6 +16,7 @@ export interface IUserObj {
   verified: boolean;
   image: IImageProps;
   userId?: string;
+  likes?: LikeObj[];
 }
 
 export interface RegistrationData {

@@ -115,7 +115,7 @@ export const deleteStore = async ({
 export const getStoresByStatus = async ({
   auth,
   updateAccessToken,
-  params,
+  params, //limit, offset, status, search, type
 }: ApiRequestProps<GetStoresByStatusParam>): Promise<
   IResponseProps<StoresByStatusResponse>
 > => {
@@ -128,6 +128,7 @@ export const getStoresByStatus = async ({
       offset: params?.offset,
       status: params?.status,
       search: params?.search,
+      type: params?.type,
     },
   };
 
@@ -362,13 +363,39 @@ export const getStoreByUserId = async ({
   auth,
   updateAccessToken,
 }: ApiRequestProps): Promise<IResponseProps<StoreObj>> => {
-  console.log("getStoreByUserId Process");
+  // console.log("getStoreByUserId Process");
   const apiOptions: ApiOptions = {
     method: "GET",
   };
 
   const apiCallWithTokenProps: ApiCallWithTokenProps = {
     endpoint: "/store/getStoreByUserId",
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<StoreObj>(apiCallWithTokenProps);
+
+  return {
+    status: result.status,
+    data: result.data,
+    message: result.message,
+  };
+};
+
+export const getStoreById = async ({
+  auth,
+  updateAccessToken,
+  params, //storeId
+}: ApiRequestProps): Promise<IResponseProps<StoreObj>> => {
+  // console.log("getStoreById Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/store/getStoreById/${params?.storeId}`,
     options: apiOptions,
     auth,
     updateAccessToken,

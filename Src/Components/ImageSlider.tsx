@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
 import { View, Image, StyleSheet, Text } from "react-native";
 import Swiper from "react-native-swiper";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
 import { IImageSliderProps } from "../Types/ComponentTypes/ImageSliderTypes";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const ImageSlider = ({ images }: IImageSliderProps) => {
   const { theme } = useContext(Theme);
@@ -14,6 +14,19 @@ export const ImageSlider = ({ images }: IImageSliderProps) => {
     "https://via.placeholder.com/600/771796",
     "https://via.placeholder.com/600/24f355",
   ];
+
+  const isBase64 = (str: string) => {
+    return (
+      /^data:image\/[a-z]+;base64,/.test(str) || /^[A-Za-z0-9+/=]+$/.test(str)
+    );
+  };
+
+  const prepareUri = (uri: string) => {
+    if (isBase64(uri) && !uri.startsWith("data:image")) {
+      return `data:image/png;base64,${uri}`; // Add prefix if missing
+    }
+    return uri;
+  };
 
   return (
     <View style={styles.container}>
@@ -30,17 +43,30 @@ export const ImageSlider = ({ images }: IImageSliderProps) => {
           <Text style={[styles.button, { color: activeColors.accent }]}>‹</Text>
         } // Custom left button
       >
-        {images && images.length > 0
-          ? images.map((uri, index) => (
-              <Image key={index} source={{ uri }} style={styles.image} />
-            ))
-          : imagesDefault.map((uri, index) => (
-              <Image key={index} source={{ uri }} style={styles.image} />
-            ))}
+        {images && images.length > 0 ? (
+          images.map((uri, index) => (
+            <Image
+              key={index}
+              source={{ uri: prepareUri(uri) }}
+              style={[styles.image, { backgroundColor: "black" }]}
+            />
+          ))
+        ) : (
+          <></>
+        )}
       </Swiper>
     </View>
   );
 };
+{
+  /* imagesDefault.map((uri, index) => (
+              <Image
+                key={index}
+                source={{ uri: prepareUri(uri) }}
+                style={styles.image}
+              />
+            ))} */
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -49,9 +75,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   image: {
-    resizeMode: "contain",
+    resizeMode: "cover",
     width: "auto",
-    height: 200,
+    height: "100%",
     borderRadius: 10,
   },
   button: {

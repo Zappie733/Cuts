@@ -18,7 +18,7 @@ export const WorkerSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "worker"],
+      enum: ["admin", "worker", "others"],
       required: true,
     },
     isOnDuty: {
@@ -54,6 +54,10 @@ export const WorkerSchema = new Schema(
       path: {
         type: String,
       },
+    },
+    joinDate: {
+      type: Date,
+      required: true,
     },
   },
   {
@@ -198,10 +202,16 @@ export const SalesProductSchema = new Schema(
       type: Number,
       required: true,
     },
-    links: {
-      type: [String],
-      required: true,
-    },
+    links: [
+      {
+        label: {
+          type: String,
+        },
+        link: {
+          type: String,
+        },
+      },
+    ],
   },
   {
     toJSON: {
@@ -238,6 +248,10 @@ export const StorePromotionSchema = new Schema(
     },
     endDate: {
       type: Date,
+      required: true,
+    },
+    showImageOnly: {
+      type: Boolean,
       required: true,
     },
   },
@@ -278,6 +292,10 @@ export const GallerySchema = new Schema(
     },
     date: {
       type: Date,
+      required: true,
+    },
+    isPublic: {
+      type: Boolean,
       required: true,
     },
   },
@@ -330,6 +348,14 @@ const StoreSchema = new Schema(
       enum: ["Waiting for Approval", "Rejected", "Active", "InActive", "Hold"],
       required: true,
       default: "Waiting for Approval",
+    },
+    district: {
+      type: String,
+      required: true,
+    },
+    subDistrict: {
+      type: String,
+      required: true,
     },
     location: {
       address: {
@@ -431,6 +457,10 @@ const StoreSchema = new Schema(
       type: Number,
       required: true,
       default: 10,
+    },
+    isDeletedFromRejectedStatus: {
+      type: Boolean,
+      default: false,
     },
   },
   {

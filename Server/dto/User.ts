@@ -1,6 +1,12 @@
 import { ImageRequestObj } from "./Image";
 import { PendingStoreObj } from "./Store";
 
+export interface LikeObj {
+  storeId: string;
+  imageId: string;
+  imageFiles: string[];
+}
+
 export interface UserObj {
   _id?: string;
   firstName?: string;
@@ -14,6 +20,7 @@ export interface UserObj {
   image?: ImageRequestObj;
   userId?: string; //setiap obj yang punya userId berarti role dari user tsbt adalah store
   pendingStoreData?: PendingStoreObj;
+  likes?: LikeObj[];
 }
 
 export interface AuthUser {

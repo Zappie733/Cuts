@@ -2,13 +2,13 @@ import {
   StyleSheet,
   Text,
   View,
-  Pressable,
   StatusBar,
   Platform,
   Dimensions,
   SafeAreaView,
-  Alert,
   ScrollView,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import React, {
   useCallback,
@@ -21,20 +21,16 @@ import { colors } from "../../Config/Theme";
 import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
 import { Theme } from "../../Contexts/ThemeContext";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import { Auth, User } from "../../Contexts";
 import { getAppSummary } from "../../Middlewares/AppMiddleware";
 import {
   GetAdminRecentActivityResponse,
   GetAppSummaryResponse,
-  IResponseProps,
 } from "../../Types/ResponseTypes";
-import { removeDataFromAsyncStorage } from "../../Config/AsyncStorage";
-import { IAuthObj } from "../../Types/ContextTypes/AuthContextTypes";
-import { CommonActions, useFocusEffect } from "@react-navigation/native";
-import {
-  getAdminRecentActivity,
-  logoutUser,
-} from "../../Middlewares/UserMiddleware";
+import { useFocusEffect } from "@react-navigation/native";
+import { getAdminRecentActivity } from "../../Middlewares/UserMiddleware";
+import { User } from "../../Contexts/UserContext";
+import { Auth } from "../../Contexts/AuthContext";
+import { apiCallHandler } from "../../Middlewares/util";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -44,6 +40,8 @@ export const AdminHomeScreen = ({
 }: TabsStackScreenProps<"Home">) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
 
   const { user } = useContext(User);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
@@ -61,38 +59,26 @@ export const AdminHomeScreen = ({
   const [appData, setAppData] = useState(defaultAppData);
   // console.log(appData);
   const handleFetchAppSummary = async () => {
-    const response = await getAppSummary({ auth, updateAccessToken });
+    setLoading(true);
 
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
+    const response = await apiCallHandler({
+      apiCall: () =>
+        getAppSummary({
+          auth,
+          updateAccessToken,
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
 
     if (response.status >= 200 && response.status < 400 && response.data) {
       setAppData(response.data);
     } else {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const [adminRecentApprove, setAdminRecentApprove] =
@@ -105,167 +91,107 @@ export const AdminHomeScreen = ({
     useState<GetAdminRecentActivityResponse>();
 
   const handleFetchAdminRecentApprove = async () => {
-    const response = await getAdminRecentActivity({
+    setLoading(true);
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        getAdminRecentActivity({
+          auth,
+          updateAccessToken,
+          params: {
+            activity: "Approve",
+          },
+        }),
       auth,
-      updateAccessToken,
-      params: {
-        activity: "Approve",
-      },
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400 && response.data) {
       setAdminRecentApprove(response.data);
     } else {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleFetchAdminRecentReject = async () => {
-    const response = await getAdminRecentActivity({
+    setLoading(true);
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        getAdminRecentActivity({
+          auth,
+          updateAccessToken,
+          params: {
+            activity: "Reject",
+          },
+        }),
       auth,
-      updateAccessToken,
-      params: {
-        activity: "Reject",
-      },
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400 && response.data) {
       setAdminRecentReject(response.data);
     } else {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleFetchAdminRecentHold = async () => {
-    const response = await getAdminRecentActivity({
+    setLoading(true);
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        getAdminRecentActivity({
+          auth,
+          updateAccessToken,
+          params: {
+            activity: "Hold",
+          },
+        }),
       auth,
-      updateAccessToken,
-      params: {
-        activity: "Hold",
-      },
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400 && response.data) {
       setAdminRecentHold(response.data);
     } else {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleFetchAdminRecentUnHold = async () => {
-    const response = await getAdminRecentActivity({
+    setLoading(true);
+
+    const response = await apiCallHandler({
+      apiCall: () =>
+        getAdminRecentActivity({
+          auth,
+          updateAccessToken,
+          params: {
+            activity: "UnHold",
+          },
+        }),
       auth,
-      updateAccessToken,
-      params: {
-        activity: "UnHold",
-      },
+      setAuth,
+      navigation,
     });
-
-    if (response.status === 402) {
-      Alert.alert("Session Expired", response.message);
-      const result: IResponseProps = await logoutUser(auth.refreshToken);
-      console.log(JSON.stringify(result, null, 2));
-
-      if (result.status >= 200 && result.status < 400) {
-        await removeDataFromAsyncStorage("auth");
-        const defaultAuth: IAuthObj = {
-          _id: "",
-          refreshToken: "",
-          accessToken: "",
-        };
-        setAuth(defaultAuth);
-
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          })
-        );
-      } else {
-        Alert.alert("Logout Error", result.message);
-      }
-    }
 
     if (response.status >= 200 && response.status < 400 && response.data) {
       setAdminRecentUnHold(response.data);
     } else {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -304,6 +230,13 @@ export const AdminHomeScreen = ({
         style={theme.mode === "dark" ? "light" : "dark"}
         backgroundColor={activeColors.primary}
       />
+
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -685,6 +618,12 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 
   greeting: {

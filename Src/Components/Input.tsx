@@ -18,7 +18,7 @@ import {
   MaterialCommunityIcons,
   Octicons,
 } from "@expo/vector-icons";
-import { Theme } from "../Contexts";
+import { Theme } from "../Contexts/ThemeContext";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -161,7 +161,15 @@ export const Input = ({
               onBlur={onBlurHandler}
               // blurOnSubmit={true}
               autoCapitalize={"none"}
-              multiline={context !== "Location" ? false : true}
+              multiline={
+                context !== "Location" &&
+                context !== "Description" &&
+                context !== "Link URL" &&
+                context !== "Caption" &&
+                context !== "Promotion"
+                  ? false
+                  : true
+              }
               numberOfLines={1}
             />
           </>
@@ -186,7 +194,15 @@ export const Input = ({
             onFocus={onFocusHandler}
             onBlur={onBlurHandler}
             autoCapitalize={"none"}
-            multiline={context !== "Location" ? false : true}
+            multiline={
+              context !== "Location" &&
+              context !== "Description" &&
+              context !== "Link URL" &&
+              context !== "Caption" &&
+              context !== "Promotion"
+                ? false
+                : true
+            }
             numberOfLines={1}
           />
         )}

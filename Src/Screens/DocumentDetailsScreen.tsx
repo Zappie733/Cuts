@@ -12,8 +12,8 @@ import {
 import Pdf from "react-native-pdf";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import { Header } from "../Components/Header";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
+import { Theme } from "../Contexts/ThemeContext";
 
 export const DocumentDetailsScreen = ({
   navigation,

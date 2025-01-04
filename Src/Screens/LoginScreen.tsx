@@ -1,7 +1,6 @@
 import {
   Alert,
   Dimensions,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -11,10 +10,9 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableWithoutFeedback,
   View,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Header } from "../Components/Header";
@@ -44,6 +42,8 @@ export const LoginScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
+  const [loading, setLoading] = useState(false);
+
   const defaultUserLoginFormData: LoginData = {
     email: "",
     password: "",
@@ -60,7 +60,9 @@ export const LoginScreen = ({
   const { auth, setAuth } = useContext(Auth);
 
   const handleLogin = async () => {
-    console.log("Login Process");
+    // console.log("Login Process");
+    setLoading(true);
+
     const result: IResponseProps<LoginResponse> = await loginUser(
       userLoginFormData
     );
@@ -79,6 +81,8 @@ export const LoginScreen = ({
     } else {
       Alert.alert("Login Error", result.message);
     }
+
+    setLoading(false);
   };
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -97,7 +101,9 @@ export const LoginScreen = ({
   const [hideChangePassword, setHideChangePassword] = useState(true);
 
   const handleChangePassword = async () => {
-    console.log("Change Password Process");
+    // console.log("Change Password Process");
+    setLoading(true);
+
     const result: IResponseProps = await changeUserPassword(
       changePasswordFormData
     );
@@ -112,6 +118,8 @@ export const LoginScreen = ({
     } else {
       Alert.alert("Change Password Error", result.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -127,6 +135,13 @@ export const LoginScreen = ({
     <SafeAreaView
       style={[styles.container, { backgroundColor: activeColors.primary }]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       <Header goBack={handleGoBack} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -314,7 +329,7 @@ export const LoginScreen = ({
                 context="Password"
                 isHidden={hideChangePassword}
                 setHidden={setHideChangePassword}
-                placeholder="Enter Your Password"
+                placeholder="Enter New Password"
                 value={changePasswordFormData.password}
                 updateValue={(text: string) =>
                   handleChangePasswordTextChange(text, "password")
@@ -371,6 +386,12 @@ const styles = StyleSheet.create({
         : 0,
     // paddingTop: 40,
     flex: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   logoContainer: {
     alignItems: "center",

@@ -9,7 +9,7 @@ export const UpdateServiceValidate = (data: UpdateServiceRequestObj) => {
     duration: Joi.number().required().label("Duration"),
     description: Joi.string().label("Description"),
     serviceProduct: Joi.array().items(Joi.string()).label("Service Product"),
-    discount: Joi.number().label("Discount"),
+    discount: Joi.number().min(0).max(100).label("Discount"),
     images: Joi.array()
       .items(
         Joi.object({
@@ -20,7 +20,8 @@ export const UpdateServiceValidate = (data: UpdateServiceRequestObj) => {
             )
             .required()
             .label("File"),
-          // path: Joi.string().required().label("Path"),
+          path: Joi.string().label("Path"),
+          _id: Joi.string().label("_id"),
         })
       )
       .min(1)

@@ -126,6 +126,8 @@ export const verifyStore = async (req: Request, res: Response) => {
         const {
           storeImages,
           storeName,
+          storeDistrict,
+          storeSubDistrict,
           storeLocation,
           storeType,
           storeDocuments,
@@ -138,6 +140,8 @@ export const verifyStore = async (req: Request, res: Response) => {
           images: uploadedImages,
           name: storeName,
           type: storeType,
+          district: storeDistrict,
+          subDistrict: storeSubDistrict,
           location: storeLocation,
           documents: uploadedDocuments,
           openHour: 9,
@@ -245,9 +249,9 @@ export const getStoresByUserId = async (req: Request, res: Response) => {
         };
 
         for (const user of users) {
-          const store = await STORES.findOne({ userId: user.id }).select(
-            "-workers -services -serviceProducts"
-          );
+          const store = await STORES.findOne({
+            userId: user.id,
+          }).select("-workers -services -serviceProducts");
 
           if (store) {
             responseData.stores.push(store);
@@ -328,17 +332,22 @@ export const deleteStore = async (req: Request, res: Response) => {
         const store = await STORES.findOne({ userId: userStore.id });
 
         if (store) {
-          const imagekit = new ImageKit({
-            publicKey: IMAGEKIT_PUBLIC_KEY,
-            privateKey: IMAGEKIT_PRIVATE_KEY,
-            urlEndpoint: IMAGEKIT_BASEURL,
-          });
+          if (store.status === "Rejected") {
+            store.isDeletedFromRejectedStatus = true;
+            await store.save();
+          } else {
+            const imagekit = new ImageKit({
+              publicKey: IMAGEKIT_PUBLIC_KEY,
+              privateKey: IMAGEKIT_PRIVATE_KEY,
+              urlEndpoint: IMAGEKIT_BASEURL,
+            });
 
-          await imagekit.deleteFolder("Stores/" + store.id);
+            await imagekit.deleteFolder("Stores/" + store.id);
 
-          //delete store
-          // await STORES.findOneAndDelete({ userId: userStore.id });
-          await store.deleteOne();
+            //delete store
+            // await STORES.findOneAndDelete({ userId: userStore.id });
+            await store.deleteOne();
+          }
 
           //delete userTokens
           const userTokens = await USERTOKENS.find({ userId: userStore.id });
@@ -397,7 +406,7 @@ export const getStoresByStatus = async (req: Request, res: Response) => {
     });
 
     if (!response.error) {
-      const { limit, offset, status, search } = req.query;
+      const { limit, offset, status, search, type } = req.query;
 
       let query: any = {};
 
@@ -417,13 +426,28 @@ export const getStoresByStatus = async (req: Request, res: Response) => {
           query.status = status;
         }
       }
-      console.log(search);
+      // console.log(search);
+      // if (search) {
+      //   query.name = { $regex: search, $options: "i" };
+      // }
       if (search) {
-        query.name = { $regex: search, $options: "i" };
+        query.$or = [
+          { name: { $regex: search, $options: "i" } },
+          { district: { $regex: search, $options: "i" } },
+          { subDistrict: { $regex: search, $options: "i" } },
+        ];
       }
 
+      if (type !== undefined) {
+        query.type = type;
+      }
+
+      console.log(JSON.stringify(query, null, 2));
+
       const stores = await STORES.find(query)
-        .select("-workers -services -serviceProducts")
+        .select(
+          "-workers -services -serviceProducts -salesProducts -storePromotions -gallery -toleranceTime -canChooseWorker -approvedBy -rejectedBy -onHoldBy -unHoldBy -approvedDate -rejectedDate -onHoldDate -unHoldDate"
+        )
         .limit(Number(limit))
         .skip(Number(offset));
 
@@ -1037,6 +1061,8 @@ export const updateStoreGeneralInformation = async (
       const {
         name,
         images,
+        district,
+        subDistrict,
         location,
         openHour,
         openMinute,
@@ -1046,7 +1072,10 @@ export const updateStoreGeneralInformation = async (
         toleranceTime,
       } = <UpdateStoreGeneralInformationRequestObj>req.body;
 
-      const storeNameExist = await STORES.findOne({ name: name });
+      const storeNameExist = await STORES.findOne({
+        name: name,
+        isDeletedFromRejectedStatus: false,
+      });
 
       if (
         storeNameExist &&
@@ -1073,6 +1102,8 @@ export const updateStoreGeneralInformation = async (
       }
 
       store.name = name;
+      store.district = district;
+      store.subDistrict = subDistrict;
       store.location = location;
       store.openHour = openHour;
       store.openMinute = openMinute;
@@ -1276,6 +1307,59 @@ export const getStoreByUserId = async (req: Request, res: Response) => {
       return res.status(200).json(<ResponseObj<StoreObj>>{
         error: false,
         message: "Store found",
+        data: store,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getStoreById = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: storeId } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Store ID",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeId });
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      return res.status(200).json(<ResponseObj<StoreObj>>{
+        error: false,
+        message: `Retrieved store(${store.name}) successfully`,
         data: store,
       });
     }

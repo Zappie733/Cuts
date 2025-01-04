@@ -24,6 +24,8 @@ export interface StoreObj {
   type: "salon" | "barbershop";
   status: "Waiting for Approval" | "Rejected" | "Active" | "InActive" | "Hold";
   location: Location;
+  district: string;
+  subDistrict: string;
   isOpen: boolean;
   documents: IDocumentProps[];
   // operationalHour: string;
@@ -81,6 +83,8 @@ export interface RegistrationStoreData {
   storeName: string;
   storeType: "salon" | "barbershop" | "";
   storeLocation: Location;
+  storeDistrict: string;
+  storeSubDistrict: string;
   storeDocuments: IDocumentProps[];
 }
 
@@ -109,6 +113,8 @@ export interface HoldStoreData {
 export interface UpdateStoreGeneralInformationData {
   name: string;
   images: IImageProps[];
+  district: string;
+  subDistrict: string;
   location: string;
   openHour: number;
   openMinute: number;

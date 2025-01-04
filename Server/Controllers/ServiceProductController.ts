@@ -284,6 +284,19 @@ export const deleteServiceProductById = async (req: Request, res: Response) => {
         });
       }
 
+      const servicesThatStillUsed = store.services.filter((service) => {
+        return service.serviceProduct?.includes(serviceProductIdParam);
+      });
+
+      if (servicesThatStillUsed.length > 0) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: `This service product is still used by services: ${servicesThatStillUsed
+            .map((service) => service.name)
+            .join(", ")}`,
+        });
+      }
+
       const imagekit = new ImageKit({
         publicKey: IMAGEKIT_PUBLIC_KEY,
         privateKey: IMAGEKIT_PRIVATE_KEY,

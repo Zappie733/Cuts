@@ -14,4 +14,6 @@ export interface MultiSelectDropdownPickerProps {
     | "EvilIcons";
   isInput: boolean;
   context?: string;
+  isEditable?: boolean;
+  setEditable?: (value: boolean) => void;
 }

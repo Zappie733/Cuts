@@ -1,12 +1,17 @@
 import { ImageRequestObj } from "./Image";
 
+export interface linksObj {
+  label: string;
+  link: string;
+}
+
 export interface SalesProductObj {
   _id?: string;
   name: string;
   description?: string;
   images: ImageRequestObj[];
   price: number;
-  links: string[];
+  links: linksObj[];
 }
 
 export interface AddSalesProductRequestObj {
@@ -14,7 +19,7 @@ export interface AddSalesProductRequestObj {
   description?: string;
   images: ImageRequestObj[];
   price: number;
-  links: string[];
+  links: linksObj[];
 }
 
 export interface UpdateSalesProductRequestObj {
@@ -23,5 +28,5 @@ export interface UpdateSalesProductRequestObj {
   description?: string;
   images: ImageRequestObj[];
   price: number;
-  links: string[];
+  links: linksObj[];
 }

@@ -14,12 +14,15 @@ export interface StoreObj {
   name: string;
   type: "salon" | "barbershop";
   status: "Waiting for Approval" | "Rejected" | "Active" | "InActive" | "Hold";
+  district: string;
+  subDistrict: string;
   location: string;
   isOpen: boolean;
   documents: IDocumentProps[];
 
   rejectedReason?: string;
   onHoldReason?: string;
+
   approvedBy?: string;
   rejectedBy?: string;
   onHoldBy?: string;
@@ -49,6 +52,8 @@ export interface StoreObj {
   gallery: GalleryObj[];
 
   toleranceTime: number;
+
+  isDeletedFromRejectedStatus: boolean;
 }
 
 export interface IDocumentProps {
@@ -73,6 +78,8 @@ export interface RegisterStoreRequestObj {
   storeName: string;
   storeType: "salon" | "barbershop";
   storeLocation: Location;
+  storeDistrict: string;
+  storeSubDistrict: string;
   storeDocuments: IDocumentProps[];
 }
 
@@ -81,6 +88,8 @@ export interface PendingStoreObj {
   storeName: string;
   storeType: "salon" | "barbershop";
   storeLocation: Location;
+  storeDistrict: string;
+  storeSubDistrict: string;
   storeDocuments: IDocumentProps[];
 }
 
@@ -105,6 +114,8 @@ export interface OnHoldStoreRequestObj {
 export interface UpdateStoreGeneralInformationRequestObj {
   name: string;
   images: ImageRequestObj[];
+  district: string;
+  subDistrict: string;
   location: string;
   openHour: number;
   openMinute: number;

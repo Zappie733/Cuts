@@ -9,6 +9,7 @@ import {
   GetAllRatingByStoreIdAndServiceIdResponse,
   GetAllRatingByStoreIdResponse,
   GetRatingByOrderIdResponse,
+  GetRatingSummaryByStoreIdResponse,
 } from "../Types/ResponseTypes/RatingResponse";
 import { apiCallWithToken } from "./IndexMiddleware";
 
@@ -68,7 +69,7 @@ export const deleteRatingById = async ({
 export const getAllRatingByStoreId = async ({
   auth,
   updateAccessToken,
-  params, //storeId, limit, offset
+  params, //storeId, limit, offset, rating
 }: ApiRequestProps): Promise<IResponseProps<GetAllRatingByStoreIdResponse>> => {
   // console.log("getAllRatingByStoreId Process");
   const apiOptions: ApiOptions = {
@@ -76,6 +77,7 @@ export const getAllRatingByStoreId = async ({
     queryParams: {
       limit: params?.limit,
       offset: params?.offset,
+      rating: params?.rating,
     },
   };
 
@@ -100,7 +102,7 @@ export const getAllRatingByStoreId = async ({
 export const getAllRatingByStoreIdAndServiceId = async ({
   auth,
   updateAccessToken,
-  params, //storeId, serviceId, limit, offset
+  params, //storeId, serviceId, limit, offset, rating
 }: ApiRequestProps): Promise<
   IResponseProps<GetAllRatingByStoreIdAndServiceIdResponse>
 > => {
@@ -110,6 +112,7 @@ export const getAllRatingByStoreIdAndServiceId = async ({
     queryParams: {
       limit: params?.limit,
       offset: params?.offset,
+      rating: params?.rating,
     },
   };
 
@@ -152,6 +155,40 @@ export const getRatingByOrderId = async ({
   const result = await apiCallWithToken<GetRatingByOrderIdResponse>(
     apiCallWithTokenProps
   );
+
+  return {
+    status: result.status,
+    data: result.data,
+    message: result.message,
+  };
+};
+
+export const getRatingSummaryByStoreId = async ({
+  auth,
+  updateAccessToken,
+  params, //storeId, serviceId
+}: ApiRequestProps): Promise<
+  IResponseProps<GetRatingSummaryByStoreIdResponse>
+> => {
+  // console.log("getRatingSummaryByStoreId Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+    queryParams: {
+      serviceId: params?.serviceId,
+    },
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/rating/getRatingSummaryByStoreId/${params?.storeId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<GetRatingSummaryByStoreIdResponse>(
+    apiCallWithTokenProps
+  );
+  // console.log(JSON.stringify(result, null, 2));
 
   return {
     status: result.status,

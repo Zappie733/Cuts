@@ -5,6 +5,7 @@ import {
 } from "../../Types/MiddleWareTypes";
 import { IResponseProps } from "../../Types/ResponseTypes";
 import {
+  GetGalleryByIdResponse,
   GetGalleryByStoreIdResponse,
   GetMostLikesGalleryByStoreIdResponse,
 } from "../../Types/ResponseTypes/StoreResponse";
@@ -161,7 +162,7 @@ export const updateGallery = async ({
 export const likeGalleryById = async ({
   auth,
   updateAccessToken,
-  params, //galleryId
+  params, //storeId, galleryId
 }: ApiRequestProps): Promise<IResponseProps> => {
   // console.log("likeGalleryById Process");
   const apiOptions: ApiOptions = {
@@ -169,7 +170,7 @@ export const likeGalleryById = async ({
   };
 
   const apiCallWithTokenProps: ApiCallWithTokenProps = {
-    endpoint: `/store/gallery/likeGalleryById/${params?.galleryId}`,
+    endpoint: `/store/gallery/likeGalleryById/${params?.storeId}/${params?.galleryId}`,
     options: apiOptions,
     auth,
     updateAccessToken,
@@ -181,5 +182,34 @@ export const likeGalleryById = async ({
   return {
     status: result.status,
     message: result.message,
+  };
+};
+
+export const getGalleryById = async ({
+  auth,
+  updateAccessToken,
+  params, //storeId, galleryId
+}: ApiRequestProps): Promise<IResponseProps<GetGalleryByIdResponse>> => {
+  // console.log("likeGalleryById Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/store/gallery/getGalleryById/${params?.storeId}/${params?.galleryId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<GetGalleryByIdResponse>(
+    apiCallWithTokenProps
+  );
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    message: result.message,
+    data: result.data,
   };
 };

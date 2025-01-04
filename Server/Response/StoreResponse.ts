@@ -52,3 +52,7 @@ export interface GetGalleryByStoreIdResponse {
 export interface GetMostLikesGalleryByStoreIdResponse {
   gallery: GalleryObj[];
 }
+
+export interface GetGalleryByIdResponse {
+  gallery: GalleryObj;
+}

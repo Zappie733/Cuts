@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -15,7 +16,6 @@ import {
 } from "react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../../Navigations/TabNavigator";
-import { Auth, Theme } from "../../Contexts";
 import { colors } from "../../Config/Theme";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { Store } from "../../Contexts/StoreContext";
@@ -38,6 +38,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import { chosenServiceProductObj } from "../../Types/OrderTypes";
 import { DateTimePickerComponent } from "../../Components/DateTimePicker";
 import { CheckBox } from "../../Components/CheckBox";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -47,6 +49,8 @@ export const StoreHomeScreen = ({
 }: TabsStackScreenProps<"Home">) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
+
+  const [loading, setLoading] = useState(false);
 
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
@@ -97,6 +101,8 @@ export const StoreHomeScreen = ({
   const adjustedToday = new Date(today.getTime() + 7 * 60 * 60 * 1000);
 
   const handleClockIn = async (workerId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         clockIn({
@@ -117,9 +123,13 @@ export const StoreHomeScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleClockOut = async (workerId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         clockOut({
@@ -140,9 +150,13 @@ export const StoreHomeScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleAbsence = async (workerId: string) => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         absence({
@@ -167,6 +181,8 @@ export const StoreHomeScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleReasonTextChange = (text: string) => {
@@ -182,7 +198,7 @@ export const StoreHomeScreen = ({
   const services = store.services;
 
   const servicesOptions: Option[] = services.map((service) => ({
-    label: service.name ?? "",
+    label: service.name.replace(/\b\w/g, (char) => char.toUpperCase()) ?? "",
     value: service._id ?? "",
   }));
 
@@ -196,7 +212,7 @@ export const StoreHomeScreen = ({
   };
   const [orderFormData, setOrderFormData] =
     useState<AddOrderData>(defaultOrderData);
-  console.log(orderFormData);
+  // console.log("orderFormData", orderFormData);
   // console.log(JSON.stringify(orderFormData, null, 2));
   const handleOrderTextChange = <T extends keyof AddOrderData>(
     value: AddOrderData[T],
@@ -214,20 +230,29 @@ export const StoreHomeScreen = ({
           ? (value as chosenServiceProductObj[])
           : orderFormData.chosenServiceProductsIds;
 
+      // Filter out chosenServiceProductsIds for removed serviceIds
+      const filteredServiceProductsIds = updatedServiceProductsIds?.filter(
+        (obj) => updatedServiceIds.includes(obj.serviceId)
+      );
+
       // Calculate totals for selected services
       const selectedServices = services.filter((service) =>
         updatedServiceIds.includes(service._id ?? "")
       );
 
       selectedServices.forEach((service) => {
-        totalPrice += service.price || 0;
+        if (service.discount !== undefined && service.discount > 0) {
+          totalPrice += ((100 - service.discount) * service.price) / 100 || 0;
+        } else {
+          totalPrice += service.price || 0;
+        }
         totalDuration += service.duration || 0;
       });
 
       // Calculate totals for selected service products
       let selectedServiceProducts: string[] = [];
 
-      updatedServiceProductsIds?.map((obj) => {
+      filteredServiceProductsIds?.forEach((obj) => {
         selectedServiceProducts.push(...obj.serviceProductIds);
       });
 
@@ -238,22 +263,13 @@ export const StoreHomeScreen = ({
       });
 
       // Update state with recalculated values`
-      if (updatedServiceIds.length === 0) {
-        setOrderFormData((prevData) => ({
-          ...prevData,
-          totalPrice,
-          totalDuration,
-          [field]: value,
-          chosenServiceProductsIds: [],
-        }));
-      } else {
-        setOrderFormData((prevData) => ({
-          ...prevData,
-          totalPrice,
-          totalDuration,
-          [field]: value,
-        }));
-      }
+      setOrderFormData((prevData) => ({
+        ...prevData,
+        totalPrice,
+        totalDuration,
+        [field]: value,
+        chosenServiceProductsIds: filteredServiceProductsIds,
+      }));
     } else {
       // For other fields, just update the state
       setOrderFormData((prevData) => ({
@@ -264,6 +280,8 @@ export const StoreHomeScreen = ({
   };
 
   const handleCreateOrder = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         addOrder({
@@ -290,6 +308,8 @@ export const StoreHomeScreen = ({
     } else if (response) {
       Alert.alert("Validation Error", response.message);
     }
+
+    setLoading(false);
   };
 
   const workersOptions: Option[] = store.workers
@@ -305,7 +325,7 @@ export const StoreHomeScreen = ({
 
   useEffect(() => {
     if (store._id) {
-      console.log("get workers");
+      // console.log("get workers");
       getStoreWorkers();
     }
   }, [store]);
@@ -332,6 +352,13 @@ export const StoreHomeScreen = ({
         style={theme.mode === "dark" ? "light" : "dark"}
         backgroundColor={activeColors.primary}
       />
+
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
 
       <Text style={[styles.title, { color: activeColors.accent }]}>
         {store.name}
@@ -379,7 +406,7 @@ export const StoreHomeScreen = ({
             </View>
 
             {/* service products */}
-            {orderFormData.serviceIds.map((serviceId) => {
+            {orderFormData.serviceIds.map((serviceId, index) => {
               const service = services.find((s) => s._id === serviceId);
 
               const serviceProducts = service?.serviceProduct
@@ -398,7 +425,10 @@ export const StoreHomeScreen = ({
               if (serviceProducts) {
                 const serviceProductsOptions = serviceProducts?.map(
                   (serviceProduct) => ({
-                    label: serviceProduct?.name ?? "",
+                    label:
+                      serviceProduct?.name.replace(/\b\w/g, (char) =>
+                        char.toUpperCase()
+                      ) ?? "",
                     value: serviceProduct?._id ?? "",
                   })
                 );
@@ -406,7 +436,10 @@ export const StoreHomeScreen = ({
                 return (
                   <View
                     key={serviceId}
-                    style={[styles.serviceProductInputContainer]}
+                    style={[
+                      styles.serviceProductInputContainer,
+                      { zIndex: 99 - index },
+                    ]}
                   >
                     <MultiSelectDropdownPicker
                       key={"serviceProductsIdsOrder" + serviceId}
@@ -481,6 +514,7 @@ export const StoreHomeScreen = ({
             <View style={styles.checkBoxContainer}>
               <CheckBox
                 label="Onsite Future Booking?"
+                value={showDateTimePicker}
                 onPress={(value: boolean) => setShowDateTimePicker(value)}
               />
             </View>
@@ -837,6 +871,13 @@ const styles = StyleSheet.create({
         : 0,
     paddingHorizontal: 20,
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+
   title: {
     marginTop: 10,
     marginBottom: 20,
@@ -946,7 +987,6 @@ const styles = StyleSheet.create({
   },
   serviceProductInputContainer: {
     width: (screenWidth * 2) / 3 + 50,
-    zIndex: 99,
     marginVertical: 10,
   },
   createOrderButton: {
@@ -958,7 +998,7 @@ const styles = StyleSheet.create({
   },
   workerInputContainer: {
     width: (screenWidth * 2) / 3 + 50,
-    zIndex: 98,
+    zIndex: 10,
     marginVertical: 10,
   },
 

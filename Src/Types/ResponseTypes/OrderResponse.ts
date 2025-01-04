@@ -1,3 +1,4 @@
+import { OrderHistoryObj } from "../OrderHistoryTypes";
 import { OrderObj } from "../OrderTypes";
 
 export interface GetOrdersByStatusResponse {
@@ -6,7 +7,7 @@ export interface GetOrdersByStatusResponse {
 }
 
 export interface GetStoreOrderHistoryResponse {
-  orders: OrderObj[];
+  orders: OrderHistoryObj[];
   total: number;
   summary: OrderSummary[];
 }

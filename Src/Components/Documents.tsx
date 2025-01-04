@@ -13,14 +13,14 @@ import {
 import * as DocumentPicker from "expo-document-picker";
 import { useNavigation } from "@react-navigation/native"; // For navigation to PDF viewer
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
-import { FontAwesome6 } from "@expo/vector-icons";
-import { Theme } from "../Contexts";
+import { Feather, FontAwesome6 } from "@expo/vector-icons";
 import { colors } from "../Config/Theme";
 import {
   IDocumentProps,
   ISelectDocumentProps,
 } from "../Types/ComponentTypes/DocumentTypes";
 import * as FileSystem from "expo-file-system";
+import { Theme } from "../Contexts/ThemeContext";
 
 const width = (Dimensions.get("screen").width * 2) / 3 + 50;
 
@@ -92,6 +92,13 @@ export const SelectDocuments = ({
     });
   };
 
+  const handleDeleteDocument = (index: number) => {
+    setDocuments(documents.filter((_, i) => i !== index));
+    setDocumentOptionForUpload(
+      documentOptionForUpload.filter((_, i) => i !== index)
+    );
+  };
+
   useEffect(() => {
     handleSetDocument(documentOptionForUpload);
   }, [documentOptionForUpload]);
@@ -99,7 +106,7 @@ export const SelectDocuments = ({
   return (
     <View style={styles.container}>
       <View style={styles.documentContainer}>
-        {documents.length > 0 && (
+        {documents.length > 0 ? (
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.documentList}
@@ -130,9 +137,27 @@ export const SelectDocuments = ({
                 >
                   {document.name}
                 </Text>
+
+                <Pressable
+                  onPress={() => handleDeleteDocument(index)}
+                  style={[
+                    styles.deleteButton,
+                    { backgroundColor: activeColors.tertiary },
+                  ]}
+                >
+                  <Feather name="x" size={20} color={activeColors.secondary} />
+                </Pressable>
               </TouchableOpacity>
             ))}
           </ScrollView>
+        ) : (
+          <View style={styles.noDucumentsContainer}>
+            <Text
+              style={[styles.noDocumentText, { color: activeColors.tertiary }]}
+            >
+              No documents selected
+            </Text>
+          </View>
         )}
       </View>
 
@@ -191,5 +216,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 5,
     borderRadius: 10,
+  },
+  noDucumentsContainer: {
+    width: width,
+    marginBottom: 10,
+  },
+  noDocumentText: {
+    fontSize: 20,
+    textAlign: "center",
   },
 });

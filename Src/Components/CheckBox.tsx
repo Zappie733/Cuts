@@ -1,13 +1,13 @@
 import React, { useContext, useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
 import { ICheckBoxProps } from "../Types/ComponentTypes/CheckBoxTypes";
-import { Theme } from "../Contexts";
 import { colors } from "../Config/Theme";
+import { Theme } from "../Contexts/ThemeContext";
 
-export const CheckBox = ({ label, onPress }: ICheckBoxProps) => {
+export const CheckBox = ({ label, value, onPress }: ICheckBoxProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(value);
 
   return (
     <View style={styles.container}>

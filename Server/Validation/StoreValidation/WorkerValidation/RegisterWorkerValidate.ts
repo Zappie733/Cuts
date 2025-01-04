@@ -7,11 +7,11 @@ export const RegisterWorkerValidate = (data: RegisterWorkerRequestObj) => {
     lastName: Joi.string().required().label("Last Name"),
     age: Joi.number().required().label("Age"),
     role: Joi.string()
-      .valid("admin", "worker")
+      .valid("admin", "worker", "others")
       .required()
       .label("Role")
       .messages({
-        "any.only": "Role must be 'admin' or 'worker'.",
+        "any.only": "Role must be 'admin' or 'worker' or 'others'.",
       }),
     image: Joi.object({
       file: Joi.string()

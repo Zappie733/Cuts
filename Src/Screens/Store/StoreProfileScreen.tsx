@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState } from "react";
-import { Auth, Theme } from "../../Contexts";
+import { useCallback, useContext, useEffect, useState } from "react";
+
 import { colors } from "../../Config/Theme";
 import { Store } from "../../Contexts/StoreContext";
 import {
@@ -13,6 +13,8 @@ import {
   View,
   Alert,
   Pressable,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { RootStackScreenProps } from "../../Navigations/RootNavigator";
 import { Header } from "../../Components/Header";
@@ -31,6 +33,9 @@ import { DropdownPicker } from "../../Components/DropdownPicker";
 import { SelectImages } from "../../Components/Image";
 import { IImageProps } from "../../Types/ComponentTypes/ImageTypes";
 import { TimePicker } from "../../Components/TimePicker";
+import { useFocusEffect } from "@react-navigation/native";
+import { Theme } from "../../Contexts/ThemeContext";
+import { Auth } from "../../Contexts/AuthContext";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -45,12 +50,17 @@ export const StoreProfileScreen = ({
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
-  const { store, refetchData } = useContext(Store);
+  const [loading, setLoading] = useState(false);
+
+  let { store, refetchData } = useContext(Store);
+
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
 
   const defaultStoreFormData: UpdateStoreGeneralInformationData = {
     name: store.name,
     images: store.images,
+    district: store.district,
+    subDistrict: store.subDistrict,
     location: store.location,
     openHour: store.openHour,
     openMinute: store.openMinute,
@@ -72,6 +82,8 @@ export const StoreProfileScreen = ({
   };
 
   const [storeNameEdit, setStoreNameEdit] = useState(false);
+  const [storeDistrictEdit, setStoreDistrictEdit] = useState(false);
+  const [storeSubDistrictEdit, setStoreSubDistrictEdit] = useState(false);
   const [storeLocationEdit, setStoreLocationEdit] = useState(false);
   const storeCanChooseWorkerOptions = [
     { label: "Yes", value: "true" },
@@ -90,6 +102,8 @@ export const StoreProfileScreen = ({
   const [selectedCloseTime, setSelectedCloseTime] = useState<Date>();
 
   const handleupdateStoreOpenCloseStatus = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         updateStoreOpenCloseStatus({
@@ -107,9 +121,13 @@ export const StoreProfileScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleActiveStore = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         activeStore({
@@ -127,9 +145,13 @@ export const StoreProfileScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const handleInActiveStore = async () => {
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         inActiveStore({
@@ -147,6 +169,8 @@ export const StoreProfileScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   const operationalHourModification = (value: number) => {
@@ -164,7 +188,8 @@ export const StoreProfileScreen = ({
   const [isChanges, setIsChanges] = useState(false);
 
   const handleUpdateStoreGeneralInformation = async () => {
-    console.log("test");
+    setLoading(true);
+
     const response = await apiCallHandler({
       apiCall: () =>
         updateStoreGeneralInformation({
@@ -186,6 +211,8 @@ export const StoreProfileScreen = ({
     } else if (response) {
       console.log(response.status, response.message);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -225,6 +252,7 @@ export const StoreProfileScreen = ({
       }
     }
   }, [selectedOpenTime, selectedCloseTime]);
+
   return (
     <SafeAreaView
       style={[
@@ -232,6 +260,13 @@ export const StoreProfileScreen = ({
         { width: screenWidth, backgroundColor: activeColors.primary },
       ]}
     >
+      {/* Loading Modal */}
+      <Modal transparent={true} animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={activeColors.accent} />
+        </View>
+      </Modal>
+
       <Header goBack={handleGoBack} />
 
       <ScrollView
@@ -262,6 +297,28 @@ export const StoreProfileScreen = ({
               updateValue={(text: string) => handleTextChange(text, "name")}
               isEditable={storeNameEdit}
               setEditable={setStoreNameEdit}
+            />
+            {/* district Input */}
+            <Input
+              key="storeDistrict"
+              context="District"
+              placeholder="Enter Your Store District"
+              value={storeFormData.district}
+              updateValue={(text: string) => handleTextChange(text, "district")}
+              isEditable={storeDistrictEdit}
+              setEditable={setStoreDistrictEdit}
+            />
+            {/* subDistict Input */}
+            <Input
+              key="storeSubDistrict"
+              context="Sub-District"
+              placeholder="Enter Your Store Sub-District"
+              value={storeFormData.subDistrict}
+              updateValue={(text: string) =>
+                handleTextChange(text, "subDistrict")
+              }
+              isEditable={storeSubDistrictEdit}
+              setEditable={setStoreSubDistrictEdit}
             />
             {/* location Input */}
             <Input
@@ -315,6 +372,7 @@ export const StoreProfileScreen = ({
               width: "100%",
             }}
           ></View>
+
           <SelectImages
             imagesData={storeFormData.images}
             handleSetImages={handleChangeImages}
@@ -458,6 +516,12 @@ const styles = StyleSheet.create({
       Platform.OS === "android"
         ? (StatusBar.currentHeight ? StatusBar.currentHeight : 0) + 20
         : 0,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   updateScrollContainer: {
     alignItems: "center",
