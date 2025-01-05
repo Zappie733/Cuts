@@ -25,6 +25,8 @@ export async function createUserWithStore(storeData: RegisterStoreRequestObj) {
         storeLocation: storeData.storeLocation,
         storeType: storeData.storeType,
         storeDocuments: storeData.storeDocuments,
+        storeDistrict: storeData.storeDistrict,
+        storeSubDistrict: storeData.storeSubDistrict
     };
     
     const salt = await bcrypt.genSalt(parseInt(SALT || "10"));
