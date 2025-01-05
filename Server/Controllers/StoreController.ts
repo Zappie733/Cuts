@@ -553,7 +553,7 @@ export const rejectStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store rejected successfully, Email sent to ${userEmail}`,
+          message: `Store rejected successfully, an email has been sent to ${userEmail}`,
         });
       }
 
@@ -652,7 +652,7 @@ export const holdStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store held successfully, Email sent to ${userEmail}`,
+          message: `Store held successfully, an email has been sent to ${userEmail}`,
         });
       }
 
@@ -741,13 +741,13 @@ export const unHoldStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store un-hold successfully, Email sent to ${userEmail}`,
+          message: `Store hold removed successfully, an email has been sent to ${userEmail}`,
         });
       }
 
       return res.status(200).json(<ResponseObj>{
         error: false,
-        message: "Store un-hold successfully",
+        message: "Store hold removed successfully",
       });
     }
 
@@ -830,7 +830,7 @@ export const approveStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store approved successfully, Email sent to ${userEmail}`,
+          message: `Store approved successfully, an email has been sent to ${userEmail}`,
         });
       }
 
@@ -912,7 +912,7 @@ export const activeStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store activated successfully, Email sent to ${userEmail}`,
+          message: `Store activated successfully, an email has been sent to ${userEmail}`,
         });
       }
 
@@ -994,13 +994,13 @@ export const inActiveStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store inactived successfully, Email sent to ${userEmail}`,
+          message: `Store deactivated successfully, an email has been sent to ${userEmail}`,
         });
       }
 
       return res.status(200).json(<ResponseObj>{
         error: false,
-        message: "Store inactived successfully",
+        message: "Store deactivated successfully",
       });
     }
 
