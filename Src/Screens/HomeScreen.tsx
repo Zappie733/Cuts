@@ -350,25 +350,7 @@ export const HomeScreen = ({
                             { color: activeColors.accent },
                           ]}
                         >
-                          {item.district}, {item.subDistrict}
-                        </Text>
-                      </View>
-                      <View>
-                        <Text
-                          style={[
-                            styles.itemDistrictNSubDistrict,
-                            { color: activeColors.accent },
-                          ]}
-                        >
                           {item.location.address}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.itemDistrictNSubDistrict,
-                            { color: activeColors.accent },
-                          ]}
-                        >
-                          {`${item.location.coordinates.coordinates}`}
                         </Text>
                       </View>
                     </View>
