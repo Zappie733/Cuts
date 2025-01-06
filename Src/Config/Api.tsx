@@ -1,3 +1,2 @@
-export const API_PORT = "9000";
-export const API_HOST = "192.168.1.11";
-// export const API_HOST = "10.21.186.156";
+export const API_URL = "http://192.168.0.133:9000"
+export const CUTS_MACHINE_LEARNING_URL = "http://192.168.0.133:8733"

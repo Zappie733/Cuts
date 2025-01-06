@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Buffer } from 'buffer';
+import { CUTS_MACHINE_LEARNING_URL } from '../Config/Api';
 
 interface HairCustomizationResponse {
   resultImage: string;
@@ -62,7 +63,7 @@ export const HairCustomization: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://192.168.0.133:8733/custom-hair', {
+      const response = await fetch(`${CUTS_MACHINE_LEARNING_URL}/custom-hair`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
