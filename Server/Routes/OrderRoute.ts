@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addOrder,
+  cancelOrder,
   completeOrder,
   confirmOrder,
   getOrderforSchedule,
@@ -19,3 +20,4 @@ OrderRoute.patch("/confirmOrder/:id", confirmOrder);
 OrderRoute.patch("/payOrder/:id", payOrder);
 OrderRoute.patch("/completeOrder/:id", completeOrder);
 OrderRoute.patch("/rejectOrder", rejectOrder);
+OrderRoute.delete("/cancelOrder/:id", cancelOrder);

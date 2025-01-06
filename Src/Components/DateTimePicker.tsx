@@ -12,7 +12,10 @@ import { colors } from "../Config/Theme";
 import { IDateTimePickerProps } from "../Types/ComponentTypes/DateTimePickerTypes";
 import { Theme } from "../Contexts/ThemeContext";
 
-export const DateTimePickerComponent = ({ onPress }: IDateTimePickerProps) => {
+export const DateTimePickerComponent = ({
+  onPress,
+  isDisabled,
+}: IDateTimePickerProps) => {
   const { theme } = useContext(Theme);
   let activeColors = colors[theme.mode];
 
@@ -49,7 +52,15 @@ export const DateTimePickerComponent = ({ onPress }: IDateTimePickerProps) => {
     <View style={styles.container}>
       <Pressable
         onPress={() => setShowDatePicker(true)}
-        style={[styles.button, { backgroundColor: activeColors.secondary }]}
+        style={[
+          styles.button,
+          {
+            backgroundColor: isDisabled
+              ? activeColors.disabledColor
+              : activeColors.secondary,
+          },
+        ]}
+        disabled={isDisabled}
       >
         <Text style={{ color: activeColors.accent }}>Select Date & Time</Text>
       </Pressable>

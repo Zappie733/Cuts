@@ -32,6 +32,7 @@ import {
 import { sendEmail } from "../Utils/UserUtil";
 import ImageKit from "imagekit";
 import {
+  GetStoreInfoForOrderByIdResponse,
   GetStoresByStatusResponse,
   GetStoresByUserIdResponse,
 } from "../Response/StoreResponse";
@@ -1312,6 +1313,10 @@ export const updateStoreOpenCloseStatus = async (
 
       store.isOpen = !store.isOpen;
 
+      if (!store.isOpen) {
+        store.workers.forEach((worker) => (worker.isOnDuty = false));
+      }
+
       await store.save();
 
       //notify store via email
@@ -1433,6 +1438,74 @@ export const getStoreById = async (req: Request, res: Response) => {
         error: false,
         message: `Retrieved store(${store.name}) successfully`,
         data: store,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getStoreInfoForOrderById = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: storeId } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Store ID",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeId }).select(
+        "name location district subDistrict isOpen rejectedReason canChooseWorker toleranceTime"
+      );
+
+      if (!store) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Store not found",
+        });
+      }
+
+      const responseData: GetStoreInfoForOrderByIdResponse = {
+        name: store.name,
+        location: store.location,
+        district: store.district,
+        subDistrict: store.subDistrict,
+        isOpen: store.isOpen,
+        rejectedReason: store.rejectedReason,
+        canChooseWorker: store.canChooseWorker,
+        toleranceTime: store.toleranceTime,
+      };
+
+      return res.status(200).json(<
+        ResponseObj<GetStoreInfoForOrderByIdResponse>
+      >{
+        error: false,
+        message: `Retrieved store(${store.name}) Info for Order successfully`,
+        data: responseData,
       });
     }
 

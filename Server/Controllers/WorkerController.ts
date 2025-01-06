@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { GetWorkersByStoreIdResponse, ResponseObj } from "../Response";
+import {
+  GetWorkerInfoForOrderByIdObj,
+  GetWorkerInfoForOrderByIdResponse,
+  GetWorkersByStoreIdResponse,
+  ResponseObj,
+} from "../Response";
 import { ImageRequestObj, PayloadObj } from "../dto";
 import { verifyAccessToken } from "../Utils/UserTokenUtil";
 import { STORES } from "../Models/StoreModel";
@@ -760,6 +765,81 @@ export const absence = async (req: Request, res: Response) => {
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: `${worker.firstName} absence recorded successfully`,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getWorkersInfoForOrderById = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { id: storeId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        return res
+          .status(400)
+          .json(<ResponseObj>{ error: true, message: "Invalid store id" });
+      }
+
+      const store = await STORES.findOne({ _id: storeId });
+
+      if (!store) {
+        return res
+          .status(404)
+          .json(<ResponseObj>{ error: true, message: "Store not found" });
+      }
+
+      const workers = store.workers;
+
+      let responseData: GetWorkerInfoForOrderByIdObj[] = [];
+
+      workers.forEach((worker) => {
+        if (worker.role === "worker") {
+          responseData.push({
+            id: worker._id ? worker._id.toString() : "",
+            firstName: worker.firstName,
+            lastName: worker.lastName,
+            isOnDuty: worker.isOnDuty || false,
+            image: worker.image.file,
+          });
+        }
+      });
+
+      return res.status(200).json(<
+        ResponseObj<GetWorkerInfoForOrderByIdResponse>
+      >{
+        error: false,
+        message: `Workers of ${store.name} retrieved successfully`,
+        data: {
+          workers: responseData,
+        },
       });
     }
 

@@ -529,9 +529,16 @@ export const getOrdersByStatus = async (req: Request, res: Response) => {
         _id: response.data?._id,
         role: response.data?.role,
       };
-
+      const now = new Date();
+      now.setHours(now.getHours() + 7);
+      // console.log(now);
       if (payload.role === "user") {
         query.userId = payload._id;
+
+        //so in fe only display paid orders that are not expired
+        if (status === "Paid") {
+          query.endTime = { $gt: now };
+        }
       } else if (payload.role === "store") {
         const store = await STORES.findOne({ userId: payload._id });
         if (!store) {
@@ -1431,6 +1438,145 @@ export const completeOrder = async (req: Request, res: Response) => {
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: "Order has been completed successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const cancelOrder = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const user = await USERS.findOne({ _id: payload._id });
+
+      if (!user) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "User not found",
+        });
+      }
+
+      const { id: orderId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Order ID",
+        });
+      }
+
+      const order = await ORDERS.findOne({
+        _id: orderId,
+        status: {
+          $in: ["Waiting for Confirmation", "Waiting for Payment"],
+        },
+      });
+
+      if (!order) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Order not found",
+        });
+      }
+
+      if (order.userId?.toString() !== user._id?.toString()) {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "You are not authorized to cancel this order",
+        });
+      }
+
+      if (order.isManual === false) {
+        const store = await STORES.findOne({ _id: order.storeId });
+
+        if (!store) {
+          return res.status(404).json(<ResponseObj>{
+            error: true,
+            message: "Store not found",
+          });
+        }
+
+        for (const serviceId of order.serviceIds) {
+          const service = store.services.find(
+            (service) => service._id?.toString() === serviceId.toString()
+          );
+          if (!service) {
+            return res.status(404).json(<ResponseObj>{
+              error: true,
+              message: "Service not found " + serviceId,
+            });
+          }
+
+          if (service.serviceProduct) {
+            const allServiceProductIds = service.serviceProduct;
+            console.log("All Service Products Ids: " + allServiceProductIds);
+
+            for (const serviceProductId of allServiceProductIds) {
+              const serviceProduct = store.serviceProducts.find(
+                (serviceProduct) =>
+                  serviceProduct._id?.toString() === serviceProductId.toString()
+              );
+
+              if (
+                serviceProduct &&
+                (serviceProduct.isAnOption === false ||
+                  order.chosenServiceProductsIds
+                    ?.find(
+                      (obj) => obj.serviceId.toString() === serviceId.toString()
+                    )
+                    ?.serviceProductIds.includes(
+                      serviceProduct._id?.toString() ?? ""
+                    ))
+              ) {
+                if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
+                  return res.status(400).json(<ResponseObj>{
+                    error: true,
+                    message: "Invalid Service Product ID " + serviceProductId,
+                  });
+                }
+                console.log("increase quantity of " + serviceProductId);
+                serviceProduct.quantity += 1;
+              }
+            }
+          }
+        }
+
+        await store.save();
+
+        await order.deleteOne();
+      }
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Order has been canceled successfully",
       });
     }
 

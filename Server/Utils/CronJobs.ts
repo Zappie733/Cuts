@@ -12,7 +12,7 @@ import { ORDERHISTORY } from "../Models/OrderHistoryModel";
 // Schedule a cron job
 export const InitializeCronJobs = () => {
   //auto reject Waiting for Confirmation order that has been in the same state for 5 minutes
-  cron.schedule("* * * * *", async () => {
+  cron.schedule("*/5 * * * * *", async () => {
     // console.log(
     //   "This task runs every minutes to do auto reject for `Waiting for Confirmation` order that has been in the same state for 5 minutes and notify the users"
     // );
@@ -187,7 +187,7 @@ export const InitializeCronJobs = () => {
   });
 
   //auto reject Waiting for Payment order that has been in the same state for 5 minutes
-  cron.schedule("* * * * *", async () => {
+  cron.schedule("*/5 * * * * *", async () => {
     // console.log(
     //   "This task runs every minutes to do auto reject for `Waiting for Payment` order that has been in the same state for 5 minutes and notify the users"
     // );

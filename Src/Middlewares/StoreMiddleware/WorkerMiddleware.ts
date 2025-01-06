@@ -4,7 +4,10 @@ import {
   ApiRequestProps,
 } from "../../Types/MiddleWareTypes";
 import { IResponseProps } from "../../Types/ResponseTypes";
-import { GetWorkersByStoreIdResponse } from "../../Types/ResponseTypes/StoreResponse";
+import {
+  GetWorkerInfoForOrderByIdResponse,
+  GetWorkersByStoreIdResponse,
+} from "../../Types/ResponseTypes/StoreResponse";
 import {
   AbsenceWorkerData,
   RegisterWorkerData,
@@ -200,6 +203,37 @@ export const absence = async ({
 
   return {
     status: result.status,
+    message: result.message,
+  };
+};
+
+export const getWorkersInfoForOrderById = async ({
+  auth,
+  updateAccessToken,
+  params, //storeId
+}: ApiRequestProps): Promise<
+  IResponseProps<GetWorkerInfoForOrderByIdResponse>
+> => {
+  // console.log("getWorkersInfoForOrderById Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/store/worker/getWorkersInfoForOrderById/${params?.storeId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<GetWorkerInfoForOrderByIdResponse>(
+    apiCallWithTokenProps
+  );
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    data: result.data,
     message: result.message,
   };
 };

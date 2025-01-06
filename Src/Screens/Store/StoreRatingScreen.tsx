@@ -220,9 +220,9 @@ export const StoreRatingScreen = ({
   }, [store]);
 
   useEffect(() => {
-    console.log("1");
+    // console.log("1");
     if (offset === 0) {
-      console.log("1.1");
+      // console.log("1.1");
       console.log("NEW FETCH");
       handleFetchRatings();
     }
@@ -235,14 +235,14 @@ export const StoreRatingScreen = ({
     //   isFirstRender.current = false;
     //   return;
     // }
-    console.log("2");
+    // console.log("2");
     if (
       route.params &&
       route.params.serviceId &&
       service === "" &&
       isFirstRender.current
     ) {
-      console.log("2.2");
+      // console.log("2.2");
       isFirstRender.current = false;
       return;
     }

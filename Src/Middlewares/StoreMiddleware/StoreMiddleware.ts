@@ -16,6 +16,7 @@ import {
   ApiRequestProps,
 } from "../../Types/MiddleWareTypes";
 import {
+  GetStoreInfoForOrderByIdResponse,
   GetStoresByUserIdResponse,
   StoresByStatusResponse,
 } from "../../Types/ResponseTypes/StoreResponse";
@@ -402,6 +403,36 @@ export const getStoreById = async ({
   };
 
   const result = await apiCallWithToken<StoreObj>(apiCallWithTokenProps);
+
+  return {
+    status: result.status,
+    data: result.data,
+    message: result.message,
+  };
+};
+
+export const getStoreInfoForOrderById = async ({
+  auth,
+  updateAccessToken,
+  params, //storeId
+}: ApiRequestProps): Promise<
+  IResponseProps<GetStoreInfoForOrderByIdResponse>
+> => {
+  // console.log("getStoreInfoForOrderById Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/store/getStoreInfoForOrderById/${params?.storeId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<GetStoreInfoForOrderByIdResponse>(
+    apiCallWithTokenProps
+  );
 
   return {
     status: result.status,

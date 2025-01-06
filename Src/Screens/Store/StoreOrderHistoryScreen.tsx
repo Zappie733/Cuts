@@ -408,7 +408,9 @@ export const StoreOrderHistoryScreen = ({
                           { color: activeColors.primary, textAlign: "center" },
                         ]}
                       >
-                        {item.status === undefined ? "Manual" : item.status}
+                        {item.status === undefined
+                          ? "Onsite Order"
+                          : item.status}
                       </Text>
                     </View>
 

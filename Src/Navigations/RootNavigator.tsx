@@ -27,6 +27,7 @@ import { User } from "../Contexts/UserContext";
 import { LikedImagesScreen } from "../Screens/LikedImagesScreen";
 import { DetailStoreScreen } from "../Screens/DetailStoreScreen";
 import { StoreScheduleScreen } from "../Screens/Store/StoreScheduleScreen";
+import { TimerContext } from "../Contexts/TimerContext";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;
@@ -77,92 +78,112 @@ export const RootNavigator = () => {
   const { user } = useContext(User);
 
   return (
-    <RootStack.Navigator
-      screenOptions={() => ({
-        headerShown: false,
-      })}
-      initialRouteName="Welcome"
-    >
-      {auth._id === "" ? (
-        <>
-          {/* {console.log("root nav guest")} */}
-          <RootStack.Screen name="Welcome" component={WelcomeScreen} />
-          <RootStack.Screen name="LoginScreen" component={LoginScreen} />
-          <RootStack.Screen name="RegisterScreen" component={RegisterScreen} />
-          <RootStack.Screen name="TabsStack" component={TabsNavigator} />
-        </>
-      ) : auth._id !== "" && user.role === "user" ? (
-        <>
-          {/* {console.log("root nav user")} */}
-          <RootStack.Screen name="TabsStack" component={TabsNavigator} />
-          <RootStack.Screen name="Profile" component={ProfileScreen} />
-          <RootStack.Screen
-            name="RegisterStoreScreen"
-            component={RegisterStoreScreen}
-          />
-          <RootStack.Screen
-            name="DocumentDetailsScreen"
-            component={DocumentDetailsScreen}
-          />
-          <RootStack.Screen name="LikedImages" component={LikedImagesScreen} />
-          <RootStack.Screen name="DetailStore" component={DetailStoreScreen} />
-          <RootStack.Screen name="StoreRatings" component={StoreRatingScreen} />
-          <RootStack.Screen
-            name="StoreSchedule"
-            component={StoreScheduleScreen}
-          />
-        </>
-      ) : auth._id !== "" && user.role === "store" ? (
-        <>
-          {/* {console.log("root nav store")} */}
-          <RootStack.Screen name="TabsStack" component={TabsNavigator} />
-          <RootStack.Screen
-            name="StoreProfile"
-            component={StoreProfileScreen}
-          />
-          <RootStack.Screen
-            name="StoreServices"
-            component={StoreServiceScreen}
-          />
-          <RootStack.Screen
-            name="StoreServiceProducts"
-            component={StoreServiceProductScreen}
-          />
-          <RootStack.Screen
-            name="StoreSalesProducts"
-            component={StoreSalesProductScreen}
-          />
-          <RootStack.Screen name="StoreWorkers" component={StoreWorkerScreen} />
-          <RootStack.Screen
-            name="StorePromotions"
-            component={StorePromotionScreen}
-          />
-          <RootStack.Screen
-            name="StoreGallery"
-            component={StoreGalleryScreen}
-          />
-          <RootStack.Screen
-            name="StoreOrderHistory"
-            component={StoreOrderHistoryScreen}
-          />
-          <RootStack.Screen name="StoreRatings" component={StoreRatingScreen} />
-        </>
-      ) : (
-        <>
-          {/* {console.log("root nav admin")} */}
-          <RootStack.Screen name="TabsStack" component={TabsNavigator} />
-          <RootStack.Screen name="Profile" component={ProfileScreen} />
-          <RootStack.Screen
-            name="RegisterStoreScreen"
-            component={RegisterStoreScreen}
-          />
-          <RootStack.Screen
-            name="DocumentDetailsScreen"
-            component={DocumentDetailsScreen}
-          />
-        </>
-      )}
-    </RootStack.Navigator>
+    <TimerContext>
+      <RootStack.Navigator
+        screenOptions={() => ({
+          headerShown: false,
+        })}
+        initialRouteName="Welcome"
+      >
+        {auth._id === "" ? (
+          <>
+            {/* {console.log("root nav guest")} */}
+            <RootStack.Screen name="Welcome" component={WelcomeScreen} />
+            <RootStack.Screen name="LoginScreen" component={LoginScreen} />
+            <RootStack.Screen
+              name="RegisterScreen"
+              component={RegisterScreen}
+            />
+            <RootStack.Screen name="TabsStack" component={TabsNavigator} />
+          </>
+        ) : auth._id !== "" && user.role === "user" ? (
+          <>
+            {/* {console.log("root nav user")} */}
+            <RootStack.Screen name="TabsStack" component={TabsNavigator} />
+            <RootStack.Screen name="Profile" component={ProfileScreen} />
+            <RootStack.Screen
+              name="RegisterStoreScreen"
+              component={RegisterStoreScreen}
+            />
+            <RootStack.Screen
+              name="DocumentDetailsScreen"
+              component={DocumentDetailsScreen}
+            />
+            <RootStack.Screen
+              name="LikedImages"
+              component={LikedImagesScreen}
+            />
+            <RootStack.Screen
+              name="DetailStore"
+              component={DetailStoreScreen}
+            />
+            <RootStack.Screen
+              name="StoreRatings"
+              component={StoreRatingScreen}
+            />
+            <RootStack.Screen
+              name="StoreSchedule"
+              component={StoreScheduleScreen}
+            />
+          </>
+        ) : auth._id !== "" && user.role === "store" ? (
+          <>
+            {/* {console.log("root nav store")} */}
+            <RootStack.Screen name="TabsStack" component={TabsNavigator} />
+            <RootStack.Screen
+              name="StoreProfile"
+              component={StoreProfileScreen}
+            />
+            <RootStack.Screen
+              name="StoreServices"
+              component={StoreServiceScreen}
+            />
+            <RootStack.Screen
+              name="StoreServiceProducts"
+              component={StoreServiceProductScreen}
+            />
+            <RootStack.Screen
+              name="StoreSalesProducts"
+              component={StoreSalesProductScreen}
+            />
+            <RootStack.Screen
+              name="StoreWorkers"
+              component={StoreWorkerScreen}
+            />
+            <RootStack.Screen
+              name="StorePromotions"
+              component={StorePromotionScreen}
+            />
+            <RootStack.Screen
+              name="StoreGallery"
+              component={StoreGalleryScreen}
+            />
+            <RootStack.Screen
+              name="StoreOrderHistory"
+              component={StoreOrderHistoryScreen}
+            />
+            <RootStack.Screen
+              name="StoreRatings"
+              component={StoreRatingScreen}
+            />
+          </>
+        ) : (
+          <>
+            {/* {console.log("root nav admin")} */}
+            <RootStack.Screen name="TabsStack" component={TabsNavigator} />
+            <RootStack.Screen name="Profile" component={ProfileScreen} />
+            <RootStack.Screen
+              name="RegisterStoreScreen"
+              component={RegisterStoreScreen}
+            />
+            <RootStack.Screen
+              name="DocumentDetailsScreen"
+              component={DocumentDetailsScreen}
+            />
+          </>
+        )}
+      </RootStack.Navigator>
+    </TimerContext>
   );
 };
 

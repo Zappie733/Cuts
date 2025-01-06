@@ -118,6 +118,9 @@ export const StoreProfileScreen = ({
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
       await refetchData();
+      setTimeout(() => {
+        handleGoBack();
+      }, 500);
     } else if (response) {
       console.log(response.status, response.message);
     }
@@ -142,6 +145,9 @@ export const StoreProfileScreen = ({
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
       await refetchData();
+      setTimeout(() => {
+        handleGoBack();
+      }, 500);
     } else if (response) {
       console.log(response.status, response.message);
     }
@@ -166,6 +172,9 @@ export const StoreProfileScreen = ({
     if (response.status >= 200 && response.status < 400) {
       Alert.alert("Success", response.message);
       await refetchData();
+      setTimeout(() => {
+        handleGoBack();
+      }, 500);
     } else if (response) {
       console.log(response.status, response.message);
     }
@@ -207,7 +216,7 @@ export const StoreProfileScreen = ({
       await refetchData();
       setTimeout(() => {
         handleGoBack();
-      }, 1000);
+      }, 500);
     } else if (response) {
       console.log(response.status, response.message);
     }

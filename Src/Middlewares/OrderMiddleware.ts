@@ -246,3 +246,29 @@ export const completeOrder = async ({
     message: result.message,
   };
 };
+
+export const cancelOrder = async ({
+  auth,
+  updateAccessToken,
+  params, //orderId
+}: ApiRequestProps): Promise<IResponseProps> => {
+  // console.log("cancelOrder Process");
+  const apiOptions: ApiOptions = {
+    method: "DELETE",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/order/cancelOrder/${params?.orderId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken(apiCallWithTokenProps);
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    message: result.message,
+  };
+};

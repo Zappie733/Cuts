@@ -62,7 +62,7 @@ export const DetailStoreScreen = ({
   const { user, refetchUser } = useContext(User);
   const { orders, setOrders } = useContext(Orders);
   // console.log(JSON.stringify(user, null, 2));
-  console.log("orders", JSON.stringify(orders, null, 2));
+  // console.log("orders in detail", JSON.stringify(orders, null, 2));
 
   useEffect(() => {
     if (!orders) return;
@@ -113,7 +113,7 @@ export const DetailStoreScreen = ({
     const existingOrder = orders.find(
       (order) => order.storeId === orderData.storeId
     );
-    if (JSON.stringify(orderData) !== JSON.stringify(defaultOrderData)) {
+    if (orderData.serviceIds.length > 0) {
       if (existingOrder) {
         const newOrders = orders.map((order) =>
           order.storeId === orderData.storeId ? orderData : order
@@ -307,6 +307,7 @@ export const DetailStoreScreen = ({
     isManual: false,
     totalPrice: 0,
     totalDuration: 0,
+    date: undefined,
   };
   const [orderData, setOrderData] = useState<AddOrderData>(defaultOrderData);
   console.log(JSON.stringify(orderData, null, 2));
