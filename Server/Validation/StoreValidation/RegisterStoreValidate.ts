@@ -51,10 +51,9 @@ export const RegisterStoreValidate = (data: RegisterStoreRequestObj) => {
         "any.only": "Store Type must be 'salon' or 'barbershop'.",
       }),
     storeName: Joi.string().required().label("Store Name"),
-
-    storeLocation: Joi.required().label("Store Location"),
     storeDistrict: Joi.string().required().label("Store District"),
     storeSubDistrict: Joi.string().required().label("Store Sub District"),
+    storeLocation: Joi.string().required().label("Store Location"),
     storeDocuments: Joi.array()
       .items(
         Joi.object({

@@ -97,7 +97,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
     return res.status(201).json(<ResponseObj>{
       error: false,
-      message: "An email has been sent to your account, please verify your account",
+      message: "An Email sent to your account, please verify your account",
     });
   } catch (error) {
     console.log(error);

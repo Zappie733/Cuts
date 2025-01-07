@@ -74,18 +74,7 @@ const UserSchema = new Schema(
           type: String,
         },
         storeLocation: {
-          address: {
-            type: String,
-            required: true,
-          },
-          coordinates: {
-            type: {
-              type: String,
-              enum: ["Point"],
-              required: true
-            },
-            coordinates: [Number]
-          }
+          type: String,
         },
         storeDocuments: [
           {

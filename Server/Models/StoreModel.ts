@@ -358,18 +358,8 @@ const StoreSchema = new Schema(
       required: true,
     },
     location: {
-      address: {
-        type: String,
-        required: true,
-      },
-      coordinates: {
-        type: {
-          type: String,
-          enum: ["Point"],
-          required: true
-        },
-        coordinates: [Number]
-      }
+      type: String,
+      required: true,
     },
     isOpen: {
       type: Boolean,
@@ -474,7 +464,5 @@ const StoreSchema = new Schema(
     timestamps: true,
   }
 );
-
-StoreSchema.index({ "location.coordinates": "2dsphere" });
 
 export const STORES = mongoose.model<StoreObj>("Stores", StoreSchema);

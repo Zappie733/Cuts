@@ -368,7 +368,7 @@ export const HomeScreen = ({
                             { color: activeColors.accent },
                           ]}
                         >
-                          {item.location.address}
+                          {item.district}, {item.subDistrict}
                         </Text>
                       </View>
                     </View>

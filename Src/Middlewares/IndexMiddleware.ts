@@ -3,7 +3,7 @@ import {
   GetNewAccessTokenResponse,
   IResponseProps,
 } from "../Types/ResponseTypes";
-import { API_URL } from "../Config/Api";
+import { API_HOST, API_PORT } from "../Config/Api";
 import { ApiCallWithTokenProps } from "../Types/MiddleWareTypes";
 
 export const handleAxiosError = (error: any): IResponseProps<any> => {
@@ -31,7 +31,7 @@ export const getNewAccessToken = async (
     };
 
     const result = await axios.post(
-      `${API_URL}/user/getAccessToken`,
+      `http://${API_HOST}:${API_PORT}/user/getAccessToken`,
       refreshTokenObj
     );
     // console.log(JSON.stringify(result, null, 2));
@@ -61,7 +61,7 @@ export const apiCallWithToken = async <T>({
     });
   }
 
-  const url = `${API_URL}${endpoint}${
+  const url = `http://${API_HOST}:${API_PORT}${endpoint}${
     queryParams.toString() ? `?${queryParams.toString()}` : ""
   }`;
 
