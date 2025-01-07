@@ -1315,17 +1315,19 @@ export const DetailStoreScreen = ({
                             "serviceIds"
                           );
 
-                          //reset chosenServiceProduct
-                          const chosenServiceProductRecordTemp = {
-                            ...chosenServiceProductRecord,
-                          };
-                          chosenServiceProductRecordTemp[
-                            service._id ?? ""
-                          ].serviceProductIds = [];
+                          if (chosenServiceProductRecord[service._id ?? ""]) {
+                            //reset chosenServiceProduct
+                            const chosenServiceProductRecordTemp = {
+                              ...chosenServiceProductRecord,
+                            };
+                            chosenServiceProductRecordTemp[
+                              service._id ?? ""
+                            ].serviceProductIds = [];
 
-                          setChosenServiceProductRecord(
-                            chosenServiceProductRecordTemp
-                          );
+                            setChosenServiceProductRecord(
+                              chosenServiceProductRecordTemp
+                            );
+                          }
                         }
                       }}
                     >
