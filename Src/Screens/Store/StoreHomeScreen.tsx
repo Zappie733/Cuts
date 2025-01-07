@@ -379,7 +379,7 @@ export const StoreHomeScreen = ({
             </Text>
           </View>
 
-          <View>
+          <View style={{ width: "100%" }}>
             {/* username */}
             <Input
               key="userNameOrder"
@@ -770,6 +770,8 @@ export const StoreHomeScreen = ({
         visible={isModalVisible}
         onRequestClose={() => {
           setIsModalVisible(false);
+          setAbsenceWorkerId("");
+          setAbsenceReason("");
         }}
       >
         <View style={styles.modalOverlay}>
@@ -981,23 +983,23 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   serviceInputContainer: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     zIndex: 100,
     marginVertical: 10,
   },
   serviceProductInputContainer: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     marginVertical: 10,
   },
   createOrderButton: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     marginTop: 10,
     paddingVertical: 10,
     borderRadius: 50,
     alignItems: "center",
   },
   workerInputContainer: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     zIndex: 10,
     marginVertical: 10,
   },
@@ -1006,7 +1008,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   dateTimePickerContainer: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     paddingHorizontal: 20,
     paddingVertical: 10,
   },

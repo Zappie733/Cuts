@@ -13,7 +13,13 @@ import {
   ImageBackground,
   Image,
 } from "react-native";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { colors } from "../Config/Theme";
 import { TabsStackScreenProps } from "../Navigations/TabNavigator";
 import { Theme } from "../Contexts/ThemeContext";
@@ -33,6 +39,7 @@ import { getRatingSummaryByStoreId } from "../Middlewares/RatingMiddleware";
 import { set } from "mongoose";
 import { CheckBox } from "../Components/CheckBox";
 import { Store } from "../Contexts/StoreContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const screenWidth = Dimensions.get("screen").width;
 const PAGE_LIMIT = 5;
@@ -46,7 +53,18 @@ export const HomeScreen = ({
 
   // const [loading, setLoading] = useState(false);
 
-  const { auth, setAuth, updateAccessToken } = useContext(Auth);
+  const { auth, setAuth, updateAccessToken, refetchAuth } = useContext(Auth);
+
+  const firstRender = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (firstRender.current) {
+        firstRender.current = false;
+        return;
+      }
+      refetchAuth();
+    }, [])
+  );
 
   const { refetchStoreById } = useContext(Store);
 
@@ -102,8 +120,8 @@ export const HomeScreen = ({
 
     if (response.status >= 200 && response.status < 400 && response.data) {
       const currentTotal = data?.stores.length ?? 0 + PAGE_LIMIT;
-      console.log("current total", currentTotal);
-      console.log("ada", JSON.stringify(response.data, null, 2));
+      // console.log("current total", currentTotal);
+      // console.log("ada", JSON.stringify(response.data, null, 2));
       setData((prevData) => ({
         stores: [...(prevData?.stores || []), ...(response.data?.stores || [])],
         total: response.data?.total || prevData?.total || 0,

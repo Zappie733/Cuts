@@ -17,6 +17,8 @@ export interface IUserObj {
   image: IImageProps;
   userId?: string;
   likes?: LikeObj[];
+
+  createdAt: Date;
 }
 
 export interface RegistrationData {

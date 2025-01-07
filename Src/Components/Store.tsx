@@ -425,7 +425,7 @@ export const Store = ({
                 </Text>
 
                 {/* Inputs */}
-                <View>
+                <View style={{ width: "100%" }}>
                   {/* Password Input */}
                   {isLoginModal === true ? (
                     <Input

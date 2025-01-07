@@ -358,94 +358,96 @@ export const StoreGalleryScreen = ({
                   },
                 ]}
               >
-                {store.gallery.map((gallery) => {
-                  if (gallery._id === selectedGalleryId) {
-                    return (
-                      <View key={gallery._id}>
-                        {/* line separator */}
-                        <View
-                          style={{
-                            borderWidth: 0.5,
-                            borderColor: activeColors.tertiary,
-                          }}
-                        />
-
-                        {/* image */}
-                        <View style={{ width: "100%", height: 300 }}>
-                          <ImageSlider
-                            images={gallery.images.map((item) => item.file)}
+                {store.gallery
+                  .sort((a, b) => (a.date < b.date ? 1 : -1))
+                  .map((gallery) => {
+                    if (gallery._id === selectedGalleryId) {
+                      return (
+                        <View key={gallery._id}>
+                          {/* line separator */}
+                          <View
+                            style={{
+                              borderWidth: 0.5,
+                              borderColor: activeColors.tertiary,
+                            }}
                           />
-                        </View>
 
-                        {/* line separator */}
-                        <View
-                          style={{
-                            borderWidth: 0.5,
-                            borderColor: activeColors.tertiary,
-                          }}
-                        />
-
-                        {/* Created Date and Likes */}
-                        <View style={styles.dateNLikesContainer}>
-                          {/* created date */}
-                          <View>
-                            <Text
-                              style={[
-                                styles.createdDate,
-                                { color: activeColors.accent },
-                              ]}
-                            >
-                              Uploaded on: {""}
-                              {gallery.date.toString().split("T")[0] +
-                                " " +
-                                gallery.date
-                                  .toString()
-                                  .split("T")[1]
-                                  .slice(0, 8)}
-                            </Text>
+                          {/* image */}
+                          <View style={{ width: "100%", height: 300 }}>
+                            <ImageSlider
+                              images={gallery.images.map((item) => item.file)}
+                            />
                           </View>
 
-                          {/* likes */}
-                          <View style={{ flexDirection: "row" }}>
-                            <Pressable onPress={handleLikeGalleryById}>
-                              <AntDesign
-                                name={
-                                  user.likes?.find(
-                                    (like) => like.imageId === gallery._id
-                                  )
-                                    ? "like1"
-                                    : "like2"
-                                }
-                                size={24}
-                                color={activeColors.accent}
-                              />
-                            </Pressable>
+                          {/* line separator */}
+                          <View
+                            style={{
+                              borderWidth: 0.5,
+                              borderColor: activeColors.tertiary,
+                            }}
+                          />
+
+                          {/* Created Date and Likes */}
+                          <View style={styles.dateNLikesContainer}>
+                            {/* created date */}
                             <View>
                               <Text
                                 style={[
-                                  styles.likes,
+                                  styles.createdDate,
                                   { color: activeColors.accent },
                                 ]}
                               >
-                                {gallery.likes}
+                                Uploaded on: {""}
+                                {gallery.date.toString().split("T")[0] +
+                                  " " +
+                                  gallery.date
+                                    .toString()
+                                    .split("T")[1]
+                                    .slice(0, 8)}
                               </Text>
                             </View>
-                          </View>
-                        </View>
 
-                        {/* caption */}
-                        <Text
-                          style={[
-                            styles.caption,
-                            { color: activeColors.accent },
-                          ]}
-                        >
-                          {gallery.caption}
-                        </Text>
-                      </View>
-                    );
-                  }
-                })}
+                            {/* likes */}
+                            <View style={{ flexDirection: "row" }}>
+                              <Pressable onPress={handleLikeGalleryById}>
+                                <AntDesign
+                                  name={
+                                    user.likes?.find(
+                                      (like) => like.imageId === gallery._id
+                                    )
+                                      ? "like1"
+                                      : "like2"
+                                  }
+                                  size={24}
+                                  color={activeColors.accent}
+                                />
+                              </Pressable>
+                              <View>
+                                <Text
+                                  style={[
+                                    styles.likes,
+                                    { color: activeColors.accent },
+                                  ]}
+                                >
+                                  {gallery.likes}
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+
+                          {/* caption */}
+                          <Text
+                            style={[
+                              styles.caption,
+                              { color: activeColors.accent },
+                            ]}
+                          >
+                            {gallery.caption}
+                          </Text>
+                        </View>
+                      );
+                    }
+                  })}
                 {/* Close Button */}
                 <Pressable
                   onPress={() => {
@@ -597,7 +599,7 @@ export const StoreGalleryScreen = ({
                   </>
                 )}
 
-                <View style={{ alignSelf: "center" }}>
+                <View style={{ alignSelf: "center", width: "100%" }}>
                   {/* caption */}
                   <Input
                     key="caption"
@@ -783,7 +785,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   createServiceButton: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     marginTop: 10,
     paddingVertical: 10,
     borderRadius: 50,
@@ -791,7 +793,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   typeInputContainer: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     zIndex: 99,
     marginVertical: 10,
   },

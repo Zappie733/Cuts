@@ -617,7 +617,7 @@ export const StoreServiceProductScreen = ({
                 { borderColor: activeColors.tertiary },
               ]}
             >
-              <View>
+              <View style={{ width: "100%" }}>
                 <SelectSingleImage
                   imageData={isEditForm ? updateData.image : addData.image}
                   handleSetImage={(image: IImageProps | null) =>
@@ -636,197 +636,201 @@ export const StoreServiceProductScreen = ({
                   }}
                 />
 
-                {/* name */}
-                <Input
-                  key="serviceProductName"
-                  context="Name"
-                  placeholder="Enter Service Product Name"
-                  value={isEditForm ? updateData.name : addData?.name || ""}
-                  updateValue={(text: string) =>
-                    isEditForm
-                      ? handleUpdateTextChange(text, "name")
-                      : handleAddTextChange(text, "name")
-                  }
-                  isEditable={isEditForm ? serviceProductNameEdit : undefined}
-                  setEditable={
-                    isEditForm ? setServiceProductNameEdit : undefined
-                  }
-                />
-                {/* description */}
-                <Input
-                  key="description"
-                  context="Description"
-                  placeholder="Enter Description (Optional)"
-                  value={
-                    isEditForm
-                      ? updateData.description || ""
-                      : addData.description || ""
-                  }
-                  updateValue={(text: string) =>
-                    isEditForm
-                      ? handleUpdateTextChange(text, "description")
-                      : handleAddTextChange(text, "description")
-                  }
-                  isEditable={
-                    isEditForm ? serviceProductDescriptionEdit : undefined
-                  }
-                  setEditable={
-                    isEditForm ? setServiceProductDescriptionEdit : undefined
-                  }
-                />
-
-                {/* additional price */}
-                <Input
-                  key="additionalPrice"
-                  context="Additional Price"
-                  placeholder="Enter Additional Price (Rp) (optional)"
-                  value={
-                    isEditForm
-                      ? updateData?.addtionalPrice &&
-                        updateData?.addtionalPrice?.toString() !== "0"
-                        ? updateData?.addtionalPrice?.toString()
-                        : ""
-                      : addData?.addtionalPrice &&
-                        addData?.addtionalPrice?.toString() !== "0"
-                      ? addData?.addtionalPrice?.toString()
-                      : ""
-                  }
-                  updateValue={(text: string) => {
-                    // Validate and accept only numeric input
-                    const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-                    isEditForm
-                      ? handleUpdateTextChange(
-                          Number.parseInt(numericValue || "0"),
-                          "addtionalPrice"
-                        )
-                      : handleAddTextChange(
-                          Number.parseInt(numericValue || "0"),
-                          "addtionalPrice"
-                        ); // Ensure at least "0" is passed if empty
-                  }}
-                  isEditable={
-                    isEditForm ? serviceProductAdditionalPriceEdit : undefined
-                  }
-                  setEditable={
-                    isEditForm
-                      ? setServiceProductAdditionalPriceEdit
-                      : undefined
-                  }
-                />
-
-                {/* quantity */}
-                <Input
-                  key="quantity"
-                  context="Quantity"
-                  placeholder="Enter Quantity (1 service use 1)"
-                  value={
-                    isEditForm
-                      ? updateData?.quantity &&
-                        updateData?.quantity?.toString() !== "0"
-                        ? updateData?.quantity?.toString()
-                        : ""
-                      : addData?.quantity &&
-                        addData?.quantity?.toString() !== "0"
-                      ? addData?.quantity?.toString()
-                      : ""
-                  }
-                  updateValue={(text: string) => {
-                    // Validate and accept only numeric input
-                    const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-                    isEditForm
-                      ? handleUpdateTextChange(
-                          Number.parseInt(numericValue || "0"),
-                          "quantity"
-                        )
-                      : handleAddTextChange(
-                          Number.parseInt(numericValue || "0"),
-                          "quantity"
-                        ); // Ensure at least "0" is passed if empty
-                  }}
-                  isEditable={
-                    isEditForm ? serviceProductQuantityEdit : undefined
-                  }
-                  setEditable={
-                    isEditForm ? setServiceProductQuantityEdit : undefined
-                  }
-                />
-
-                {/* alert quantity */}
-                <Input
-                  key="alertQuantity"
-                  context="Alert Quantity"
-                  placeholder="Enter Alert Quantity (min to get alert)"
-                  value={
-                    isEditForm
-                      ? updateData?.alertQuantity &&
-                        updateData?.alertQuantity?.toString() !== "0"
-                        ? updateData?.alertQuantity?.toString()
-                        : ""
-                      : addData?.alertQuantity &&
-                        addData?.alertQuantity?.toString() !== "0"
-                      ? addData?.alertQuantity?.toString()
-                      : ""
-                  }
-                  updateValue={(text: string) => {
-                    // Validate and accept only numeric input
-                    const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-                    isEditForm
-                      ? handleUpdateTextChange(
-                          Number.parseInt(numericValue || "0"),
-                          "alertQuantity"
-                        )
-                      : handleAddTextChange(
-                          Number.parseInt(numericValue || "0"),
-                          "alertQuantity"
-                        ); // Ensure at least "0" is passed if empty
-                  }}
-                  isEditable={
-                    isEditForm ? serviceProductAlertQuantityEdit : undefined
-                  }
-                  setEditable={
-                    isEditForm ? setServiceProductAlertQuantityEdit : undefined
-                  }
-                />
-
-                {/* isAnOption */}
-                <View style={styles.isAnOptionInputContainer}>
-                  <DropdownPicker
-                    key="isAnOption"
-                    options={isAnOptionOptions}
-                    selectedValue={
+                <View>
+                  {/* name */}
+                  <Input
+                    key="serviceProductName"
+                    context="Name"
+                    placeholder="Enter Service Product Name"
+                    value={isEditForm ? updateData.name : addData?.name || ""}
+                    updateValue={(text: string) =>
                       isEditForm
-                        ? updateData.isAnOption?.toString() || ""
-                        : addData.isAnOption?.toString() || ""
+                        ? handleUpdateTextChange(text, "name")
+                        : handleAddTextChange(text, "name")
                     }
-                    onValueChange={(text: string) =>
-                      isEditForm
-                        ? handleUpdateTextChange(
-                            text === "true"
-                              ? true
-                              : text === "false"
-                              ? false
-                              : null,
-                            "isAnOption"
-                          )
-                        : handleAddTextChange(
-                            text === "true"
-                              ? true
-                              : text === "false"
-                              ? false
-                              : null,
-                            "isAnOption"
-                          )
-                    }
-                    placeHolder="Is it an Option?"
-                    isInput={true}
-                    context="isAnOption"
-                    isEditable={
-                      isEditForm ? serviceProductIsAnOptionEdit : undefined
-                    }
+                    isEditable={isEditForm ? serviceProductNameEdit : undefined}
                     setEditable={
-                      isEditForm ? setServiceProductIsAnOptionEdit : undefined
+                      isEditForm ? setServiceProductNameEdit : undefined
                     }
                   />
+                  {/* description */}
+                  <Input
+                    key="description"
+                    context="Description"
+                    placeholder="Enter Description (Optional)"
+                    value={
+                      isEditForm
+                        ? updateData.description || ""
+                        : addData.description || ""
+                    }
+                    updateValue={(text: string) =>
+                      isEditForm
+                        ? handleUpdateTextChange(text, "description")
+                        : handleAddTextChange(text, "description")
+                    }
+                    isEditable={
+                      isEditForm ? serviceProductDescriptionEdit : undefined
+                    }
+                    setEditable={
+                      isEditForm ? setServiceProductDescriptionEdit : undefined
+                    }
+                  />
+
+                  {/* additional price */}
+                  <Input
+                    key="additionalPrice"
+                    context="Additional Price"
+                    placeholder="Enter Additional Price (Rp) (optional)"
+                    value={
+                      isEditForm
+                        ? updateData?.addtionalPrice &&
+                          updateData?.addtionalPrice?.toString() !== "0"
+                          ? updateData?.addtionalPrice?.toString()
+                          : ""
+                        : addData?.addtionalPrice &&
+                          addData?.addtionalPrice?.toString() !== "0"
+                        ? addData?.addtionalPrice?.toString()
+                        : ""
+                    }
+                    updateValue={(text: string) => {
+                      // Validate and accept only numeric input
+                      const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+                      isEditForm
+                        ? handleUpdateTextChange(
+                            Number.parseInt(numericValue || "0"),
+                            "addtionalPrice"
+                          )
+                        : handleAddTextChange(
+                            Number.parseInt(numericValue || "0"),
+                            "addtionalPrice"
+                          ); // Ensure at least "0" is passed if empty
+                    }}
+                    isEditable={
+                      isEditForm ? serviceProductAdditionalPriceEdit : undefined
+                    }
+                    setEditable={
+                      isEditForm
+                        ? setServiceProductAdditionalPriceEdit
+                        : undefined
+                    }
+                  />
+
+                  {/* quantity */}
+                  <Input
+                    key="quantity"
+                    context="Quantity"
+                    placeholder="Enter Quantity (1 service use 1)"
+                    value={
+                      isEditForm
+                        ? updateData?.quantity &&
+                          updateData?.quantity?.toString() !== "0"
+                          ? updateData?.quantity?.toString()
+                          : ""
+                        : addData?.quantity &&
+                          addData?.quantity?.toString() !== "0"
+                        ? addData?.quantity?.toString()
+                        : ""
+                    }
+                    updateValue={(text: string) => {
+                      // Validate and accept only numeric input
+                      const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+                      isEditForm
+                        ? handleUpdateTextChange(
+                            Number.parseInt(numericValue || "0"),
+                            "quantity"
+                          )
+                        : handleAddTextChange(
+                            Number.parseInt(numericValue || "0"),
+                            "quantity"
+                          ); // Ensure at least "0" is passed if empty
+                    }}
+                    isEditable={
+                      isEditForm ? serviceProductQuantityEdit : undefined
+                    }
+                    setEditable={
+                      isEditForm ? setServiceProductQuantityEdit : undefined
+                    }
+                  />
+
+                  {/* alert quantity */}
+                  <Input
+                    key="alertQuantity"
+                    context="Alert Quantity"
+                    placeholder="Enter Alert Quantity (minimum)"
+                    value={
+                      isEditForm
+                        ? updateData?.alertQuantity &&
+                          updateData?.alertQuantity?.toString() !== "0"
+                          ? updateData?.alertQuantity?.toString()
+                          : ""
+                        : addData?.alertQuantity &&
+                          addData?.alertQuantity?.toString() !== "0"
+                        ? addData?.alertQuantity?.toString()
+                        : ""
+                    }
+                    updateValue={(text: string) => {
+                      // Validate and accept only numeric input
+                      const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+                      isEditForm
+                        ? handleUpdateTextChange(
+                            Number.parseInt(numericValue || "0"),
+                            "alertQuantity"
+                          )
+                        : handleAddTextChange(
+                            Number.parseInt(numericValue || "0"),
+                            "alertQuantity"
+                          ); // Ensure at least "0" is passed if empty
+                    }}
+                    isEditable={
+                      isEditForm ? serviceProductAlertQuantityEdit : undefined
+                    }
+                    setEditable={
+                      isEditForm
+                        ? setServiceProductAlertQuantityEdit
+                        : undefined
+                    }
+                  />
+
+                  {/* isAnOption */}
+                  <View style={styles.isAnOptionInputContainer}>
+                    <DropdownPicker
+                      key="isAnOption"
+                      options={isAnOptionOptions}
+                      selectedValue={
+                        isEditForm
+                          ? updateData.isAnOption?.toString() || ""
+                          : addData.isAnOption?.toString() || ""
+                      }
+                      onValueChange={(text: string) =>
+                        isEditForm
+                          ? handleUpdateTextChange(
+                              text === "true"
+                                ? true
+                                : text === "false"
+                                ? false
+                                : null,
+                              "isAnOption"
+                            )
+                          : handleAddTextChange(
+                              text === "true"
+                                ? true
+                                : text === "false"
+                                ? false
+                                : null,
+                              "isAnOption"
+                            )
+                      }
+                      placeHolder="Is it an Option?"
+                      isInput={true}
+                      context="isAnOption"
+                      isEditable={
+                        isEditForm ? serviceProductIsAnOptionEdit : undefined
+                      }
+                      setEditable={
+                        isEditForm ? setServiceProductIsAnOptionEdit : undefined
+                      }
+                    />
+                  </View>
                 </View>
 
                 {/* line separator */}
@@ -974,14 +978,14 @@ const styles = StyleSheet.create({
   formContainer: {
     flexDirection: "column",
     alignItems: "center",
-    marginHorizontal: 25,
+    marginHorizontal: 20,
     marginVertical: 20,
     padding: 25,
     borderRadius: 20,
     borderWidth: 2,
   },
   createServiceProductButton: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     marginTop: 10,
     paddingVertical: 10,
     borderRadius: 50,
@@ -989,7 +993,7 @@ const styles = StyleSheet.create({
   },
 
   isAnOptionInputContainer: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     zIndex: 98,
     marginVertical: 10,
   },

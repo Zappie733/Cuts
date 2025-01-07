@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { GetServiceProductsByStoreIdResponse, ResponseObj } from "../Response";
+import {
+  GetServiceProductsByStoreIdResponse,
+  GetServiceProductsInfoForOrderByIdResponse,
+  ResponseObj,
+} from "../Response";
 import { ImageRequestObj, PayloadObj } from "../dto";
 import { verifyAccessToken } from "../Utils/UserTokenUtil";
 import { STORES } from "../Models/StoreModel";
@@ -461,6 +465,87 @@ export const updateServiceProduct = async (req: Request, res: Response) => {
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: `Service product has been updated successfully`,
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+export const getServiceProductsInfoForOrderById = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { storeId: storeId, serviceProductId: serviceProductId } =
+        req.params;
+      // console.log(storeId, serviceProductId);
+      if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        console.log("Invalid store id: ", storeId);
+        return res
+          .status(400)
+          .json(<ResponseObj>{ error: true, message: "Invalid store id" });
+      }
+      if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid service product id",
+        });
+      }
+
+      const store = await STORES.findOne({ _id: storeId });
+
+      if (!store) {
+        return res
+          .status(404)
+          .json(<ResponseObj>{ error: true, message: "Store not found" });
+      }
+
+      const serviceProduct = await store.serviceProducts.find(
+        (serviceProduct) =>
+          serviceProduct._id?.toString() === serviceProductId.toString()
+      );
+
+      if (!serviceProduct) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Service product not found",
+        });
+      }
+
+      const responseData: GetServiceProductsInfoForOrderByIdResponse = {
+        name: serviceProduct.name,
+        additionalPrice: serviceProduct.addtionalPrice ?? 0,
+      };
+
+      return res.status(200).json(<
+        ResponseObj<GetServiceProductsInfoForOrderByIdResponse>
+      >{
+        error: false,
+        message: `Service ${serviceProduct.name} retrieved successfully`,
+        data: responseData,
       });
     }
 

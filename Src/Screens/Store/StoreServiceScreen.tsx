@@ -629,7 +629,7 @@ export const StoreServiceScreen = ({
                 { borderColor: activeColors.tertiary },
               ]}
             >
-              <View>
+              <View style={{ width: "100%" }}>
                 {/* username */}
                 <Input
                   key="serviceName"
@@ -955,14 +955,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   createServiceButton: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     marginTop: 10,
     paddingVertical: 10,
     borderRadius: 50,
     alignItems: "center",
   },
   serviceInputContainer: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     zIndex: 100,
     marginVertical: 10,
   },

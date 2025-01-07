@@ -12,6 +12,6 @@ export interface AddRatingData {
   storeId: string;
   serviceId: string;
   orderId: string;
-  rating: 1 | 2 | 3 | 4 | 5;
+  rating: 1 | 2 | 3 | 4 | 5 | undefined;
   comment?: string;
 }
