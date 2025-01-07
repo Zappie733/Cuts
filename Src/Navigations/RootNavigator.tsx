@@ -96,7 +96,7 @@ export const RootNavigator = () => {
               name="RegisterScreen"
               component={RegisterScreen}
             />
-            <RootStack.Screen name="TabsStack" component={TabsNavigator} />
+            {/* <RootStack.Screen name="TabsStack" component={TabsNavigator} /> */}
           </>
         ) : auth._id !== "" && user.role === "user" ? (
           <>

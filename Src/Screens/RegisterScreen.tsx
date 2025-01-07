@@ -322,9 +322,9 @@ export const RegisterScreen = ({
                 },
               ]}
             >
-              • Book online reservation{"\n"}• Rate places and products
-              {"\n"}• See and Like posts{"\n"}• Wishlist functionality {"\n"}•
-              Light&Dark Theme
+              • See live Queue {"\n"}• Book online reservation{"\n"}• See store
+              review and ratings {"\n"}• See and Like posts{"\n"}• Light&Dark
+              Theme
             </Text>
             {/* Close Button */}
             <Pressable

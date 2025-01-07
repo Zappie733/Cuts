@@ -31,8 +31,11 @@ export const WelcomeScreen = ({
   const navigateToLoginScreen = () => {
     navigation.navigate("LoginScreen");
   };
-  const navigateToHomeScreen = () => {
-    navigation.navigate("TabsStack", { screen: "Home" });
+  // const navigateToHomeScreen = () => {
+  //   navigation.navigate("TabsStack", { screen: "Home" });
+  // };
+  const navigateToRegisterScreen = () => {
+    navigation.navigate("RegisterScreen");
   };
 
   return (
@@ -92,7 +95,7 @@ export const WelcomeScreen = ({
             </Text>
           </Pressable>
           {/* Guest */}
-          <Pressable
+          {/* <Pressable
             onPress={navigateToHomeScreen}
             style={[
               styles.guestContainer,
@@ -110,6 +113,28 @@ export const WelcomeScreen = ({
             />
             <Text style={[styles.text, { color: activeColors.accent }]}>
               Continue as Guest
+            </Text>
+          </Pressable> */}
+
+          {/* Register */}
+          <Pressable
+            onPress={navigateToRegisterScreen}
+            style={[
+              styles.registerContainer,
+              {
+                backgroundColor: activeColors.secondary,
+                width: 0.75 * screenWidth,
+              },
+            ]}
+          >
+            <Zocial
+              name="guest"
+              size={18}
+              color={activeColors.tertiary}
+              style={styles.buttonIcon}
+            />
+            <Text style={[styles.text, { color: activeColors.accent }]}>
+              Register an Account
             </Text>
           </Pressable>
         </View>
@@ -157,6 +182,15 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   guestContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginTop: 10,
+    padding: 20,
+    borderRadius: 50,
+  },
+  registerContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",

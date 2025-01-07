@@ -744,15 +744,15 @@ export const getOrderforSchedule = async (req: Request, res: Response) => {
     if (!response.error) {
       const { limit, offset } = req.query;
 
-      const today = new Date();
+      const today = new Date(Date.now() + 7 * 60 * 60 * 1000);
       today.setUTCHours(0, 0, 0, 0); // Set to start of today in UTC
-      // console.log(today);
+      console.log(today);
       // console.log(today.toISOString()); // For logging in ISO format
 
-      const nextSixDays = new Date();
+      const nextSixDays = new Date(Date.now() + 7 * 60 * 60 * 1000);
       nextSixDays.setDate(today.getDate() + 6);
       nextSixDays.setUTCHours(23, 59, 59, 999); // Set to end of next week in UTC
-      // console.log(nextSixDays);
+      console.log(nextSixDays);
       // console.log(nextSixDays.toISOString()); // For logging in ISO format
 
       let query: any = {

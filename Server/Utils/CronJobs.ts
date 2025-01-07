@@ -14,7 +14,7 @@ export const InitializeCronJobs = () => {
   //auto reject Waiting for Confirmation order that has been in the same state for 5 minutes
   cron.schedule("*/5 * * * * *", async () => {
     // console.log(
-    //   "This task runs every minutes to do auto reject for `Waiting for Confirmation` order that has been in the same state for 5 minutes and notify the users"
+    //   "This task runs every 5 seconds to do auto reject for `Waiting for Confirmation` order that has been in the same state for 5 minutes and notify the users"
     // );
 
     try {
@@ -189,7 +189,7 @@ export const InitializeCronJobs = () => {
   //auto reject Waiting for Payment order that has been in the same state for 5 minutes
   cron.schedule("*/5 * * * * *", async () => {
     // console.log(
-    //   "This task runs every minutes to do auto reject for `Waiting for Payment` order that has been in the same state for 5 minutes and notify the users"
+    //   "This task runs every 5 seconds to do auto reject for `Waiting for Payment` order that has been in the same state for 5 minutes and notify the users"
     // );
 
     try {

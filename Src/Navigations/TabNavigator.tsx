@@ -124,7 +124,7 @@ export const TabsNavigator = () => {
       {role === undefined && (
         <>
           {/* {console.log("bottom tab guest")} */}
-          <TabsStack.Screen
+          {/* <TabsStack.Screen
             name="Home"
             component={HomeScreen}
             options={{ unmountOnBlur: true }}
@@ -133,7 +133,7 @@ export const TabsNavigator = () => {
             name="Order"
             component={OrderScreen}
             options={{ unmountOnBlur: true }}
-          />
+          /> */}
         </>
       )}
       {role === "user" && (

@@ -466,7 +466,7 @@ export const StoreScheduleScreen = ({
                 </Text>
 
                 {/* Notification Icon */}
-                {waitingOrdersCount > 0 && (
+                {user.role === "store" && waitingOrdersCount > 0 && (
                   <View
                     style={{
                       position: "absolute",
