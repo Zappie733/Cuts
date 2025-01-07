@@ -113,7 +113,7 @@ const UserSchema = new Schema(
     toJSON: {
       transform(doc, ret) {
         delete ret.__v;
-        delete ret.createdAt;
+        // delete ret.createdAt;
         delete ret.updatedAt;
         delete ret.password; // Ensure password is not exposed in JSON
       },

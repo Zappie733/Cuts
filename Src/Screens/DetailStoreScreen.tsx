@@ -1998,80 +1998,103 @@ export const DetailStoreScreen = ({
               },
             ]}
           >
-            {store.gallery?.map((galleryObj) => {
-              if (galleryObj._id === selectedGalleryId) {
-                return (
-                  <View key={galleryObj._id}>
-                    {/* line separator */}
-                    <View
-                      style={{
-                        borderWidth: 0.5,
-                        borderColor: activeColors.tertiary,
-                      }}
-                    />
-
-                    {/* image */}
-                    <View style={{ width: "100%", height: 300 }}>
-                      <ImageSlider
-                        images={galleryObj.images.map((image) => image.file)}
+            {store.gallery
+              ?.sort((a, b) => (a.date < b.date ? 1 : -1))
+              .map((galleryObj) => {
+                if (galleryObj._id === selectedGalleryId) {
+                  return (
+                    <View key={galleryObj._id}>
+                      {/* line separator */}
+                      <View
+                        style={{
+                          borderWidth: 0.5,
+                          borderColor: activeColors.tertiary,
+                        }}
                       />
-                    </View>
 
-                    {/* line separator */}
-                    <View
-                      style={{
-                        borderWidth: 0.5,
-                        borderColor: activeColors.tertiary,
-                      }}
-                    />
-
-                    {/* likes */}
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        marginVertical: 10,
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                      }}
-                    >
-                      <Pressable onPress={() => handleLikeGalleryById()}>
-                        <AntDesign
-                          name={
-                            user.likes?.find(
-                              (like) => like.imageId === galleryObj._id
-                            )
-                              ? "like1"
-                              : "like2"
-                          }
-                          size={24}
-                          color={activeColors.accent}
+                      {/* image */}
+                      <View style={{ width: "100%", height: 300 }}>
+                        <ImageSlider
+                          images={galleryObj.images.map((image) => image.file)}
                         />
-                      </Pressable>
-                      <View>
-                        <Text
-                          style={[
-                            styles.modalDetailStoreLikes,
-                            { color: activeColors.accent },
-                          ]}
-                        >
-                          {galleryObj.likes}
-                        </Text>
                       </View>
-                    </View>
 
-                    {/* caption */}
-                    <Text
-                      style={[
-                        styles.modalDetailStoreCaption,
-                        { color: activeColors.accent },
-                      ]}
-                    >
-                      {galleryObj.caption}
-                    </Text>
-                  </View>
-                );
-              }
-            })}
+                      {/* line separator */}
+                      <View
+                        style={{
+                          borderWidth: 0.5,
+                          borderColor: activeColors.tertiary,
+                        }}
+                      />
+
+                      {/* likes */}
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          marginVertical: 10,
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        {/* created date */}
+                        <View>
+                          <Text
+                            style={[
+                              styles.modalDetailStoreCreatedDate,
+                              { color: activeColors.accent },
+                            ]}
+                          >
+                            Uploaded on: {""}
+                            {galleryObj.date.toString().split("T")[0] +
+                              " " +
+                              galleryObj.date
+                                .toString()
+                                .split("T")[1]
+                                .slice(0, 8)}
+                          </Text>
+                        </View>
+
+                        <View style={{ flexDirection: "row" }}>
+                          <Pressable onPress={() => handleLikeGalleryById()}>
+                            <AntDesign
+                              name={
+                                user.likes?.find(
+                                  (like) => like.imageId === galleryObj._id
+                                )
+                                  ? "like1"
+                                  : "like2"
+                              }
+                              size={24}
+                              color={activeColors.accent}
+                            />
+                          </Pressable>
+
+                          <View>
+                            <Text
+                              style={[
+                                styles.modalDetailStoreLikes,
+                                { color: activeColors.accent },
+                              ]}
+                            >
+                              {galleryObj.likes}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {/* caption */}
+                      <Text
+                        style={[
+                          styles.modalDetailStoreCaption,
+                          { color: activeColors.accent },
+                        ]}
+                      >
+                        {galleryObj.caption}
+                      </Text>
+                    </View>
+                  );
+                }
+              })}
             {/* Close Button */}
             <Pressable
               onPress={() => {
@@ -2654,6 +2677,11 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     marginLeft: 5,
     marginRight: 10,
+  },
+  modalDetailStoreCreatedDate: {
+    fontSize: 15,
+    fontWeight: "300",
+    marginLeft: 10,
   },
   modalDetailStoreCaption: {
     fontSize: 18,

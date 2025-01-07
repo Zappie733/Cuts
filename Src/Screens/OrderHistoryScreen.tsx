@@ -1,42 +1,42 @@
-import React from "react";
-import { useContext, useEffect, useRef, useState } from "react";
-import { colors } from "../../Config/Theme";
-import { Store } from "../../Contexts/StoreContext";
 import {
-  SafeAreaView,
-  StyleSheet,
+  ActivityIndicator,
   Dimensions,
+  FlatList,
   Platform,
+  Pressable,
+  SafeAreaView,
   StatusBar,
   Text,
-  ScrollView,
   View,
+  StyleSheet,
+  Modal,
   Alert,
-  Pressable,
-  ActivityIndicator,
-  FlatList,
 } from "react-native";
-import { RootStackScreenProps } from "../../Navigations/RootNavigator";
-import { Header } from "../../Components/Header";
-import { DropdownPicker } from "../../Components/DropdownPicker";
-import { GetStoreOrderHistoryResponse } from "../../Types/ResponseTypes/OrderResponse";
-import { getStoreOrderHistory } from "../../Middlewares/OrderMiddleware";
-import { apiCallHandler } from "../../Middlewares/util";
-import { GetUserInfoForOrderByIdResponse } from "../../Types/ResponseTypes";
-import { getUserInfoForOrderById } from "../../Middlewares/UserMiddleware";
+import { RootStackScreenProps } from "../Navigations/RootNavigator";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Theme } from "../Contexts/ThemeContext";
+import { colors } from "../Config/Theme";
+import { Store } from "../Contexts/StoreContext";
+import { Auth } from "../Contexts/AuthContext";
+import { GetStoreOrderHistoryResponse } from "../Types/ResponseTypes/OrderResponse";
+import { apiCallHandler } from "../Middlewares/util";
+import { getUserOrderHistory } from "../Middlewares/OrderMiddleware";
+import { Header } from "../Components/Header";
+import { DropdownPicker } from "../Components/DropdownPicker";
 import { AntDesign } from "@expo/vector-icons";
-import { ServiceObj } from "../../Types/StoreTypes/ServiceTypes";
-import { ServiceProductObj } from "../../Types/StoreTypes/ServiceProductTypes";
-import { Theme } from "../../Contexts/ThemeContext";
-import { Auth } from "../../Contexts/AuthContext";
+import { User } from "../Contexts/UserContext";
+import { Input } from "../Components/Input";
+import { set } from "mongoose";
+import { AddRatingData } from "../Types/RatingTypes";
+import { addRating } from "../Middlewares/RatingMiddleware";
 
 const screenWidth = Dimensions.get("screen").width;
 const PAGE_LIMIT = 3;
 
-export const StoreOrderHistoryScreen = ({
+export const OrderHistoryScreen = ({
   navigation,
   route,
-}: RootStackScreenProps<"StoreOrderHistory">) => {
+}: RootStackScreenProps<"OrderHistory">) => {
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -46,6 +46,7 @@ export const StoreOrderHistoryScreen = ({
 
   const { store, refetchData } = useContext(Store);
   const { auth, setAuth, updateAccessToken } = useContext(Auth);
+  const { user } = useContext(User);
 
   const priceFormat = (price: number) => {
     let priceStr = price.toString();
@@ -65,7 +66,7 @@ export const StoreOrderHistoryScreen = ({
 
   const currentYear = new Date().getFullYear();
   const years = Array.from(
-    { length: currentYear + 1 - new Date(store.approvedDate).getFullYear() }, // +1 so atleast it has the same year as currentYear
+    { length: currentYear + 1 - new Date(user.createdAt).getFullYear() }, // +1 so atleast it has the same year as currentYear
     (_, index) => currentYear - index //index start from
   );
   const [year, setYear] = useState(years[0].toString());
@@ -113,7 +114,7 @@ export const StoreOrderHistoryScreen = ({
 
     const response = await apiCallHandler({
       apiCall: () =>
-        getStoreOrderHistory({
+        getUserOrderHistory({
           auth,
           updateAccessToken,
           params: {
@@ -155,51 +156,6 @@ export const StoreOrderHistoryScreen = ({
     return <ActivityIndicator style={{ margin: 10 }} />;
   };
 
-  // const [userInfoRecord, setUserInfoRecord] = useState<
-  //   Record<string, GetUserInfoForOrderByIdResponse>
-  // >({});
-
-  // const fetchUserInfoForOrderById = async (userId: string) => {
-  //   const response = await apiCallHandler({
-  //     apiCall: () =>
-  //       getUserInfoForOrderById({
-  //         auth,
-  //         updateAccessToken,
-  //         params: {
-  //           userId,
-  //         },
-  //       }),
-  //     auth,
-  //     setAuth,
-  //     navigation,
-  //   });
-
-  //   if (
-  //     response &&
-  //     response.status >= 200 &&
-  //     response.status < 400 &&
-  //     response.data
-  //   ) {
-  //     return response.data;
-  //   } else if (response) {
-  //     console.log(response.status, response.message);
-  //   }
-  // };
-
-  // const getUserInfoRecord = async () => {
-  //   const userInfoRecordTemp: Record<string, GetUserInfoForOrderByIdResponse> =
-  //     {};
-
-  //   const promises = data?.orders.map(async (order) => {
-  //     if (order.isManual) return;
-  //     const userInfo = await fetchUserInfoForOrderById(order.userId ?? "");
-  //     userInfoRecordTemp[order.userId ?? ""] = userInfo;
-  //   });
-
-  //   await Promise.all(promises ?? []);
-  //   setUserInfoRecord(userInfoRecordTemp);
-  // };
-
   const [viewOrderDetail, setViewOrderDetail] =
     useState<Map<string, boolean>>();
   const toggleOrderDetail = (orderId: string) => {
@@ -209,39 +165,6 @@ export const StoreOrderHistoryScreen = ({
       return newMap;
     });
   };
-
-  // const [servicesRecord, setServicesRecord] = useState<
-  //   Record<string, ServiceObj>
-  // >({});
-
-  // const getStoreServices = () => {
-  //   const servicesRecordTemp: Record<string, ServiceObj> = {};
-
-  //   store.services.forEach((service) => {
-  //     servicesRecordTemp[service._id ?? ""] = service;
-  //   });
-  //   setServicesRecord(servicesRecordTemp);
-  // };
-
-  // const [serviceProductsRecord, setServiceProductsRecord] = useState<
-  //   Record<string, ServiceProductObj>
-  // >({});
-
-  // const getStoreServiceProducts = () => {
-  //   const serviceProductsRecordTemp: Record<string, ServiceProductObj> = {};
-
-  //   store.serviceProducts.forEach((serviceProduct) => {
-  //     serviceProductsRecordTemp[serviceProduct._id ?? ""] = serviceProduct;
-  //   });
-  //   setServiceProductsRecord(serviceProductsRecordTemp);
-  // };
-
-  // useEffect(() => {
-  //   if (store._id) {
-  //     getStoreServices();
-  //     getStoreServiceProducts();
-  //   }
-  // }, [store]);
 
   useEffect(() => {
     if (offset === 0) {
@@ -264,11 +187,92 @@ export const StoreOrderHistoryScreen = ({
     setOffset(0);
   }, [month, year]);
 
-  // useEffect(() => {
-  //   if (data) {
-  //     getUserInfoRecord();
-  //   }
-  // }, [data]);
+  const [showRatingModalVisible, setShowRatingModalVisible] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState("");
+
+  const handleOpenRatingModal = (orderId: string) => {
+    setShowRatingModalVisible(true);
+    setSelectedOrderId(orderId);
+  };
+
+  const defaultData: AddRatingData = {
+    storeId: "",
+    serviceId: "",
+    orderId: "",
+    rating: undefined,
+    comment: "",
+  };
+  const [addRatingData, setAddRatingData] =
+    useState<AddRatingData>(defaultData);
+  console.log(JSON.stringify(addRatingData, null, 2));
+
+  const handleAddRatingTextChange = <T extends keyof AddRatingData>(
+    value: AddRatingData[T],
+    field: T
+  ) => {
+    setAddRatingData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
+
+  const [serviceOptions, setServiceOptions] =
+    useState<[{ label: string; value: string }]>();
+
+  console.log("serviceOptions", serviceOptions);
+
+  const ratingOptions = [
+    { label: "1★", value: "1" },
+    { label: "2★", value: "2" },
+    { label: "3★", value: "3" },
+    { label: "4★", value: "4" },
+    { label: "5★", value: "5" },
+  ];
+
+  useEffect(() => {
+    if (selectedOrderId !== "") {
+      console.log("selectedOrderId", selectedOrderId);
+      const order = data?.orders.find((o) => o.orderId === selectedOrderId);
+
+      if (order) {
+        handleAddRatingTextChange(order.orderId ?? "", "orderId");
+        handleAddRatingTextChange(order.storeId ?? "", "storeId");
+
+        setServiceOptions(
+          order.services.map((service) => ({
+            label: service.name,
+            value: service.id,
+          })) as [{ label: string; value: string }]
+        );
+      }
+    } else {
+      setAddRatingData(defaultData);
+      setServiceOptions(undefined);
+    }
+  }, [selectedOrderId]);
+
+  const handleAddRating = async () => {
+    const response = await apiCallHandler({
+      apiCall: () =>
+        addRating({
+          auth,
+          updateAccessToken,
+          data: addRatingData,
+        }),
+      auth,
+      setAuth,
+      navigation,
+    });
+
+    if (response.status >= 200 && response.status < 400) {
+      setShowRatingModalVisible(false);
+      setSelectedOrderId("");
+      Alert.alert("Success", response.message);
+    } else if (response) {
+      console.log(response.status, response.message);
+      Alert.alert("Error", response.message);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -442,45 +446,6 @@ export const StoreOrderHistoryScreen = ({
                                 )} minutes faster than expected`
                               : ""}
                           </Text>
-                        )}
-                      </View>
-
-                      {/* User Info */}
-                      <View style={styles.userInfoContainer}>
-                        {item.isManual ? (
-                          <Text
-                            style={[
-                              styles.userInfoText,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            {item.userName}
-                          </Text>
-                        ) : (
-                          <View>
-                            <Text
-                              style={[
-                                styles.userInfoText,
-                                { color: activeColors.accent },
-                              ]}
-                            >
-                              {/* {userInfoRecord[item.userId ?? ""]
-                                ? userInfoRecord[item.userId ?? ""]?.firstName +
-                                  " " +
-                                  userInfoRecord[item.userId ?? ""]?.lastName
-                                : ""} */}
-                              {item.userName}
-                            </Text>
-                            <Text
-                              style={[
-                                styles.userInfoText,
-                                { color: activeColors.accent },
-                              ]}
-                            >
-                              {/* {userInfoRecord[item.userId ?? ""]?.phone} */}
-                              {item.userPhone}
-                            </Text>
-                          </View>
                         )}
                       </View>
 
@@ -717,12 +682,28 @@ export const StoreOrderHistoryScreen = ({
                       )}
                     </View>
 
-                    {!item.isManual && (
-                      <View style={{ position: "absolute", top: 5, right: 10 }}>
-                        <Text style={{ color: activeColors.infoColor }}>
-                          Online
-                        </Text>
-                      </View>
+                    {/* Rating */}
+                    {item.status === "Completed" && (
+                      <Pressable
+                        style={{ position: "absolute", right: 10, top: 10 }}
+                        onPress={() =>
+                          item.hasRating
+                            ? Alert.alert(
+                                "Already Rated",
+                                "You have already rated all the services from this order.\nThank you for your feedback."
+                              )
+                            : handleOpenRatingModal(item.orderId)
+                        }
+                        // disabled={item.hasRating}
+                      >
+                        <AntDesign
+                          name="star"
+                          size={20}
+                          color={
+                            item.hasRating ? "yellow" : activeColors.accent
+                          }
+                        />
+                      </Pressable>
                     )}
                   </View>
                 )}
@@ -734,6 +715,111 @@ export const StoreOrderHistoryScreen = ({
           )}
         </>
       )}
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showRatingModalVisible}
+        onRequestClose={() => {
+          setShowRatingModalVisible(false);
+          setSelectedOrderId("");
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContainer,
+              {
+                backgroundColor: activeColors.primary,
+                borderColor: activeColors.secondary,
+              },
+            ]}
+          >
+            {/* Content */}
+            <View style={{ paddingHorizontal: 10, marginTop: 10 }}>
+              {/* title */}
+              <View style={styles.modalTitleContainer}>
+                <Text
+                  style={[
+                    styles.modalTitleText,
+                    { color: activeColors.accent },
+                  ]}
+                >
+                  Add Rating Form
+                </Text>
+              </View>
+
+              {/* services */}
+              <View style={styles.serviceInputContainer}>
+                <DropdownPicker
+                  key="services"
+                  options={serviceOptions ?? []}
+                  selectedValue={addRatingData?.serviceId ?? ""}
+                  onValueChange={(serviceId: string) => {
+                    handleAddRatingTextChange(serviceId, "serviceId");
+                  }}
+                  placeHolder="Select service to rate"
+                  isInput={true}
+                  context="Service"
+                />
+              </View>
+              {/* rating */}
+              <View style={styles.ratingInputContainer}>
+                <DropdownPicker
+                  key="rating"
+                  options={ratingOptions}
+                  selectedValue={addRatingData?.rating?.toString() ?? ""}
+                  onValueChange={(rating: string) => {
+                    handleAddRatingTextChange(rating as any, "rating");
+                  }}
+                  placeHolder="Select rating"
+                  isInput={true}
+                  context="Service"
+                />
+              </View>
+              {/* comment */}
+              <Input
+                key="comment"
+                context="Comment"
+                placeholder="Enter Comment (Optional)"
+                value={addRatingData?.comment ?? ""}
+                updateValue={(text: string) =>
+                  handleAddRatingTextChange(text, "comment")
+                }
+              />
+
+              {/* submit button */}
+              <Pressable
+                style={[
+                  styles.modalSubmitButton,
+                  { backgroundColor: activeColors.accent },
+                ]}
+                onPress={() => handleAddRating()}
+              >
+                <Text
+                  style={[
+                    styles.modalSubmitButtonText,
+                    { color: activeColors.secondary },
+                  ]}
+                >
+                  Submit
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* Close Button */}
+            <Pressable
+              onPress={() => {
+                setShowRatingModalVisible(false);
+                setSelectedOrderId("");
+              }}
+              style={styles.modalCloseButton}
+            >
+              <AntDesign name="close" size={22} color={activeColors.accent} />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -862,5 +948,54 @@ const styles = StyleSheet.create({
   rejectedReasonText: {
     fontWeight: "500",
     fontSize: 14,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContainer: {
+    width: "85%",
+    padding: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    maxHeight: 700,
+    overflow: "hidden",
+  },
+  modalCloseButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+  },
+  serviceInputContainer: {
+    marginBottom: 20,
+    zIndex: 99,
+  },
+  ratingInputContainer: {
+    marginBottom: 10,
+    zIndex: 98,
+  },
+  modalTitleContainer: {
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalTitleText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  modalSubmitButton: {
+    marginTop: 10,
+    paddingVertical: 12,
+    borderRadius: 50,
+  },
+  modalSubmitButtonText: {
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

@@ -1094,6 +1094,8 @@ export const StoreScheduleScreen = ({
         visible={isModalVisible}
         onRequestClose={() => {
           setIsModalVisible(false);
+          setRejectOrderId("");
+          setReason("");
         }}
       >
         <View style={styles.modalOverlay}>

@@ -181,7 +181,7 @@ export const LoginScreen = ({
             </Text>
 
             {/* Inputs */}
-            <View style={{ top: -10 }}>
+            <View style={{ top: -10, width: "100%", paddingHorizontal: 25 }}>
               {/* Email Input */}
               <Input
                 key="loginEmail"
@@ -310,7 +310,7 @@ export const LoginScreen = ({
             </Text>
 
             {/* Inputs */}
-            <View>
+            <View style={{ width: "100%" }}>
               {/* Email Input */}
               <Input
                 key="forgotPasswordEmail"

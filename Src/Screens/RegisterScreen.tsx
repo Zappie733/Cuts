@@ -158,7 +158,7 @@ export const RegisterScreen = ({
             </Text>
 
             {/* Inputs */}
-            <View>
+            <View style={{ width: "100%", paddingHorizontal: 25 }}>
               {/* FirstName Input */}
               <Input
                 key="registerFirstName"

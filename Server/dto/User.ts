@@ -21,6 +21,8 @@ export interface UserObj {
   userId?: string; //setiap obj yang punya userId berarti role dari user tsbt adalah store
   pendingStoreData?: PendingStoreObj;
   likes?: LikeObj[];
+
+  createdAt?: Date;
 }
 
 export interface AuthUser {

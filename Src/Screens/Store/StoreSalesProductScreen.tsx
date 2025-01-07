@@ -618,7 +618,7 @@ export const StoreSalesProductScreen = ({
                 { borderColor: activeColors.tertiary },
               ]}
             >
-              <View>
+              <View style={{ width: "100%" }}>
                 {/* name */}
                 <Input
                   key="name"
@@ -863,10 +863,10 @@ export const StoreSalesProductScreen = ({
                   }}
                 />
 
-                {/* create order */}
+                {/* create button */}
                 <Pressable
                   style={[
-                    styles.createServiceButton,
+                    styles.createButton,
                     { backgroundColor: activeColors.accent },
                   ]}
                   onPress={() =>
@@ -1018,8 +1018,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
   },
-  createServiceButton: {
-    width: (screenWidth * 2) / 3 + 50,
+  createButton: {
+    width: "100%",
     marginTop: 10,
     paddingVertical: 10,
     borderRadius: 50,

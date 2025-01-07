@@ -15,6 +15,7 @@ import {
   GetRatingByOrderIdResponse,
   GetRatingSummaryByStoreIdResponse,
 } from "../Response/RatingResponse";
+import { ORDERHISTORY } from "../Models/OrderHistoryModel";
 
 export const addRating = async (req: Request, res: Response) => {
   try {
@@ -128,10 +129,25 @@ export const addRating = async (req: Request, res: Response) => {
         date: new Date(Date.now() + 7 * 60 * 60 * 1000),
       });
 
-      order.hasRating = true;
-
       await newRating.save();
-      await order.save();
+
+      const orderServiceWithRatings = await RATINGS.find({
+        orderId: orderId,
+      });
+
+      if (orderServiceWithRatings.length === order.serviceIds.length) {
+        order.hasRating = true;
+        await order.save();
+
+        const orderHistory = await ORDERHISTORY.findOne({
+          orderId: orderId,
+        });
+
+        if (orderHistory) {
+          orderHistory.hasRating = true;
+          await orderHistory.save();
+        }
+      }
 
       return res.status(200).json(<ResponseObj>{
         error: false,

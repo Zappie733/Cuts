@@ -678,7 +678,9 @@ export const StoreWorkerScreen = ({
 
           {/* title */}
           <View>
-            <Text style={[styles.title, { color: activeColors.accent }]}></Text>
+            <Text style={[styles.title, { color: activeColors.accent }]}>
+              {isAddForm ? "Add Worker Form" : "Update Worker Form"}
+            </Text>
           </View>
 
           {/* line separator */}
@@ -720,95 +722,101 @@ export const StoreWorkerScreen = ({
                   }}
                 />
 
-                {/* firstName */}
-                <Input
-                  key="firstName"
-                  context="First Name"
-                  placeholder="Enter First Name"
-                  value={
-                    isEditForm ? updateData.firstName : addData.firstName || ""
-                  }
-                  updateValue={(text: string) =>
-                    isEditForm
-                      ? handleUpdateTextChange(text, "firstName")
-                      : handleAddTextChange(text, "firstName")
-                  }
-                  isEditable={isEditForm ? workerFirstNameEdit : undefined}
-                  setEditable={isEditForm ? setWorkerFirstNameEdit : undefined}
-                />
-
-                {/* lastName */}
-                <Input
-                  key="lastName"
-                  context="Last Name"
-                  placeholder="Enter Last Name"
-                  value={
-                    isEditForm ? updateData.lastName : addData.lastName || ""
-                  }
-                  updateValue={(text: string) =>
-                    isEditForm
-                      ? handleUpdateTextChange(text, "lastName")
-                      : handleAddTextChange(text, "lastName")
-                  }
-                  isEditable={isEditForm ? workerLastNameEdit : undefined}
-                  setEditable={isEditForm ? setWorkerLastNameEdit : undefined}
-                />
-
-                {/* age */}
-                <Input
-                  key="age"
-                  context="Age"
-                  placeholder="Enter Age"
-                  value={
-                    isEditForm
-                      ? updateData?.age.toString() !== "0"
-                        ? updateData?.age.toString()
-                        : ""
-                      : addData?.age.toString() !== "0"
-                      ? addData?.age.toString()
-                      : ""
-                  }
-                  updateValue={(text: string) => {
-                    // Validate and accept only numeric input
-                    const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-                    isEditForm
-                      ? handleUpdateTextChange(
-                          Number.parseInt(numericValue || "0"),
-                          "age"
-                        )
-                      : handleAddTextChange(
-                          Number.parseInt(numericValue || "0"),
-                          "age"
-                        ); // Ensure at least "0" is passed if empty
-                  }}
-                  isEditable={isEditForm ? workerAgeEdit : undefined}
-                  setEditable={isEditForm ? setWorkerAgeEdit : undefined}
-                />
-
-                <View style={styles.roleInputContainer}>
-                  <DropdownPicker
-                    key={"role"}
-                    options={roleOptions}
-                    selectedValue={
-                      isEditForm ? updateData.role ?? "" : addData.role ?? ""
+                <View>
+                  {/* firstName */}
+                  <Input
+                    key="firstName"
+                    context="First Name"
+                    placeholder="Enter First Name"
+                    value={
+                      isEditForm
+                        ? updateData.firstName
+                        : addData.firstName || ""
                     }
-                    onValueChange={(text: string) => {
+                    updateValue={(text: string) =>
+                      isEditForm
+                        ? handleUpdateTextChange(text, "firstName")
+                        : handleAddTextChange(text, "firstName")
+                    }
+                    isEditable={isEditForm ? workerFirstNameEdit : undefined}
+                    setEditable={
+                      isEditForm ? setWorkerFirstNameEdit : undefined
+                    }
+                  />
+
+                  {/* lastName */}
+                  <Input
+                    key="lastName"
+                    context="Last Name"
+                    placeholder="Enter Last Name"
+                    value={
+                      isEditForm ? updateData.lastName : addData.lastName || ""
+                    }
+                    updateValue={(text: string) =>
+                      isEditForm
+                        ? handleUpdateTextChange(text, "lastName")
+                        : handleAddTextChange(text, "lastName")
+                    }
+                    isEditable={isEditForm ? workerLastNameEdit : undefined}
+                    setEditable={isEditForm ? setWorkerLastNameEdit : undefined}
+                  />
+
+                  {/* age */}
+                  <Input
+                    key="age"
+                    context="Age"
+                    placeholder="Enter Age"
+                    value={
+                      isEditForm
+                        ? updateData?.age.toString() !== "0"
+                          ? updateData?.age.toString()
+                          : ""
+                        : addData?.age.toString() !== "0"
+                        ? addData?.age.toString()
+                        : ""
+                    }
+                    updateValue={(text: string) => {
+                      // Validate and accept only numeric input
+                      const numericValue = text.replace(/[^0-9]/g, ""); // Remove non-numeric characters
                       isEditForm
                         ? handleUpdateTextChange(
-                            text as "admin" | "worker" | "others",
-                            "role"
+                            Number.parseInt(numericValue || "0"),
+                            "age"
                           )
                         : handleAddTextChange(
-                            text as "admin" | "worker" | "others",
-                            "role"
-                          );
+                            Number.parseInt(numericValue || "0"),
+                            "age"
+                          ); // Ensure at least "0" is passed if empty
                     }}
-                    placeHolder="Select Worker's Role"
-                    isInput={true}
-                    context="Role"
-                    isEditable={isEditForm ? workerRoleEdit : undefined}
-                    setEditable={isEditForm ? setWorkerRoleEdit : undefined}
+                    isEditable={isEditForm ? workerAgeEdit : undefined}
+                    setEditable={isEditForm ? setWorkerAgeEdit : undefined}
                   />
+
+                  <View style={styles.roleInputContainer}>
+                    <DropdownPicker
+                      key={"role"}
+                      options={roleOptions}
+                      selectedValue={
+                        isEditForm ? updateData.role ?? "" : addData.role ?? ""
+                      }
+                      onValueChange={(text: string) => {
+                        isEditForm
+                          ? handleUpdateTextChange(
+                              text as "admin" | "worker" | "others",
+                              "role"
+                            )
+                          : handleAddTextChange(
+                              text as "admin" | "worker" | "others",
+                              "role"
+                            );
+                      }}
+                      placeHolder="Select Worker's Role"
+                      isInput={true}
+                      context="Role"
+                      isEditable={isEditForm ? workerRoleEdit : undefined}
+                      setEditable={isEditForm ? setWorkerRoleEdit : undefined}
+                    />
+                  </View>
                 </View>
 
                 {/* line separator */}

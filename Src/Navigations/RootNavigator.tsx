@@ -28,6 +28,7 @@ import { LikedImagesScreen } from "../Screens/LikedImagesScreen";
 import { DetailStoreScreen } from "../Screens/DetailStoreScreen";
 import { StoreScheduleScreen } from "../Screens/Store/StoreScheduleScreen";
 import { TimerContext } from "../Contexts/TimerContext";
+import { OrderHistoryScreen } from "../Screens/OrderHistoryScreen";
 
 export type RootStackParamsObj = {
   TabsStack: NavigatorScreenParams<TabsStackParamsObj>;
@@ -66,6 +67,7 @@ export type RootStackParamsObj = {
   LikedImages: undefined;
   DetailStore: undefined;
   StoreSchedule: undefined;
+  OrderHistory: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamsObj>();
@@ -124,6 +126,10 @@ export const RootNavigator = () => {
             <RootStack.Screen
               name="StoreSchedule"
               component={StoreScheduleScreen}
+            />
+            <RootStack.Screen
+              name="OrderHistory"
+              component={OrderHistoryScreen}
             />
           </>
         ) : auth._id !== "" && user.role === "store" ? (

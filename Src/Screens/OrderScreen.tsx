@@ -724,7 +724,9 @@ export const OrderScreen = ({
               },
             ]}
           >
-            <Text>1</Text>
+            <Text style={{ color: activeColors.primary, fontWeight: "bold" }}>
+              1
+            </Text>
           </View>
           <View>
             <Text style={[styles.tabsItemText, { color: activeColors.accent }]}>
@@ -743,7 +745,9 @@ export const OrderScreen = ({
               },
             ]}
           >
-            <Text>2</Text>
+            <Text style={{ color: activeColors.primary, fontWeight: "bold" }}>
+              2
+            </Text>
           </View>
           <View>
             <Text style={[styles.tabsItemText, { color: activeColors.accent }]}>
@@ -762,7 +766,9 @@ export const OrderScreen = ({
               },
             ]}
           >
-            <Text>3</Text>
+            <Text style={{ color: activeColors.primary, fontWeight: "bold" }}>
+              3
+            </Text>
           </View>
           <View>
             <Text style={[styles.tabsItemText, { color: activeColors.accent }]}>
@@ -781,7 +787,9 @@ export const OrderScreen = ({
               },
             ]}
           >
-            <Text>4</Text>
+            <Text style={{ color: activeColors.primary, fontWeight: "bold" }}>
+              4
+            </Text>
           </View>
           <View>
             <Text style={[styles.tabsItemText, { color: activeColors.accent }]}>
@@ -1337,8 +1345,8 @@ export const OrderScreen = ({
               minutes
             </Text>
             <Text style={{ color: activeColors.infoColor, fontSize: 15 }}>
-              - Go to transaction history in your settings to see detail
-              rejection of your order
+              - Go to order history in your settings to see detail rejection of
+              your order
             </Text>
           </View>
           <ScrollView
@@ -1389,7 +1397,7 @@ export const OrderScreen = ({
                       handleGetOrdersByStatus("Waiting for Confirmation");
                       Alert.alert(
                         "Order rejected",
-                        `Order ${order._id} has been rejected, check history for details.`
+                        `Order ${order._id} has been rejected, check order history for details.`
                       );
                     }}
                   />
@@ -1814,8 +1822,8 @@ export const OrderScreen = ({
               minutes
             </Text>
             <Text style={{ color: activeColors.infoColor, fontSize: 15 }}>
-              - Go to transaction history in your settings to see detail
-              rejection of your order
+              - Go to order history in your settings to see detail rejection of
+              your order
             </Text>
           </View>
           <ScrollView
@@ -1866,7 +1874,7 @@ export const OrderScreen = ({
                       handleGetOrdersByStatus("Waiting for Payment");
                       Alert.alert(
                         "Payment time out",
-                        `Order ${order._id} has been rejected, check history for details.`
+                        `Order ${order._id} has been rejected, check order history for details.`
                       );
                     }}
                   />
@@ -2331,7 +2339,7 @@ export const OrderScreen = ({
               time)
             </Text>
             <Text style={{ color: activeColors.infoColor, fontSize: 15 }}>
-              - To check past order go to history transaction in your settings.
+              - To check past order go to order history in your settings.
             </Text>
           </View>
           <ScrollView

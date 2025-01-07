@@ -296,7 +296,7 @@ export const StoreProfileScreen = ({
           </Text>
 
           {/* Inputs */}
-          <View style={{ marginTop: 20 }}>
+          <View style={{ marginTop: 20, width: "100%", paddingHorizontal: 25 }}>
             {/* storeName Input */}
             <Input
               key="storeName"

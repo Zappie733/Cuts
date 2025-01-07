@@ -248,6 +248,24 @@ export const AdminStoreManagementScreen = ({
 
       <Header goBack={handleGoBack} />
 
+      {/* Store Title */}
+      <View style={styles.titleContainer}>
+        <Text style={[styles.titleText, { color: activeColors.tertiary }]}>
+          {selectedStatus} {selectedStatus === "" ? "All" : ""} Stores
+        </Text>
+      </View>
+
+      {/* Line */}
+      <View
+        style={[
+          styles.line,
+          {
+            borderColor: activeColors.secondary,
+            backgroundColor: activeColors.tertiary,
+          },
+        ]}
+      />
+
       {/* Dropdown Status */}
       <View
         style={[
@@ -265,13 +283,6 @@ export const AdminStoreManagementScreen = ({
           placeHolder="Select Store Status..."
           isInput={false}
         />
-      </View>
-
-      {/* Store Title */}
-      <View style={styles.titleContainer}>
-        <Text style={[styles.titleText, { color: activeColors.tertiary }]}>
-          {selectedStatus} {selectedStatus === "" ? "All" : ""} Stores
-        </Text>
       </View>
 
       {/* Search Bar */}
@@ -292,7 +303,7 @@ export const AdminStoreManagementScreen = ({
             backgroundColor: activeColors.tertiary,
           },
         ]}
-      ></View>
+      />
 
       {/* Store List */}
       <ScrollView showsVerticalScrollIndicator={false} onScroll={handleScroll}>
@@ -326,8 +337,8 @@ const styles = StyleSheet.create({
   },
 
   dropDownContainer: {
-    marginTop: 20,
-    marginHorizontal: 20,
+    marginBottom: 5,
+    marginHorizontal: 50,
     borderRadius: 20,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -347,7 +358,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
   },
   titleText: {
-    fontSize: 24,
+    fontSize: 26,
+    marginBottom: 10,
   },
   line: {
     borderWidth: 1,

@@ -7,6 +7,7 @@ import {
   getOrderforSchedule,
   getOrdersByStatus,
   getStoreOrderHistory,
+  getUserOrderHistory,
   payOrder,
   rejectOrder,
 } from "../Controllers/OrderController";
@@ -21,3 +22,4 @@ OrderRoute.patch("/payOrder/:id", payOrder);
 OrderRoute.patch("/completeOrder/:id", completeOrder);
 OrderRoute.patch("/rejectOrder", rejectOrder);
 OrderRoute.delete("/cancelOrder/:id", cancelOrder);
+OrderRoute.get("/getUserOrderHistory", getUserOrderHistory);
