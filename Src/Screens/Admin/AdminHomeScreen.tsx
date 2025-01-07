@@ -370,7 +370,7 @@ export const AdminHomeScreen = ({
                 { color: activeColors.accent },
               ]}
             >
-              Your Recent Approval
+              Your Recent Approve
             </Text>
 
             {adminRecentApprove &&
@@ -433,7 +433,7 @@ export const AdminHomeScreen = ({
                 { color: activeColors.accent },
               ]}
             >
-              Your Recent Rejection
+              Your Recent Reject
             </Text>
 
             {adminRecentReject &&

@@ -553,13 +553,18 @@ export const DetailStoreScreen = ({
                 <Text
                   style={[styles.addressText, { color: activeColors.accent }]}
                 >
-                  {store.location.address}
+                  {store.district},{store.subDistrict}
+                </Text>
+                <Text
+                  style={[styles.addressText, { color: activeColors.accent }]}
+                >
+                  {store.location}
                 </Text>
               </View>
 
               <Pressable
                 style={{ position: "absolute", top: 8, right: 8 }}
-                onPress={() => handleCopy(store.location.address, "Location")}
+                onPress={() => handleCopy(store.location, "Location")}
               >
                 <Feather name="copy" size={24} color={activeColors.accent} />
               </Pressable>

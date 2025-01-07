@@ -64,8 +64,6 @@ export const Store = ({
       storeDistrict: data.district,
       storeSubDistrict: data.subDistrict,
       storeLocation: data.location,
-      // storeLocationName: data.location?.address,
-      // storeLocationCoord: `${data.location?.coordinates?.coordinates}}`,
       storeImages: data.images,
       storeDocuments: data.documents,
     };
@@ -254,26 +252,19 @@ export const Store = ({
           <Text style={[styles.text, { color: activeColors.accent }]}>
             <Text style={{ fontWeight: "400" }}>Status:</Text> {data.status}
           </Text>
-          <View>
-            <Text style={[styles.text, { color: activeColors.accent }]}>
-              <Text style={{ fontWeight: "400" }}>District:</Text> {data.district}
-            </Text>
-            <Text style={[styles.text, { color: activeColors.accent }]}>
-              <Text style={{ fontWeight: "400" }}>Sub-District:</Text>{" "}
-              {data.subDistrict}
-            </Text>
-            <Text
-              style={[styles.text, { color: activeColors.accent }]}
-              numberOfLines={3}
-            >
-              <Text style={{ fontWeight: "400", color: activeColors.accent }}>Location:</Text> {data.location.address}
-            </Text>
-            <Text
-              style={[styles.text, { color: activeColors.accent }]}
-            >
-              <Text style={{ fontWeight: "400", color: activeColors.accent }}>Lon, Lat: </Text> {`${data.location.coordinates.coordinates}`}
-            </Text>
-          </View>
+          <Text style={[styles.text, { color: activeColors.accent }]}>
+            <Text style={{ fontWeight: "400" }}>District:</Text> {data.district}
+          </Text>
+          <Text style={[styles.text, { color: activeColors.accent }]}>
+            <Text style={{ fontWeight: "400" }}>Sub-District:</Text>{" "}
+            {data.subDistrict}
+          </Text>
+          <Text
+            style={[styles.text, { color: activeColors.accent }]}
+            numberOfLines={2}
+          >
+            <Text style={{ fontWeight: "400" }}>Location:</Text> {data.location}
+          </Text>
         </View>
       </View>
 

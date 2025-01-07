@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL } from "../Config/Api";
+import { API_HOST, API_PORT } from "../Config/Api";
 import { IAuthObj } from "../Types/ContextTypes/AuthContextTypes";
 import { apiCallWithToken, handleAxiosError } from "./IndexMiddleware";
 import {
@@ -44,7 +44,7 @@ export const registerUser = async ({
     };
 
     const result = await axios.post(
-      `${API_URL}/user/registerUser`,
+      `http://${API_HOST}:${API_PORT}/user/registerUser`,
       registerData
     );
     //console.log(JSON.stringify(result, null, 2));
@@ -68,10 +68,8 @@ export const loginUser = async ({
       password,
     };
 
-    console.log(email, password)
-
     const result = await axios.post(
-      `${API_URL}/user/loginUser`,
+      `http://${API_HOST}:${API_PORT}/user/loginUser`,
       loginData
     );
 
@@ -96,7 +94,7 @@ export const changeUserPassword = async ({
     };
 
     const result = await axios.post(
-      `${API_URL}/user/changeUserPassword`,
+      `http://${API_HOST}:${API_PORT}/user/changeUserPassword`,
       changePasswordData
     );
     //console.log(JSON.stringify(result, null, 2));
@@ -117,7 +115,7 @@ export const logoutUser = async (refreshToken: string) => {
     };
 
     const result = await axios.post(
-      `${API_URL}/user/logoutUser`,
+      `http://${API_HOST}:${API_PORT}/user/logoutUser`,
       refreshTokenObj
     );
     //console.log(JSON.stringify(result, null, 2));

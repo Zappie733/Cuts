@@ -10,7 +10,6 @@ import { Ionicons, Fontisto, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { HomeScreen } from "../Screens/HomeScreen";
 import { colors } from "../Config/Theme";
-import { ToolsScreen } from "../Screens/ToolsScreen";
 import { SettingsScreen } from "../Screens/SettingsScreen";
 import { AdminHomeScreen } from "../Screens/Admin/AdminHomeScreen";
 import { AdminStoreManagementScreen } from "../Screens/Admin/AdminStoreManagementScreen";
@@ -23,7 +22,6 @@ import { OrderScreen } from "../Screens/OrderScreen";
 export type TabsStackParamsObj = {
   Home: undefined;
   Settings: undefined;
-  Tools: undefined;
 
   AdminStoreManagement: undefined;
 
@@ -69,11 +67,6 @@ export const TabsNavigator = () => {
             );
           } else if (route.name === "Settings") {
             iconName = focused ? "settings" : "settings-outline";
-            return (
-              <Ionicons name={iconName} size={iconSize} color={iconColor} />
-            );
-          } else if (route.name === "Tools") {
-            iconName = focused ? "hammer" : "hammer-outline";
             return (
               <Ionicons name={iconName} size={iconSize} color={iconColor} />
             );
@@ -147,11 +140,6 @@ export const TabsNavigator = () => {
           <TabsStack.Screen
             name="Order"
             component={OrderScreen}
-            options={{ unmountOnBlur: true }}
-          />
-          <TabsStack.Screen
-            name="Tools"
-            component={ToolsScreen}
             options={{ unmountOnBlur: true }}
           />
           <TabsStack.Screen
