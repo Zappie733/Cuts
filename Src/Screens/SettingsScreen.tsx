@@ -373,7 +373,8 @@ export const SettingsScreen = ({
                   <Text style={styles.storeGeneralInfoTextLabel}>
                     Location:
                   </Text>{" "}
-                  {store.location}
+                  {store.location.address}
+                  {`${store.location.coordinates.coordinates}`}
                 </Text>
                 <Text
                   style={[

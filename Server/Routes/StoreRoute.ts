@@ -70,6 +70,8 @@ import {
   updateGallery,
 } from "../Controllers/GalleryController";
 
+import { getClosestStore } from "../Services/StoreServices";
+
 export const StoreRoute = express.Router();
 
 StoreRoute.post("/registerStore", registerStore);
@@ -170,3 +172,5 @@ StoreRoute.delete("/gallery/deleteGalleryById/:id", deleteGalleryById);
 StoreRoute.put("/gallery/updateGallery", updateGallery);
 StoreRoute.patch("/gallery/likeGalleryById/:storeId/:id", likeGalleryById);
 StoreRoute.get("/gallery/getGalleryById/:storeId/:id", getGalleryById);
+
+StoreRoute.get("/getClosestStore", getClosestStore)
