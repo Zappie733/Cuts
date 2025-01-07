@@ -39,12 +39,16 @@ import ImageViewing from "react-native-image-viewing";
 import { DropdownPicker } from "../Components/DropdownPicker";
 import {
   DeleteStoreData,
-  RegistrationStoreData,
+  RegistrationStoreData
 } from "../Types/StoreTypes/StoreTypes";
 import { Theme } from "../Contexts/ThemeContext";
 import { User } from "../Contexts/UserContext";
 import { Auth } from "../Contexts/AuthContext";
 import { apiCallHandler } from "../Middlewares/util";
+
+import { extractLatLng } from "../../Server/Utils/LocationUtils";
+
+import { Coordinates, Location } from "../Types/StoreTypes/StoreTypes";
 
 const screenWidth = Dimensions.get("screen").width;
 
@@ -66,6 +70,19 @@ export const RegisterStoreScreen = ({
     navigation.goBack();
   };
 
+  
+  const [locationName, setLocationName] = useState(String);
+  const [locationCoordText, setLocationCoordText] = useState(String);
+  const [locationCoord, setLocationCoord] = useState(Array<Number>);
+  
+  const defaultLocation: Location = {
+    address: locationName,
+    coordinates: {
+      type: "Point",
+      coordinates: locationCoord
+    }
+  }
+
   //Data
   const defaultStoreRegisterFormData: RegistrationStoreData = {
     userId: user?._id || "",
@@ -76,9 +93,9 @@ export const RegisterStoreScreen = ({
     storeImages: [],
     storeName: "",
     storeType: "",
+    storeLocation: defaultLocation,
     storeDistrict: "",
     storeSubDistrict: "",
-    storeLocation: "",
     storeDocuments: [],
   };
   const [storeRegisterFormData, setStoreRegisterFormData] =
@@ -94,7 +111,6 @@ export const RegisterStoreScreen = ({
 
   //Register Store (user)
   const [hidePassword, setHidePassword] = useState(true);
-  const [hideCPassword, setHideCPassword] = useState(true);
   const handleRegisterStoreTextChange = (
     text: string,
     field: keyof RegistrationStoreData
@@ -108,6 +124,54 @@ export const RegisterStoreScreen = ({
     { label: "Salon", value: "salon" },
     { label: "Barbershop", value: "barbershop" },
   ];
+
+  const handleChangeLocationName = (text: string) => {
+    setLocationName(text)
+
+    const tempCoord: Coordinates = {
+      type: "Point",
+      coordinates: locationCoord
+    }
+
+    const tempLocation: Location = {
+      address: locationName,
+      coordinates: tempCoord
+    }
+
+    setStoreRegisterFormData({
+      ...storeRegisterFormData,
+      storeLocation: tempLocation
+    })
+  }
+
+  const handleChangeLocationCoord = (text: string) => {
+    const hasGoogle = text.includes("https://www.google.com/maps");
+
+    setLocationCoordText(text)
+
+    if (text !== null && text !== undefined && text.trim() !== '' && hasGoogle) {
+      const extractedLatLon = extractLatLng(text);
+      setLocationCoordText(`${extractedLatLon.lat}, ${extractedLatLon.lon}`)
+
+      const tempCoord: Coordinates = {
+        type: "Point",
+        coordinates: [extractedLatLon.lon, extractedLatLon.lat]
+      }
+      
+      const tempLocation: Location = {
+        address: locationName,
+        coordinates: tempCoord
+      }
+
+      if (extractedLatLon != null){
+        setStoreRegisterFormData({
+          ...storeRegisterFormData,
+          storeLocation: tempLocation
+        })
+      }
+    }
+  }
+
   const handleChangeImages = (images: IImageProps[]) => {
     setStoreRegisterFormData({
       ...storeRegisterFormData,
@@ -709,7 +773,7 @@ export const RegisterStoreScreen = ({
               <>
                 {/* Title */}
                 <Text style={[styles.title, { color: activeColors.accent }]}>
-                  Join With Cuts & Expands Your Store
+                  Join Cuts and Expand Your Store
                 </Text>
 
                 {/* Information Button */}
@@ -747,6 +811,19 @@ export const RegisterStoreScreen = ({
 
                 {/* Inputs */}
                 <View style={styles.inputContainer}>
+                  {/* Store Name Input */}
+                  <Input
+                    key="registerStoreName"
+                    context="Name"
+                    placeholder="Enter Store Name"
+                    value={storeRegisterFormData.storeName}
+                    updateValue={(text: string) =>
+                      handleRegisterStoreTextChange(text, "storeName")
+                    }
+                    iconName="shopping-store"
+                    iconSource="Fontisto"
+                  />
+
                   {/* Email Input */}
                   <Input
                     key="registerStoreEmail"
@@ -764,7 +841,7 @@ export const RegisterStoreScreen = ({
                     key="registerStorePassword"
                     context="Store Password"
                     isHidden={hidePassword}
-                    setHidden={setHidePassword}
+                    setHidden={() => setHidePassword(!hidePassword)}
                     placeholder="Enter Store Password"
                     value={
                       storeRegisterFormData.password
@@ -781,8 +858,8 @@ export const RegisterStoreScreen = ({
                   <Input
                     key="registerStoreConfirmPassword"
                     context="Confirm Password"
-                    isHidden={hideCPassword}
-                    setHidden={setHideCPassword}
+                    isHidden={hidePassword}
+                    setHidden={() => setHidePassword(!hidePassword)}
                     placeholder="Enter Store Confirm Password"
                     value={
                       storeRegisterFormData.confirmPassword
@@ -862,12 +939,23 @@ export const RegisterStoreScreen = ({
 
                   {/* Store Location Input */}
                   <Input
-                    key="registerStoreLocation"
+                    key="registerStoreLocationName"
                     context="Location"
                     placeholder="Enter Store Location"
-                    value={storeRegisterFormData.storeLocation}
+                    value={locationName}
                     updateValue={(text: string) =>
-                      handleRegisterStoreTextChange(text, "storeLocation")
+                      handleChangeLocationName(text)
+                    }
+                    iconName="location"
+                    iconSource="EvilIcons"
+                  />
+                  <Input
+                    key="registerStoreLocationCoord"
+                    context="Location"
+                    placeholder="Enter Google Maps Link"
+                    value={locationCoordText}
+                    updateValue={(text: string) =>
+                      handleChangeLocationCoord(text)
                     }
                     iconName="location"
                     iconSource="EvilIcons"
@@ -1034,7 +1122,7 @@ export const RegisterStoreScreen = ({
                     key="registerStoreReviewLocation"
                     context="Location"
                     placeholder="Enter Store Location"
-                    value={storeRegisterFormData.storeLocation}
+                    value={storeRegisterFormData.storeLocation.address}
                     updateValue={(text: string) =>
                       handleRegisterStoreTextChange(text, "storeLocation")
                     }

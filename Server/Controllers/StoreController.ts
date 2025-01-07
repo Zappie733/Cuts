@@ -8,24 +8,19 @@ import {
   OnHoldStoreRequestObj,
   PayloadObj,
   PayloadVerifyTokenObj,
-  PendingStoreObj,
-  RegisterStoreRequestObj,
   RejectStoreRequestObj,
   DeleteStoreRequestObj,
   StoreObj,
-  UserObj,
   UpdateStoreGeneralInformationRequestObj,
+  RegisterStoreRequestObj
 } from "../dto";
 import bcrypt from "bcrypt";
 import {
-  SALT,
-  BASE_URL,
   IMAGEKIT_PUBLIC_KEY,
   IMAGEKIT_PRIVATE_KEY,
   IMAGEKIT_BASEURL,
 } from "../Config";
 import {
-  generateVerifyTokens,
   verifyAccessToken,
   verifyVerifyToken,
 } from "../Utils/UserTokenUtil";
@@ -38,131 +33,64 @@ import {
 } from "../Response/StoreResponse";
 import { USERTOKENS } from "../Models/UserTokenModel";
 import {
-  RegisterStoreValidate,
   DeleteStoreValidate,
   RejectStoreValidate,
+  RegisterStoreValidate
 } from "../Validation/StoreValidation";
 import mongoose from "mongoose";
 import { OnHoldStoreValidate } from "../Validation/StoreValidation/OnHoldStoreValidate";
 import { UpdateStoreGeneralInformationValidate } from "../Validation/StoreValidation/UpdateStoreGeneralInformationValidate";
 
+import { sendErrorResponse } from "../Utils/Responses";
+import { getAccessTokenFromHeader } from "../Utils/Auth"
+
+import { createUserWithStore } from "../Services/StoreServices";
+import { sendVerificationEmail } from "../Services/EmailService";
+import { validateUniqueConstraints } from "../Services/StoreServices";
+
+function validateStoreRegistration(body: RegisterStoreRequestObj) {
+  const { error } = RegisterStoreValidate(body);
+  return error ? error.details[0].message : null;
+}
+
 export const registerStore = async (req: Request, res: Response) => {
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(400).json(<ResponseObj>{
-        error: true,
-        message: "Access Token is required",
-      });
+    // Verify access token
+    const accessToken = getAccessTokenFromHeader(req);
+    if (!accessToken) {
+      return sendErrorResponse(res, 400, "Access Token is required");
     }
-    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
 
-    // Verify the access token
-    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
-      accessToken,
+    const tokenResponse = await verifyAccessToken({ accessToken });
+    if (tokenResponse.error) {
+      return sendErrorResponse(res, 401, tokenResponse.message);
+    }
+
+    // Validate request body
+    const validationError = validateStoreRegistration(req.body);
+    if (validationError) {
+      return sendErrorResponse(res, 400, validationError);
+    }
+
+    const storeData = req.body as RegisterStoreRequestObj;
+    
+    // Check existing email and store name
+    await validateUniqueConstraints(storeData.email, storeData.storeName);
+
+    // Create new user with store data
+    const user = await createUserWithStore(storeData);
+
+    // Send verification email
+    await sendVerificationEmail(user, storeData.storeName);
+
+    return res.status(201).json(<ResponseObj>{
+      error: false,
+      message: "An email has been sent to your account, please verify your account to continue the registration of your store",
     });
 
-    if (!response.error) {
-      console.log(req.body);
-      //Validate Inputs
-      const { error } = RegisterStoreValidate(
-        <RegisterStoreRequestObj>req.body
-      );
-      // console.log(error);
-      if (error)
-        return res.status(400).json(<ResponseObj>{
-          error: true,
-          message: error.details[0].message,
-        });
-
-      const {
-        userId,
-        email,
-        password,
-        role,
-        storeImages,
-        storeDistrict,
-        storeSubDistrict,
-        storeLocation,
-        storeName,
-        storeType,
-        storeDocuments,
-      } = <RegisterStoreRequestObj>req.body;
-
-      //Check if email exist
-      const isEmailExist = await USERS.findOne({ email: email.toLowerCase() });
-      if (isEmailExist)
-        return res.status(409).json(<ResponseObj>{
-          error: true,
-          message: "User with given email is already exist",
-        });
-
-      //Check if store name exist
-      const isStoreNameExist = await STORES.findOne({
-        name: storeName,
-        isDeletedFromRejectedStatus: false,
-      });
-      if (isStoreNameExist)
-        return res.status(409).json(<ResponseObj>{
-          error: true,
-          message: "Store with given name is already exist",
-        });
-
-      //Hash Password
-      const salt = await bcrypt.genSalt(parseInt(SALT || "10"));
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      const pendingStoreData: PendingStoreObj = {
-        storeImages,
-        storeName,
-        storeDistrict,
-        storeSubDistrict,
-        storeLocation,
-        storeType,
-        storeDocuments,
-      };
-      // console.log(pendingStoreData);
-      //Create New User
-      const user = new USERS({
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        role,
-        userId,
-        pendingStoreData,
-      });
-      //Save User
-      await user.save();
-
-      const verifiedToken = await generateVerifyTokens({
-        _id: user.id,
-        verified: true,
-      });
-
-      const url = `${BASE_URL}/store/${user._id}/verifyStore/${verifiedToken}`;
-      await sendEmail(
-        "account",
-        user.email,
-        "Verify Email",
-        url,
-        `owner of ${storeName}`
-      );
-
-      return res.status(201).json(<ResponseObj>{
-        error: false,
-        message:
-          "An Email sent to your account, please verify your account to continue the registration of your store",
-      });
-    }
-
-    return res
-      .status(401)
-      .json(<ResponseObj>{ error: true, message: response.message });
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json(<ResponseObj>{ error: true, message: "Internal Server error" });
+    console.error(error);
+    return sendErrorResponse(res, 500, "Internal Server error");
   }
 };
 
@@ -626,7 +554,7 @@ export const rejectStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store rejected successfully, Email sent to ${userEmail}`,
+          message: `Store rejected successfully, an email has been sent to ${userEmail}`,
         });
       }
 
@@ -725,7 +653,7 @@ export const holdStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store held successfully, Email sent to ${userEmail}`,
+          message: `Store held successfully, an email has been sent to ${userEmail}`,
         });
       }
 
@@ -814,13 +742,13 @@ export const unHoldStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store un-hold successfully, Email sent to ${userEmail}`,
+          message: `Store hold removed successfully, an email has been sent to ${userEmail}`,
         });
       }
 
       return res.status(200).json(<ResponseObj>{
         error: false,
-        message: "Store un-hold successfully",
+        message: "Store hold removed successfully",
       });
     }
 
@@ -903,7 +831,7 @@ export const approveStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store approved successfully, Email sent to ${userEmail}`,
+          message: `Store approved successfully, an email has been sent to ${userEmail}`,
         });
       }
 
@@ -985,7 +913,7 @@ export const activeStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store activated successfully, Email sent to ${userEmail}`,
+          message: `Store activated successfully, an email has been sent to ${userEmail}`,
         });
       }
 
@@ -1067,13 +995,13 @@ export const inActiveStore = async (req: Request, res: Response) => {
 
         return res.status(200).json(<ResponseObj>{
           error: false,
-          message: `Store inactived successfully, Email sent to ${userEmail}`,
+          message: `Store deactivated successfully, an email has been sent to ${userEmail}`,
         });
       }
 
       return res.status(200).json(<ResponseObj>{
         error: false,
-        message: "Store inactived successfully",
+        message: "Store deactivated successfully",
       });
     }
 
