@@ -142,7 +142,7 @@ export const StoreRatingScreen = ({
       }));
 
       setHasMore(response.data.total > currentTotal);
-      setOffset((prevOffset) => prevOffset ?? 0 + PAGE_LIMIT);
+      setOffset((prevOffset) => (prevOffset ? prevOffset : 0 + PAGE_LIMIT));
     } else if (response) {
       console.log(response.status, response.message);
       setHasMore(false); // Stop fetching on error

@@ -36,6 +36,7 @@ const defaultContext: IUserContext = {
     },
     userId: "",
     likes: [],
+    createdAt: new Date(),
   },
   setUser: () => {},
   updateUserImage: (image: IImageProps) => {},
@@ -61,6 +62,7 @@ export const UserContext = ({ children }: { children: ReactNode }) => {
     },
     userId: "",
     likes: [],
+    createdAt: new Date(),
   };
   const [user, setUser] = useState<IUserObj>(defaultUser);
 

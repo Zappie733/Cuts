@@ -4,7 +4,10 @@ import {
   ApiRequestProps,
 } from "../../Types/MiddleWareTypes";
 import { IResponseProps } from "../../Types/ResponseTypes";
-import { GetServicesByStoreIdResponse } from "../../Types/ResponseTypes/StoreResponse";
+import {
+  GetServiceInfoforOrderByIdResponse,
+  GetServicesByStoreIdResponse,
+} from "../../Types/ResponseTypes/StoreResponse";
 import {
   AddServiceData,
   UpdateServiceData,
@@ -120,6 +123,37 @@ export const updateService = async ({
 
   return {
     status: result.status,
+    message: result.message,
+  };
+};
+
+export const getServiceInfoforOrderById = async ({
+  auth,
+  updateAccessToken,
+  params, //storeId, serviceId
+}: ApiRequestProps): Promise<
+  IResponseProps<GetServiceInfoforOrderByIdResponse>
+> => {
+  // console.log("getServiceInfoforOrderById Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/store/service/getServiceInfoforOrderById/${params?.storeId}/${params?.serviceId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<GetServiceInfoforOrderByIdResponse>(
+    apiCallWithTokenProps
+  );
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    data: result.data,
     message: result.message,
   };
 };

@@ -455,30 +455,57 @@ export const SettingsScreen = ({
           </Pressable>
         </View>
 
-        {/* liked images */}
+        {/* liked images && Order History */}
         {user.role === "user" && (
-          <Pressable onPress={() => navigation.navigate("LikedImages")}>
-            <View
+          <>
+            <Pressable onPress={() => navigation.navigate("LikedImages")}>
+              <View
+                style={[
+                  styles.likedImagesContainer,
+                  { backgroundColor: activeColors.accent, marginBottom: 20 },
+                ]}
+              >
+                <Ionicons
+                  name="images"
+                  size={24}
+                  color={activeColors.secondary}
+                />
+                <Text
+                  style={[
+                    styles.likedImagesText,
+                    { color: activeColors.secondary },
+                  ]}
+                >
+                  Liked Images
+                </Text>
+              </View>
+            </Pressable>
+
+            {/* Order History */}
+            <Pressable
               style={[
-                styles.likedImagesContainer,
-                { backgroundColor: activeColors.accent, marginBottom: 20 },
+                styles.orderHistoryButton,
+                { backgroundColor: activeColors.accent },
               ]}
+              onPress={() => navigation.navigate("OrderHistory")}
             >
-              <Ionicons
-                name="images"
+              <Octicons
+                name="history"
                 size={24}
                 color={activeColors.secondary}
+                style={{ marginRight: 10 }}
               />
+
               <Text
                 style={[
-                  styles.likedImagesText,
+                  styles.orderHistoryButtonText,
                   { color: activeColors.secondary },
                 ]}
               >
-                Liked Images
+                Order History
               </Text>
-            </View>
-          </Pressable>
+            </Pressable>
+          </>
         )}
 
         {/*  theme and logout for user */}
@@ -559,6 +586,7 @@ export const SettingsScreen = ({
                 name="history"
                 size={20}
                 color={activeColors.secondary}
+                style={{ marginLeft: 10 }}
               />
             </Pressable>
 
@@ -884,6 +912,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontWeight: "500",
   },
+
   switchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -979,7 +1008,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: "center",
     fontWeight: "bold",
-    marginRight: 10,
   },
   ratingsContainer: {
     marginHorizontal: 30,

@@ -141,7 +141,7 @@ export const ProfileScreen = ({
           <SelectProfileImage userImage={user.image?.file ?? ""} />
 
           {/* Inputs */}
-          <View style={{ marginTop: 20 }}>
+          <View style={{ marginTop: 20, width: "100%", paddingHorizontal: 15 }}>
             {/* FirstName Input */}
             <Input
               key="firstName"

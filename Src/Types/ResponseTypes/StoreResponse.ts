@@ -57,3 +57,42 @@ export interface GetMostLikesGalleryByStoreIdResponse {
 export interface GetGalleryByIdResponse {
   gallery: GalleryObj;
 }
+
+export interface GetStoreInfoForOrderByIdResponse {
+  name: string;
+
+  isOpen: boolean;
+  canChooseWorker: boolean;
+  toleranceTime: number;
+
+  district: string;
+  subDistrict: string;
+  location: string;
+
+  rejectedReason?: string;
+}
+
+export interface GetWorkerInfoForOrderByIdObj {
+  id: string;
+  firstName: string;
+  lastName: string;
+  image: string;
+  isOnDuty: boolean;
+}
+export interface GetWorkerInfoForOrderByIdResponse {
+  workers: GetWorkerInfoForOrderByIdObj[];
+}
+
+export interface GetServiceInfoforOrderByIdResponse {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+  discount?: number;
+}
+
+export interface GetServiceProductsInfoForOrderByIdResponse {
+  serviceId: string; //fe only
+  name: string;
+  additionalPrice: number;
+}

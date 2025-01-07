@@ -22,6 +22,7 @@ export interface GetUserProfileResponse {
   verified: boolean;
   image: IImageProps;
   likes: LikeObj[];
+  createdAt: Date;
 }
 
 export interface UpdateUserProfileImageResponse {

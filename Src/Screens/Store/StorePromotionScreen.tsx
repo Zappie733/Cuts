@@ -434,7 +434,7 @@ export const StorePromotionScreen = ({
                 { borderColor: activeColors.tertiary },
               ]}
             >
-              <View>
+              <View style={{ width: "100%" }}>
                 <SelectSingleImage
                   imageData={isEditForm ? updateData.image : addData.image}
                   handleSetImage={(image: IImageProps | null) =>
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   createServiceProductButton: {
-    width: (screenWidth * 2) / 3 + 50,
+    width: "100%",
     marginTop: 10,
     paddingVertical: 10,
     borderRadius: 50,

@@ -529,9 +529,16 @@ export const getOrdersByStatus = async (req: Request, res: Response) => {
         _id: response.data?._id,
         role: response.data?.role,
       };
-
+      const now = new Date();
+      now.setHours(now.getHours() + 7);
+      // console.log(now);
       if (payload.role === "user") {
         query.userId = payload._id;
+
+        //so in fe only display paid orders that are not expired
+        if (status === "Paid") {
+          query.endTime = { $gt: now };
+        }
       } else if (payload.role === "store") {
         const store = await STORES.findOne({ userId: payload._id });
         if (!store) {
@@ -545,7 +552,7 @@ export const getOrdersByStatus = async (req: Request, res: Response) => {
       }
 
       const orders = await ORDERS.find(query)
-        .sort({ date: 1 }) //asc
+        .sort({ date: -1 }) //desc
         .limit(Number(limit))
         .skip(Number(offset));
 
@@ -639,7 +646,7 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
       query.status = { $in: ["Paid", undefined, "Completed", "Rejected"] };
 
       const orders = await ORDERHISTORY.find(query)
-        .sort({ date: 1 }) //asc
+        .sort({ date: -1 }) //desc
         .limit(Number(limit))
         .skip(Number(offset));
 
@@ -652,7 +659,13 @@ export const getStoreOrderHistory = async (req: Request, res: Response) => {
       responseData.orders = orders;
       responseData.total = await ORDERHISTORY.countDocuments(query);
 
-      const summaryOrders = await ORDERHISTORY.find(query).sort({ date: 1 }); //asc
+      const summaryQuery = {
+        ...query,
+        status: { $in: ["Paid", undefined, "Completed"] },
+      };
+      const summaryOrders = await ORDERHISTORY.find(summaryQuery).sort({
+        date: 1,
+      });
 
       const summaryMap: { [key: string]: number } = {};
       for (const order of summaryOrders) {
@@ -1431,6 +1444,304 @@ export const completeOrder = async (req: Request, res: Response) => {
       return res.status(200).json(<ResponseObj>{
         error: false,
         message: "Order has been completed successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const cancelOrder = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const user = await USERS.findOne({ _id: payload._id });
+
+      if (!user) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "User not found",
+        });
+      }
+
+      const { id: orderId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json(<ResponseObj>{
+          error: true,
+          message: "Invalid Order ID",
+        });
+      }
+
+      const order = await ORDERS.findOne({
+        _id: orderId,
+        status: {
+          $in: ["Waiting for Confirmation", "Waiting for Payment"],
+        },
+      });
+
+      if (!order) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "Order not found",
+        });
+      }
+
+      if (order.userId?.toString() !== user._id?.toString()) {
+        return res.status(401).json(<ResponseObj>{
+          error: true,
+          message: "You are not authorized to cancel this order",
+        });
+      }
+
+      if (order.isManual === false) {
+        const store = await STORES.findOne({ _id: order.storeId });
+
+        if (!store) {
+          return res.status(404).json(<ResponseObj>{
+            error: true,
+            message: "Store not found",
+          });
+        }
+
+        for (const serviceId of order.serviceIds) {
+          const service = store.services.find(
+            (service) => service._id?.toString() === serviceId.toString()
+          );
+          if (!service) {
+            return res.status(404).json(<ResponseObj>{
+              error: true,
+              message: "Service not found " + serviceId,
+            });
+          }
+
+          if (service.serviceProduct) {
+            const allServiceProductIds = service.serviceProduct;
+            console.log("All Service Products Ids: " + allServiceProductIds);
+
+            for (const serviceProductId of allServiceProductIds) {
+              const serviceProduct = store.serviceProducts.find(
+                (serviceProduct) =>
+                  serviceProduct._id?.toString() === serviceProductId.toString()
+              );
+
+              if (
+                serviceProduct &&
+                (serviceProduct.isAnOption === false ||
+                  order.chosenServiceProductsIds
+                    ?.find(
+                      (obj) => obj.serviceId.toString() === serviceId.toString()
+                    )
+                    ?.serviceProductIds.includes(
+                      serviceProduct._id?.toString() ?? ""
+                    ))
+              ) {
+                if (!mongoose.Types.ObjectId.isValid(serviceProductId)) {
+                  return res.status(400).json(<ResponseObj>{
+                    error: true,
+                    message: "Invalid Service Product ID " + serviceProductId,
+                  });
+                }
+                console.log("increase quantity of " + serviceProductId);
+                serviceProduct.quantity += 1;
+              }
+            }
+          }
+        }
+
+        await store.save();
+
+        await order.deleteOne();
+      }
+
+      return res.status(200).json(<ResponseObj>{
+        error: false,
+        message: "Order has been canceled successfully",
+      });
+    }
+
+    return res
+      .status(401)
+      .json(<ResponseObj>{ error: true, message: response.message });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(<ResponseObj>{ error: true, message: "Internal server error" });
+  }
+};
+
+export const getUserOrderHistory = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json(<ResponseObj>{
+        error: true,
+        message: "Access Token is required",
+      });
+    }
+    const accessToken = authHeader.split(" ")[1]; // Extract the accessToken from Bearer token
+
+    // Verify the access token
+    const response: ResponseObj<PayloadObj> = await verifyAccessToken({
+      accessToken,
+    });
+
+    if (!response.error) {
+      const { limit, offset } = req.query;
+      const month = req.query.month
+        ? parseInt(req.query.month as string, 10)
+        : undefined;
+      const year = req.query.year
+        ? parseInt(req.query.year as string, 10)
+        : undefined;
+
+      // console.log(month, year);
+
+      let query: any = {};
+
+      // if (year) {
+      //   if (month) {
+      //     if (month < 1 || month > 12 || month === 0) {
+      //       return res.status(400).json(<ResponseObj>{
+      //         error: true,
+      //         message: "Invalid Month (must be between 1 and 12)",
+      //       });
+      //     } else {
+      //       const startDate = new Date(year, month - 1, 1); // Start of the month
+      //       startDate.setHours(startDate.getHours() + 7);
+      //       const endDate = new Date(year, month, 1); // Start of the next month
+      //       endDate.setHours(endDate.getHours() + 7);
+      //       // console.log("startDate: ", startDate, "endDate: ", endDate);
+      //       query.date = {
+      //         $gte: startDate,
+      //         $lt: endDate,
+      //       };
+      //     }
+      //   } else {
+      //     const startDate = new Date(year, 0, 1); // Start of the year
+      //     startDate.setHours(startDate.getHours() + 7);
+      //     const endDate = new Date(year + 1, 0, 0); // End of the year
+      //     endDate.setHours(endDate.getHours() + 7);
+      //     // console.log("startDate: ", startDate, "endDate: ", endDate);
+      //     query.date = {
+      //       $gte: startDate,
+      //       $lt: endDate,
+      //     };
+      //   }
+      // }
+
+      if (month !== undefined && year) {
+        if (month < 1 || month > 12 || month === 0) {
+          return res.status(400).json(<ResponseObj>{
+            error: true,
+            message: "Invalid Month (must be between 1 and 12)",
+          });
+        } else {
+          const startDate = new Date(year, month - 1, 1); // Start of the month
+          startDate.setHours(startDate.getHours() + 7);
+          const endDate = new Date(year, month, 1); // Start of the next month
+          endDate.setHours(endDate.getHours() + 7);
+          // console.log("startDate: ", startDate, "endDate: ", endDate);
+          query.date = {
+            $gte: startDate,
+            $lt: endDate,
+          };
+        }
+      }
+
+      const payload = <PayloadObj>{
+        _id: response.data?._id,
+        role: response.data?.role,
+      };
+
+      const user = await USERS.findOne({ _id: payload._id });
+      if (!user) {
+        return res.status(404).json(<ResponseObj>{
+          error: true,
+          message: "User not found",
+        });
+      }
+
+      query.userId = user._id;
+
+      query.status = { $in: ["Completed", "Rejected"] };
+
+      const orders = await ORDERHISTORY.find(query)
+        .sort({ date: -1 }) //desc
+        .limit(Number(limit))
+        .skip(Number(offset));
+
+      const responseData: GetStoreOrderHistoryResponse = {
+        orders: [],
+        total: 0,
+        summary: [],
+      };
+
+      responseData.orders = orders;
+      responseData.total = await ORDERHISTORY.countDocuments(query);
+
+      const summaryQuery = { ...query, status: "Completed" };
+      const summaryOrders = await ORDERHISTORY.find(summaryQuery).sort({
+        date: 1,
+      });
+
+      const summaryMap: { [key: string]: number } = {};
+      for (const order of summaryOrders) {
+        for (const service of order.services) {
+          const serviceName = service.name;
+          if (summaryMap[serviceName]) {
+            summaryMap[serviceName]++;
+          } else {
+            summaryMap[serviceName] = 1;
+          }
+        }
+      }
+
+      // Convert summaryMap to an array of Summary objects
+      //object.entries will change obj into array, like {a: 1, b: 2} => [['a', 1], ['b', 2]]
+      //.map will destructure the array, the first as serviceName and the second as total, last the obj will use the destructed value to make an obj that contains serviceName and total
+      responseData.summary = Object.entries(summaryMap).map(
+        ([serviceName, total]) =>
+          <OrderSummary>{
+            serviceName,
+            total,
+          }
+      );
+
+      return res.status(200).json(<ResponseObj<GetStoreOrderHistoryResponse>>{
+        error: false,
+        message: `${
+          user.firstName + " " + user.lastName
+        } order history retrieved successfully`,
+        data: responseData,
       });
     }
 

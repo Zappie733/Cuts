@@ -703,7 +703,7 @@ export const RegisterStoreScreen = ({
             </Text>
 
             {/* Inputs */}
-            <View>
+            <View style={{ width: "100%" }}>
               {/* Password Input */}
               <Input
                 key="inputPassword"
@@ -1616,6 +1616,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flex: 1,
+    marginHorizontal: 25,
     alignItems: "center",
   },
   typeInputContainer: {

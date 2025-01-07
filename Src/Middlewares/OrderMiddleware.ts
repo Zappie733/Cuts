@@ -246,3 +246,64 @@ export const completeOrder = async ({
     message: result.message,
   };
 };
+
+export const cancelOrder = async ({
+  auth,
+  updateAccessToken,
+  params, //orderId
+}: ApiRequestProps): Promise<IResponseProps> => {
+  // console.log("cancelOrder Process");
+  const apiOptions: ApiOptions = {
+    method: "DELETE",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/order/cancelOrder/${params?.orderId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken(apiCallWithTokenProps);
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    message: result.message,
+  };
+};
+
+export const getUserOrderHistory = async ({
+  auth,
+  updateAccessToken,
+  params, //limit, offset, month, year
+}: ApiRequestProps): Promise<IResponseProps<GetStoreOrderHistoryResponse>> => {
+  // console.log("getUserOrderHistory Process");
+  // console.log(params);
+  const apiOptions: ApiOptions = {
+    method: "GET",
+    queryParams: {
+      limit: params?.limit,
+      offset: params?.offset,
+      month: params?.month,
+      year: params?.year,
+    },
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: "/order/getUserOrderHistory",
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result = await apiCallWithToken<GetStoreOrderHistoryResponse>(
+    apiCallWithTokenProps
+  );
+  // console.log(JSON.stringify(result, null, 2));
+  return {
+    status: result.status,
+    data: result.data,
+    message: result.message,
+  };
+};

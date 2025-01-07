@@ -5,6 +5,7 @@ import {
   deleteStore,
   getStoreById,
   getStoreByUserId,
+  getStoreInfoForOrderById,
   getStoresByStatus,
   getStoresByUserId,
   holdStore,
@@ -22,6 +23,7 @@ import {
   clockIn,
   clockOut,
   deleteWorkerById,
+  getWorkersInfoForOrderById,
   getWorkersByStoreId,
   registerWorker,
   updateWorker,
@@ -30,6 +32,7 @@ import {
 import {
   addService,
   deleteService,
+  getServiceInfoforOrderById,
   getServicesByStoreId,
   updateService,
 } from "../Controllers/ServiceController";
@@ -38,6 +41,7 @@ import {
   addServiceProduct,
   deleteServiceProductById,
   getServiceProductsByStoreId,
+  getServiceProductsInfoForOrderById,
   updateServiceProduct,
 } from "../Controllers/ServiceProductController";
 
@@ -88,6 +92,7 @@ StoreRoute.patch(
 StoreRoute.patch("/updateStoreOpenCloseStatus", updateStoreOpenCloseStatus);
 StoreRoute.get("/getStoreByUserId", getStoreByUserId);
 StoreRoute.get("/getStoreById/:id", getStoreById);
+StoreRoute.get("/getStoreInfoForOrderById/:id", getStoreInfoForOrderById);
 
 //Worker
 StoreRoute.get("/worker/getWorkersByStoreId/:id", getWorkersByStoreId);
@@ -97,12 +102,20 @@ StoreRoute.put("/worker/updateWorker", updateWorker);
 StoreRoute.patch("/worker/clockIn/:id", clockIn);
 StoreRoute.patch("/worker/clockOut/:id", clockOut);
 StoreRoute.patch("/worker/absence", absence);
+StoreRoute.get(
+  "/worker/getWorkersInfoForOrderById/:id",
+  getWorkersInfoForOrderById
+);
 
 //Service
 StoreRoute.get("/service/getServicesByStoreId/:id", getServicesByStoreId);
 StoreRoute.post("/service/addService", addService);
 StoreRoute.delete("/service/deleteService/:id", deleteService);
 StoreRoute.put("/service/updateService", updateService);
+StoreRoute.get(
+  "/service/getServiceInfoforOrderById/:storeId/:serviceId",
+  getServiceInfoforOrderById
+);
 
 //Service Product
 StoreRoute.get(
@@ -115,6 +128,10 @@ StoreRoute.delete(
   deleteServiceProductById
 );
 StoreRoute.put("/serviceProduct/updateServiceProduct", updateServiceProduct);
+StoreRoute.get(
+  "/serviceProduct/getServiceProductsInfoForOrderById/:storeId/:serviceProductId",
+  getServiceProductsInfoForOrderById
+);
 
 //Sales Product
 StoreRoute.get(

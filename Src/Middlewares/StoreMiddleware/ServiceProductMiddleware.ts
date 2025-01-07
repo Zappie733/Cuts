@@ -4,7 +4,10 @@ import {
   ApiRequestProps,
 } from "../../Types/MiddleWareTypes";
 import { IResponseProps } from "../../Types/ResponseTypes";
-import { GetServiceProductsByStoreIdResponse } from "../../Types/ResponseTypes/StoreResponse";
+import {
+  GetServiceProductsByStoreIdResponse,
+  GetServiceProductsInfoForOrderByIdResponse,
+} from "../../Types/ResponseTypes/StoreResponse";
 import {
   AddServiceProductData,
   UpdateServiceProductData,
@@ -122,6 +125,38 @@ export const updateServiceProduct = async ({
 
   return {
     status: result.status,
+    message: result.message,
+  };
+};
+
+export const getServiceProductsInfoForOrderById = async ({
+  auth,
+  updateAccessToken,
+  params, //storeId, serviceProductId
+}: ApiRequestProps): Promise<
+  IResponseProps<GetServiceProductsInfoForOrderByIdResponse>
+> => {
+  // console.log("getServiceProductsInfoForOrderById Process");
+  const apiOptions: ApiOptions = {
+    method: "GET",
+  };
+
+  const apiCallWithTokenProps: ApiCallWithTokenProps = {
+    endpoint: `/store/serviceProduct/getServiceProductsInfoForOrderById/${params?.storeId}/${params?.serviceProductId}`,
+    options: apiOptions,
+    auth,
+    updateAccessToken,
+  };
+
+  const result =
+    await apiCallWithToken<GetServiceProductsInfoForOrderByIdResponse>(
+      apiCallWithTokenProps
+    );
+  // console.log(JSON.stringify(result, null, 2));
+
+  return {
+    status: result.status,
+    data: result.data,
     message: result.message,
   };
 };

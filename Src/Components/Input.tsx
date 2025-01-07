@@ -166,7 +166,8 @@ export const Input = ({
                 context !== "Description" &&
                 context !== "Link URL" &&
                 context !== "Caption" &&
-                context !== "Promotion"
+                context !== "Promotion" &&
+                context !== "Comment"
                   ? false
                   : true
               }
@@ -199,7 +200,8 @@ export const Input = ({
               context !== "Description" &&
               context !== "Link URL" &&
               context !== "Caption" &&
-              context !== "Promotion"
+              context !== "Promotion" &&
+              context !== "Comment"
                 ? false
                 : true
             }
@@ -240,7 +242,7 @@ export const Input = ({
 const styles = StyleSheet.create({
   container: {
     borderRadius: 18,
-    width,
+    width: "100%",
     paddingVertical: 8,
     justifyContent: "center",
     paddingRight: 10,

@@ -1,11 +1,12 @@
 export const colors = {
   light: {
-    primary: "#DDE6ED",
-    secondary: "#9DB2BF",
+    primary: "#9DB2BF",
+    secondary: "#DDE6ED",
     tertiary: "#526D82",
     accent: "#27374D",
     disabledColor: "#8c8c8c",
-    infoColor: "#FF0000",
+    infoColor: "#FFFF00",
+    // "#FF0000"
   },
   dark: {
     primary: "#27374D",
