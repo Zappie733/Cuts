@@ -792,69 +792,108 @@ export const DetailStoreScreen = ({
               horizontal={true}
               showsHorizontalScrollIndicator={false}
             >
-              {store.storePromotions.map((promotion, index) => (
-                <Pressable
-                  key={promotion._id}
-                  onPress={() => handleImagePress(0, promotion.image.file)}
-                >
-                  <ImageBackground
-                    source={{ uri: promotion.image.file }}
-                    style={[
-                      styles.promotionItemContainer,
-                      {
-                        borderColor: activeColors.tertiary,
-                        width: screenWidth * 0.75,
-                        height: 120,
-                      },
-                    ]}
-                    imageStyle={styles.promotionItemImage}
+              {store.storePromotions
+                .filter((promotion) => {
+                  // console.log(new Date(promotion.startDate));
+                  // console.log(new Date(promotion.endDate));
+                  // console.log(new Date(Date.now() + 7 * 60 * 60 * 1000));
+                  return (
+                    new Date(promotion.startDate).getTime() <=
+                      Date.now() + 7 * 60 * 60 * 1000 &&
+                    new Date(promotion.endDate).getTime() >=
+                      Date.now() + 7 * 60 * 60 * 1000
+                  );
+                })
+                .map((promotion, index) => (
+                  <Pressable
+                    key={promotion._id}
+                    onPress={() => handleImagePress(0, promotion.image.file)}
                   >
-                    <View
+                    <ImageBackground
+                      source={{ uri: promotion.image.file }}
                       style={[
-                        styles.promotionItemContent,
+                        styles.promotionItemContainer,
                         {
-                          backgroundColor:
-                            promotion.showImageOnly === true
-                              ? "transparent"
-                              : theme.mode === "dark"
-                              ? "rgba(0,0,0,0.3)"
-                              : "rgba(255,255,255,0.1)",
+                          borderColor: activeColors.tertiary,
+                          width: screenWidth * 0.75,
+                          height: 120,
                         },
                       ]}
+                      imageStyle={styles.promotionItemImage}
                     >
-                      {promotion.showImageOnly === false && (
-                        <>
-                          <Text
-                            style={[
-                              styles.promotionItemText,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            {promotion.name}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.promotionItemStartEndText,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            Start: {dateFormat(promotion.startDate)}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.promotionItemStartEndText,
-                              { color: activeColors.accent },
-                            ]}
-                          >
-                            End: {dateFormat(promotion.endDate)}
-                          </Text>
-                        </>
-                      )}
-                    </View>
-                  </ImageBackground>
-                </Pressable>
-              ))}
+                      <View
+                        style={[
+                          styles.promotionItemContent,
+                          {
+                            backgroundColor:
+                              promotion.showImageOnly === true
+                                ? "transparent"
+                                : theme.mode === "dark"
+                                ? "rgba(0,0,0,0.3)"
+                                : "rgba(255,255,255,0.1)",
+                          },
+                        ]}
+                      >
+                        {promotion.showImageOnly === false && (
+                          <>
+                            <Text
+                              style={[
+                                styles.promotionItemText,
+                                { color: activeColors.accent },
+                              ]}
+                            >
+                              {promotion.name}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.promotionItemStartEndText,
+                                { color: activeColors.accent },
+                              ]}
+                            >
+                              Start: {dateFormat(promotion.startDate)}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.promotionItemStartEndText,
+                                { color: activeColors.accent },
+                              ]}
+                            >
+                              End: {dateFormat(promotion.endDate)}
+                            </Text>
+                          </>
+                        )}
+                      </View>
+                    </ImageBackground>
+                  </Pressable>
+                ))}
             </ScrollView>
+            {/* empty promo */}
+            {store.storePromotions.filter((promotion) => {
+              // console.log(new Date(promotion.startDate));
+              // console.log(new Date(promotion.endDate));
+              // console.log(new Date(Date.now() + 7 * 60 * 60 * 1000));
+              return (
+                new Date(promotion.startDate).getTime() <=
+                  Date.now() + 7 * 60 * 60 * 1000 &&
+                new Date(promotion.endDate).getTime() >=
+                  Date.now() + 7 * 60 * 60 * 1000
+              );
+            }).length === 0 && (
+              <Text
+                style={{
+                  width: "100%",
+                  color: activeColors.accent,
+                  textAlign: "center",
+                  fontSize: 20,
+                  marginTop: 10,
+                  paddingBottom: 10,
+                  borderBottomWidth: 0.5,
+                  borderColor: activeColors.tertiary,
+                }}
+              >
+                No Promotions
+              </Text>
+            )}
           </View>
 
           {/* Tabs */}
