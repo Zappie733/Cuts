@@ -583,9 +583,7 @@ export const OrderScreen = ({
           status === "Waiting for Confirmation" &&
           ordersToRemove.length > 0
         ) {
-          setTimeout(() => {
-            setStep(3);
-          }, 500);
+          setStep(3);
         }
 
         if (status === "Waiting for Payment" && ordersToRemove.length > 0) {
@@ -664,13 +662,13 @@ export const OrderScreen = ({
     getALlData();
   }, [WaitingForConfirmationOrders, WaitingForPaymentOrders, onGoingOrders]);
 
-  useEffect(() => {
-    handleGetOrdersByStatus("Waiting for Payment");
-  }, [WaitingForConfirmationOrders]);
+  // useEffect(() => {
+  //   handleGetOrdersByStatus("Waiting for Payment");
+  // }, [WaitingForConfirmationOrders]);
 
-  useEffect(() => {
-    handleGetOrdersByStatus("Paid");
-  }, [WaitingForPaymentOrders]);
+  // useEffect(() => {
+  //   handleGetOrdersByStatus("Paid");
+  // }, [WaitingForPaymentOrders]);
 
   const handleCancelOrder = async (orderId: string) => {
     const response = await apiCallHandler({
@@ -1418,6 +1416,7 @@ export const OrderScreen = ({
                       style={{
                         color: activeColors.accent,
                         fontSize: 15,
+                        width: "90%",
                       }}
                     >
                       Order Id:
@@ -1773,7 +1772,7 @@ export const OrderScreen = ({
                   </View>
 
                   {/* open close */}
-                  <View style={{ position: "absolute", top: 160, right: 10 }}>
+                  <View style={{ position: "absolute", top: 185, right: 10 }}>
                     {storesInfoRecord[order._id ?? ""]?.isOpen ? (
                       <Image
                         source={require("../../assets/open.png")}
@@ -1938,6 +1937,7 @@ export const OrderScreen = ({
                       style={{
                         color: activeColors.accent,
                         fontSize: 15,
+                        width: "90%",
                       }}
                     >
                       Order Id:
@@ -2293,7 +2293,7 @@ export const OrderScreen = ({
                   </View>
 
                   {/* open close */}
-                  <View style={{ position: "absolute", top: 245, right: 10 }}>
+                  <View style={{ position: "absolute", top: 275, right: 10 }}>
                     {storesInfoRecord[order._id ?? ""]?.isOpen ? (
                       <Image
                         source={require("../../assets/open.png")}
@@ -2332,7 +2332,7 @@ export const OrderScreen = ({
                 fontWeight: "bold",
               }}
             >
-              On Going stage notes
+              On Going stage notes (last stage)
             </Text>
             <Text style={{ color: activeColors.infoColor, fontSize: 15 }}>
               - Remember not to past the store tolarance time (better be on
@@ -2727,7 +2727,7 @@ export const OrderScreen = ({
                   </View>
 
                   {/* open close */}
-                  <View style={{ position: "absolute", top: 85, right: 10 }}>
+                  <View style={{ position: "absolute", top: 115, right: 10 }}>
                     {storesInfoRecord[order._id ?? ""]?.isOpen ? (
                       <Image
                         source={require("../../assets/open.png")}

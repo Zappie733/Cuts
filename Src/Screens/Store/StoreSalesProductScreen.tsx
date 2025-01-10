@@ -595,9 +595,7 @@ export const StoreSalesProductScreen = ({
                 { color: activeColors.accent, fontSize: 26 },
               ]}
             >
-              {isAddForm
-                ? "Add Sales Products Form"
-                : "Edit Sales Products Form"}
+              {isAddForm ? "Add Sales Product Form" : "Edit Sales Product Form"}
             </Text>
           </View>
 

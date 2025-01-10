@@ -679,7 +679,7 @@ export const StoreWorkerScreen = ({
           {/* title */}
           <View>
             <Text style={[styles.title, { color: activeColors.accent }]}>
-              {isAddForm ? "Add Worker Form" : "Update Worker Form"}
+              {isAddForm ? "Add Worker Form" : "Edit Worker Form"}
             </Text>
           </View>
 

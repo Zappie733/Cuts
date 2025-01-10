@@ -579,7 +579,35 @@ export const RegisterStoreScreen = ({
                   backgroundColor: activeColors.accent,
                 },
               ]}
-              onPress={isHold === true ? handleHoldStore : handleRejectStore}
+              onPress={() => {
+                isHold === true
+                  ? Alert.alert(
+                      "Confirmation",
+                      "Are you sure you want to HOLD this store?",
+                      [
+                        { text: "No" },
+                        {
+                          text: "Yes",
+                          onPress: () => {
+                            handleHoldStore();
+                          },
+                        },
+                      ],
+                      { cancelable: true }
+                    )
+                  : Alert.alert(
+                      "Confirmation",
+                      "Are you sure you want to REJECT this store?",
+                      [
+                        { text: "No" },
+                        {
+                          text: "Yes",
+                          onPress: () => handleRejectStore(),
+                        },
+                      ],
+                      { cancelable: true }
+                    );
+              }}
             >
               <Text
                 style={[
@@ -1176,8 +1204,8 @@ export const RegisterStoreScreen = ({
                             "Confirmation",
                             "Are you sure you want to APPROVE this store?",
                             [
-                              { text: "Yes", onPress: handleApproveStore },
                               { text: "No" },
+                              { text: "Yes", onPress: handleApproveStore },
                             ],
                             { cancelable: true }
                           )
@@ -1198,22 +1226,7 @@ export const RegisterStoreScreen = ({
                       </Pressable>
 
                       {/* Reject */}
-                      <Pressable
-                        onPress={() =>
-                          Alert.alert(
-                            "Confirmation",
-                            "Are you sure you want to REJECT this store?",
-                            [
-                              {
-                                text: "Yes",
-                                onPress: () => setIsModalReasonVisible(true),
-                              },
-                              { text: "No" },
-                            ],
-                            { cancelable: true }
-                          )
-                        }
-                      >
+                      <Pressable onPress={() => setIsModalReasonVisible(true)}>
                         <Text
                           style={[
                             styles.registerButtonContainer,
@@ -1234,23 +1247,10 @@ export const RegisterStoreScreen = ({
                     <>
                       {/* Hold */}
                       <Pressable
-                        onPress={() =>
-                          Alert.alert(
-                            "Confirmation",
-                            "Are you sure you want to HOLD this store?",
-                            [
-                              {
-                                text: "Yes",
-                                onPress: () => {
-                                  setIsModalReasonVisible(true);
-                                  setIsHold(true);
-                                },
-                              },
-                              { text: "No" },
-                            ],
-                            { cancelable: true }
-                          )
-                        }
+                        onPress={() => {
+                          setIsModalReasonVisible(true);
+                          setIsHold(true);
+                        }}
                       >
                         <Text
                           style={[
@@ -1308,11 +1308,11 @@ export const RegisterStoreScreen = ({
                             "Confirmation",
                             "Are you sure you want to UNHOLD this store?",
                             [
+                              { text: "No" },
                               {
                                 text: "Yes",
                                 onPress: () => handleUnHoldStore(),
                               },
-                              { text: "No" },
                             ],
                             { cancelable: true }
                           )
@@ -1386,11 +1386,11 @@ export const RegisterStoreScreen = ({
                             "Have you reviewed the store?",
                             `Press YES and System will ask for the store password for deletion process so you can make a new store with the same email.`,
                             [
+                              { text: "No" },
                               {
                                 text: "Yes",
                                 onPress: () => setIsModalDeleteVisible(true),
                               },
-                              { text: "No" },
                             ],
                             { cancelable: true }
                           )

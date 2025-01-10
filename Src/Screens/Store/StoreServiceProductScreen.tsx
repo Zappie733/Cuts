@@ -300,7 +300,7 @@ export const StoreServiceProductScreen = ({
           {/* title */}
           <View>
             <Text style={[styles.title, { color: activeColors.accent }]}>
-              Services Products
+              Service Products
             </Text>
             {/* add service product button */}
             <Pressable
@@ -595,8 +595,8 @@ export const StoreServiceProductScreen = ({
               ]}
             >
               {isAddForm
-                ? "Add Services Products Form"
-                : "Edit Service Products Form"}
+                ? "Add Service Product Form"
+                : "Edit Service Product Form"}
             </Text>
           </View>
 

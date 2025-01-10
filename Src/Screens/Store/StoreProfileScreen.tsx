@@ -507,7 +507,7 @@ export const StoreProfileScreen = ({
             />
 
             <Text style={[styles.switchText, { color: activeColors.accent }]}>
-              Operational status ({store.isOpen ? "Open" : "Closed"})
+              Operational ({store.isOpen ? "Open" : "Closed"})
             </Text>
           </View>
 

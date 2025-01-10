@@ -13,6 +13,7 @@ import {
   Modal,
   Alert,
   ToastAndroid,
+  BackHandler,
 } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { Theme } from "../Contexts/ThemeContext";
@@ -128,6 +129,20 @@ export const DetailStoreScreen = ({
 
     navigation.goBack();
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      handleGoBack();
+      return true; // Prevent the default back action
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove(); // Clean up the listener on unmount
+  }, [handleGoBack]);
 
   const labelFormat = (label: string) => {
     return label.replace(/\b\w/g, (char) => char.toUpperCase());

@@ -608,7 +608,7 @@ export const StoreServiceScreen = ({
           {/* title */}
           <View>
             <Text style={[styles.title, { color: activeColors.accent }]}>
-              {isAddForm ? "Add Services Form" : "Edit Service Form"}
+              {isAddForm ? "Add Service Form" : "Edit Service Form"}
             </Text>
           </View>
 

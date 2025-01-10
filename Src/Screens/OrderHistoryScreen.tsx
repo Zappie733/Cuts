@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Modal,
   Alert,
+  ScrollView,
 } from "react-native";
 import { RootStackScreenProps } from "../Navigations/RootNavigator";
 import React, { useContext, useEffect, useRef, useState } from "react";
@@ -31,6 +32,7 @@ import { AddRatingData } from "../Types/RatingTypes";
 import { addRating } from "../Middlewares/RatingMiddleware";
 
 const screenWidth = Dimensions.get("screen").width;
+const screenHeight = Dimensions.get("screen").height;
 const PAGE_LIMIT = 3;
 
 export const OrderHistoryScreen = ({
@@ -324,32 +326,38 @@ export const OrderHistoryScreen = ({
             <View
               style={[
                 styles.summaryContainer,
-                { backgroundColor: activeColors.secondary },
+                {
+                  backgroundColor: activeColors.secondary,
+                  maxHeight:
+                    data?.summary && data.summary.length > 0 ? 140 : 80,
+                },
               ]}
             >
-              {data?.summary && data.summary.length > 0 ? (
-                data.summary.map((summary, index) => (
-                  <View key={index}>
-                    <Text
-                      style={[
-                        styles.summaryText,
-                        { color: activeColors.accent },
-                      ]}
-                    >
-                      {summary.serviceName.replace(/\b\w/g, (char) =>
-                        char.toUpperCase()
-                      )}
-                      : {summary.total}
-                    </Text>
-                  </View>
-                ))
-              ) : (
-                <Text
-                  style={[styles.summaryText, { color: activeColors.accent }]}
-                >
-                  No data available
-                </Text>
-              )}
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {data?.summary && data.summary.length > 0 ? (
+                  data.summary.map((summary, index) => (
+                    <View key={index}>
+                      <Text
+                        style={[
+                          styles.summaryText,
+                          { color: activeColors.accent },
+                        ]}
+                      >
+                        {summary.serviceName.replace(/\b\w/g, (char) =>
+                          char.toUpperCase()
+                        )}
+                        : {summary.total}
+                      </Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text
+                    style={[styles.summaryText, { color: activeColors.accent }]}
+                  >
+                    No data available
+                  </Text>
+                )}
+              </ScrollView>
             </View>
           </View>
 
@@ -856,7 +864,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     marginHorizontal: 30,
     paddingHorizontal: 30,
-    paddingVertical: 10,
+    paddingVertical: 15,
     borderRadius: 20,
   },
   summaryText: {
@@ -874,10 +882,9 @@ const styles = StyleSheet.create({
   orderContainer: {
     marginTop: 10,
     marginHorizontal: 30,
-    marginBottom: 30,
     borderRadius: 10,
     padding: 10,
-    height: 420,
+    height: screenHeight * 0.45,
   },
 
   statusContainer: {
