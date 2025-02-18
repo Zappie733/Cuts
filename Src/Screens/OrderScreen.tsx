@@ -95,12 +95,12 @@ export const OrderScreen = ({
   // const { stopTimer } = useTimer();
 
   const priceFormat = (price: number) => {
-    let priceStr = price.toString();
+    let priceStr = price?.toString();
     let newStr = "";
     let lastIndex = 3;
-    while (priceStr.length > lastIndex) {
+    while (priceStr?.length > lastIndex) {
       newStr =
-        priceStr.slice(0, priceStr.length - lastIndex) +
+        priceStr.slice(0, priceStr?.length - lastIndex) +
         "." +
         priceStr.slice(-lastIndex);
 
@@ -872,7 +872,7 @@ export const OrderScreen = ({
                               },
                             ]}
                           >
-                            {service.name}
+                            {service?.name}
                           </Text>
 
                           <Text
@@ -883,10 +883,10 @@ export const OrderScreen = ({
                               },
                             ]}
                           >
-                            {service.duration} min
+                            {service?.duration} min
                           </Text>
 
-                          {service.discount && service.discount > 0 ? (
+                          {service?.discount && service?.discount > 0 ? (
                             <Text
                               style={[
                                 styles.orderServiceText,
@@ -897,9 +897,10 @@ export const OrderScreen = ({
                             >
                               Rp
                               {priceFormat(
-                                ((100 - service.discount) * service.price) / 100
+                                ((100 - service?.discount) * service?.price) /
+                                  100
                               )}{" "}
-                              ({service.discount}% off)
+                              ({service?.discount}% off)
                             </Text>
                           ) : (
                             <Text
@@ -910,7 +911,7 @@ export const OrderScreen = ({
                                 },
                               ]}
                             >
-                              Rp{priceFormat(service.price)}
+                              Rp{priceFormat(service?.price)}
                             </Text>
                           )}
                         </View>
@@ -932,7 +933,7 @@ export const OrderScreen = ({
                         {/* servicesProducts */}
                         <View>
                           {serviceProductsInfoRecord[order.storeId ?? ""]
-                            ?.filter((obj) => obj.serviceId === service.id)
+                            ?.filter((obj) => obj?.serviceId === service?.id)
                             ?.map((serviceProduct, index) => (
                               <View
                                 key={index}
@@ -975,7 +976,7 @@ export const OrderScreen = ({
                     )
                   )}
 
-                  {/* Estimate Time &Total price */}
+                  {/* Estimate Time & Total price */}
                   <View style={styles.orderEstimateNTotalContainer}>
                     <View>
                       <Text
@@ -986,7 +987,7 @@ export const OrderScreen = ({
                       >
                         Estimated Time:{" "}
                         <Text style={{ color: activeColors.infoColor }}>
-                          {order.totalDuration} min
+                          {order?.totalDuration} min
                         </Text>
                       </Text>
                     </View>
@@ -999,7 +1000,7 @@ export const OrderScreen = ({
                       >
                         Total:{" "}
                         <Text style={{ color: activeColors.infoColor }}>
-                          Rp{priceFormat(order.totalPrice)}
+                          Rp{priceFormat(order?.totalPrice)}
                         </Text>
                       </Text>
                     </View>
@@ -1016,7 +1017,7 @@ export const OrderScreen = ({
                   {/* date */}
                   <View style={styles.dateTimePickerContainer}>
                     <>
-                      {order.date && (
+                      {order?.date && (
                         <View style={{ width: "100%", marginBottom: 10 }}>
                           <Text
                             style={[
@@ -1032,19 +1033,27 @@ export const OrderScreen = ({
                               { color: activeColors.accent },
                             ]}
                           >
-                            {order.date.toUTCString().includes("GMT")
-                              ? new Date(
-                                  order.date.getTime() + 7 * 60 * 60 * 1000
-                                )
-                                  .toUTCString()
-                                  .split("GMT")[0]
-                              : new Date(
-                                  new Date(
-                                    order.date.getTime() + 7 * 60 * 60 * 1000
-                                  ).getTime()
-                                )
-                                  .toUTCString()
-                                  .split("GMT")[0]}
+                            {(() => {
+                              // Ensure `order.date` is a valid Date object
+                              const orderDate = new Date(order.date);
+                              if (isNaN(orderDate.getTime())) {
+                                return "Invalid Date";
+                              }
+
+                              return orderDate.toUTCString().includes("GMT")
+                                ? new Date(
+                                    orderDate.getTime() + 7 * 60 * 60 * 1000
+                                  )
+                                    ?.toUTCString()
+                                    .split("GMT")[0]
+                                : new Date(
+                                    new Date(
+                                      orderDate.getTime() + 7 * 60 * 60 * 1000
+                                    ).getTime()
+                                  )
+                                    .toUTCString()
+                                    .split("GMT")[0];
+                            })()}
                           </Text>
                         </View>
                       )}
