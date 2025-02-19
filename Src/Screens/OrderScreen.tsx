@@ -1781,7 +1781,7 @@ export const OrderScreen = ({
                   </View>
 
                   {/* open close */}
-                  <View style={{ position: "absolute", top: 185, right: 10 }}>
+                  <View style={{ position: "absolute", top: 175, right: 10 }}>
                     {storesInfoRecord[order._id ?? ""]?.isOpen ? (
                       <Image
                         source={require("../../assets/open.png")}
@@ -2302,7 +2302,7 @@ export const OrderScreen = ({
                   </View>
 
                   {/* open close */}
-                  <View style={{ position: "absolute", top: 275, right: 10 }}>
+                  <View style={{ position: "absolute", top: 265, right: 10 }}>
                     {storesInfoRecord[order._id ?? ""]?.isOpen ? (
                       <Image
                         source={require("../../assets/open.png")}
