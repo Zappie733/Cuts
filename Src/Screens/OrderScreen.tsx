@@ -2736,7 +2736,7 @@ export const OrderScreen = ({
                   </View>
 
                   {/* open close */}
-                  <View style={{ position: "absolute", top: 115, right: 10 }}>
+                  <View style={{ position: "absolute", top: 85, right: 10 }}>
                     {storesInfoRecord[order._id ?? ""]?.isOpen ? (
                       <Image
                         source={require("../../assets/open.png")}
